@@ -23,9 +23,9 @@
 #include "interfaces/IPersist.h"
 #include "communication/Publisher.h"
 #include "communication/Dealer.h"
-#include "data_types/Field.h"
-#include "data_types/BreakpointSet.h"
-#include "helper_classes/zhelpers.hpp"
+#include "data-types/Field.h"
+#include "data-types/BreakpointSet.h"
+#include "communication/zhelpers.hpp"
 
 class SimulationModel: public virtual IModel, public virtual IPersist {
 public:

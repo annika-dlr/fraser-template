@@ -12,7 +12,7 @@
 
 #include <zmq.hpp>
 
-#include "helper_classes/zhelpers.hpp"
+#include "communication/zhelpers.hpp"
 #include "interfaces/IModel.h"
 #include <pugixml.hpp>
 #include <string>

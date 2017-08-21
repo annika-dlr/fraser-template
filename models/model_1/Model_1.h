@@ -15,14 +15,14 @@
 #include <boost/filesystem.hpp>
 
 #include <zmq.hpp>
-#include <helper_classes/zhelpers.hpp>
 
+#include "communication/zhelpers.hpp"
 #include "communication/Subscriber.h"
 #include "communication/Publisher.h"
 #include "communication/Dealer.h"
 #include "interfaces/IModel.h"
 #include "interfaces/IPersist.h"
-#include "data_types/Field.h"
+#include "data-types/Field.h"
 
 class Model1: public virtual IModel,
 		public virtual IPersist {

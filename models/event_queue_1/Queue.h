@@ -19,13 +19,13 @@
 #include "communication/Dealer.h"
 #include "communication/Publisher.h"
 #include "communication/Subscriber.h"
-#include "data_types/Event.h"
-#include "data_types/EventSet.h"
-#include "helper_classes/zhelpers.hpp"
+#include "data-types/Event.h"
+#include "data-types/EventSet.h"
+#include "communication/zhelpers.hpp"
 #include "interfaces/IModel.h"
 #include "interfaces/IPersist.h"
 #include "interfaces/IQueue.h"
-#include "queues/scheduler/Scheduler.h"
+#include "scheduler/Scheduler.h"
 
 class Queue: public virtual IModel,
 		public virtual IPersist,
