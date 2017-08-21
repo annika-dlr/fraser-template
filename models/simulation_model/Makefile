@@ -1,7 +1,7 @@
 
 PROG = simulationModel
-SRCS= main.cpp SimulationModel.cpp ../communication/Subscriber.cpp ../communication/Publisher.cpp \
-../communication/Dealer.cpp
+SRCS= main.cpp SimulationModel.cpp ../../fraser/src/communication/Subscriber.cpp ../../fraser/src/communication/Publisher.cpp \
+../../fraser/src/communication/Dealer.cpp
 BINDIR = ../../bin
 OBJDIR = ../../obj
 
