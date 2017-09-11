@@ -1,0 +1,8 @@
+---
+- name: Check if folders exists
+  file: path="{{ item }}" state=directory
+  with_items: 
+  - "../models"
+  - "../configurations"
+  - "../fraser"
+  changed_when: False

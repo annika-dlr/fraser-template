@@ -1,0 +1,28 @@
+---
+- name: Ping host machines
+  ping:
+  register: hostsstable
+  
+- name: Print it was a success
+  command: echo "Yeah"
+  when: hostsstable|success
+  changed_when: False
+
+- name: List directories and capture variable
+  command: "ls ../models/{{ item }}"
+  register: dir_out
+  with_items: 
+   - "{{ models }}"
+  changed_when: False
+
+- debug: msg="item.stdout={{item.stdout}}, item.changed={{item.changed}}"
+  with_items: "{{dir_out.results}}"
+
+- name: Copy model directory to the remote host
+  #become: True
+  copy:
+    src: ../models/{{ item }}
+    dest: /tmp
+  with_items: "{{ models }}"
+
+ 

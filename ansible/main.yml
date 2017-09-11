@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  gather_facts: no
+  roles: 
+    - initialisation
+
+- hosts: all:!localhost
+  gather_facts: no
+  roles:
+    - deployment
+

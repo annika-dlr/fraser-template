@@ -1,0 +1,5 @@
+[all]
+localhost ansible_host=localhost models='["simulation_model"]'
+host1 ansible_host=localhost models='["model_1", "model_2"]'
+host2 ansible_host=localhost models='["event_queue_1"]'
+
