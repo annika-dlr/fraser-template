@@ -8,19 +8,20 @@
   changed_when: False
   
 - name: Check if resource folders exists
-  file: path="../models/{{ item }}/resources/idl" state=directory
-  with_items: "{{ allmodels }}"
+  file: path="../models/{{ item.name }}/resources/idl" state=directory
+  with_items: "{{ models }}"
   changed_when: False
   
 - name: Check if build folders exists
-  file: path="../models/{{ item }}/build/dependencies/idl" state=directory
-  with_items: "{{ allmodels }}"
+  file: path="../models/{{ item.name }}/build/dependencies/idl" state=directory
+  with_items: "{{ models }}"
   changed_when: False
+  when: item.depends
   
 - name: Dissolve IDL dependencies between the models
   copy:
     src: "../models/{{item.1}}/resources/idl"
     dest: "../models/{{item.0.name}}/build/dependencies/"
   with_subelements:
-    - "{{ dependencies }}"
+    - "{{ models }}"
     - depends

@@ -1,5 +1,7 @@
 ---
-dependencies:
+models:
+    - name: simulation_model
+      depends: []
     - name: model_1
       depends:
         - "event_queue_1"
