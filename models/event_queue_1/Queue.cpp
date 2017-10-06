@@ -9,11 +9,11 @@
 
 #include <iostream>
 
-static const char BREAKPNTS_PATH[] = "../src/queues/event_queue_1/savepoints/";
+static const char BREAKPNTS_PATH[] = "models/event_queue_1/savepoints/";
 static const char FILE_EXTENTION[] = "_savefile_queue.xml";
-static const char CONFIG_DIR[] = "../src/queues/event_queue_1/configuration/";
+static const char CONFIG_DIR[] = "models/event_queue_1/configuration/";
 static const char CONFIG_PATH[] =
-		"../src/queues/event_queue_1/configuration/config.xml";
+		"models/event_queue_1/configuration/config.xml";
 
 Queue::Queue(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(

@@ -9,10 +9,10 @@
 
 #include <iostream>
 
-static const char BREAKPNTS_PATH[] = "../src/simulation_model/savepoints/";
+static const char BREAKPNTS_PATH[] = "models/simulation_model/savepoints/";
 static const char FILE_EXTENTION[] = "_savefile_simulation.xml";
-static const char CONFIG_DIR[] = "../src/simulation_model/configuration/";
-static const char CONFIG_FILE[] = "../src/simulation_model/configuration/config.xml";
+static const char CONFIG_DIR[] = "models/simulation_model/configuration/";
+static const char CONFIG_FILE[] = "models/simulation_model/configuration/config.xml";
 
 SimulationModel::SimulationModel(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mPublisher(mCtx), mDealer(

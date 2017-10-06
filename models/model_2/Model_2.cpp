@@ -8,11 +8,11 @@
 #include <iostream>
 #include "Model_2.h"
 
-static const char BREAKPNTS_PATH[] = "../src/subcomponents/model_2/savepoints/";
+static const char BREAKPNTS_PATH[] = "models/model_2/savepoints/";
 static const char FILE_EXTENTION[] = "_savefile_model_2.xml";
-static const char CONFIG_DIR[] = "../src/subcomponents/model_2/configuration/";
+static const char CONFIG_DIR[] = "models/model_2/configuration/";
 static const char CONFIG_PATH[] =
-		"../src/subcomponents/model_2/configuration/config.xml";
+		"models/model_2/configuration/config.xml";
 
 Model2::Model2(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(

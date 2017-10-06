@@ -43,7 +43,7 @@ ConfigurationServer::~ConfigurationServer() {
 
 bool ConfigurationServer::prepare() {
 	pugi::xml_parse_result result = mDocument.load_file(
-			"../src/configuration_server/configuration/models-config.xml");
+			"models/configuration_server/configuration/models-config.xml");
 
 	if (!result) {
 		std::cout << "Parse error: " << result.description()
