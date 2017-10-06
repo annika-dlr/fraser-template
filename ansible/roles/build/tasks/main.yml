@@ -1,0 +1,3 @@
+---
+- name: build models
+  command: make -C ../
