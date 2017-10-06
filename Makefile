@@ -1,10 +1,8 @@
-MAKE_DIR = $(PWD)
-
-CONFIGURATION_SERVER_DIR := $(MAKE_DIR)/models/configuration_server
-SIMULATION_MODEL_DIR := $(MAKE_DIR)/models/simulation_model
-EVENT_QUEUE_DIR := $(MAKE_DIR)/models/event_queue_1
-MODEL_1_DIR := $(MAKE_DIR)/models/model_1
-MODEL_2_DIR := $(MAKE_DIR)/models/model_2
+CONFIGURATION_SERVER_DIR := models/configuration_server
+SIMULATION_MODEL_DIR := models/simulation_model
+EVENT_QUEUE_DIR := models/event_queue_1
+MODEL_1_DIR := models/model_1
+MODEL_2_DIR := models/model_2
 
 all:
 	@$(MAKE) -C $(CONFIGURATION_SERVER_DIR) -f Makefile
