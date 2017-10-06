@@ -8,21 +8,19 @@
   when: hostsstable|success
   changed_when: False
 
-- name: List directories and capture variable
-  command: "ls ../models/{{ item }}"
-  register: dir_out
-  with_items: 
-   - "{{ models }}"
-  changed_when: False
-
-- debug: msg="item.stdout={{item.stdout}}, item.changed={{item.changed}}"
-  with_items: "{{dir_out.results}}"
-
-- name: Copy model directory to the remote host
+- name: Copy model directory to the remote hosts
   #become: True
   copy:
     src: ../models/{{ item }}
-    dest: /tmp
+    dest: /tmp/simulation/models
   with_items: "{{ models }}"
 
- 
+- name: Run models on the hosts
+  become: true
+  shell: ./tmp/simulation/models/{{ item }}/build/bin/{{ item }}
+  async: 1
+  poll: 0
+  with_items: "{{ models }}"
+  register: result
+
+- debug: var=result
