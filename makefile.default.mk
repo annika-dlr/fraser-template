@@ -14,17 +14,17 @@ LIBS= -lzmq -lboost_serialization -lboost_system -lboost_filesystem -lboost_thre
 vpath %.cpp $(dir $(SRCS))
 
 SRCNAMES = $(notdir $(SRCS))
-OBJS = $(patsubst %.cpp, $(OBJDIR)/$(PROG)/%.o, $(SRCNAMES))
+OBJS = $(patsubst %.cpp, $(OBJDIR)/%.o, $(SRCNAMES))
 
 $(BINDIR)/$(PROG): $(OBJS)
 	$(CXX) $(OBJS) $(CXXFLAGS) -o $@ $(LIBS) $(LDFLAGS)
 
-$(OBJS): | $(OBJDIR)/$(PROG)
+$(OBJS): | $(OBJDIR)
 
-$(OBJDIR)/$(PROG):
+$(OBJDIR):
 	@mkdir -p $@
 
-$(OBJDIR)/$(PROG)/%.o : %.cpp
+$(OBJDIR)/%.o : %.cpp
 	@mkdir -p $(BINDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@ $(LIBS) $(LDFLAGS)
 
