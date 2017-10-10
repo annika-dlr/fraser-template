@@ -8,19 +8,40 @@
   when: hostsstable|success
   changed_when: False
 
+- name: Print current remote home-path
+  shell: pwd
+  register: path
+
+- set_fact:
+    remote_home_path: "{{ path.stdout }}"
+
 - name: Copy model directory to the remote hosts
-  #become: True
   copy:
     src: ../models/{{ item }}
-    dest: /tmp/simulation/models
+    dest: "{{ remote_home_path }}/tmp/models"
   with_items: "{{ models }}"
+
+- name: Fix 'tmp-folder' permission
+  file: path=tmp owner=user mode=0775 state=directory recurse=yes
 
 - name: Run models on the hosts
-  become: true
-  shell: ./tmp/simulation/models/{{ item }}/build/bin/{{ item }}
-  async: 1
+  #become: true
+  command: "{{ remote_home_path }}/tmp/models/{{ async_item }}/build/bin/{{ async_item }}"
+  async: 45
   poll: 0
   with_items: "{{ models }}"
-  register: result
+  loop_control:
+    loop_var: "async_item"
+  register: async_results
 
-- debug: var=result
+- name: Check sync status
+  async_status:
+    jid: "{{ async_result_item.ansible_job_id }}"
+  with_items: "{{ async_results.results }}"
+  loop_control:
+    loop_var: "async_result_item"
+  register: async_poll_results
+  until: async_poll_results.finished
+  retries: 30
+
+- debug: var=async_poll_results.results

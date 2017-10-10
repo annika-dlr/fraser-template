@@ -39,17 +39,17 @@ void SimulationModel::configure(std::string filename) {
 }
 
 bool SimulationModel::prepare() {
-	boost::filesystem::path dir1(BREAKPNTS_PATH);
-	if (!boost::filesystem::exists(dir1)) {
-		boost::filesystem::create_directory(dir1);
-		std::cout << "Create savepoints-directory for SimulationModel" << "\n";
-	}
-
-	boost::filesystem::path dir2(CONFIG_DIR);
-	if (!boost::filesystem::exists(dir2)) {
-		boost::filesystem::create_directory(dir2);
-		std::cout << "Create config-directory for SimulationModel" << "\n";
-	}
+//	boost::filesystem::path dir1(BREAKPNTS_PATH);
+//	if (!boost::filesystem::exists(dir1)) {
+//		boost::filesystem::create_directory(dir1);
+//		std::cout << "Create savepoints-directory for SimulationModel" << "\n";
+//	}
+//
+//	boost::filesystem::path dir2(CONFIG_DIR);
+//	if (!boost::filesystem::exists(dir2)) {
+//		boost::filesystem::create_directory(dir2);
+//		std::cout << "Create config-directory for SimulationModel" << "\n";
+//	}
 
 	mTotalNumOfModels = mDealer.getTotalNumberOfModels();
 	mNumOfPersistModels = mDealer.getNumberOfPersistModels();
@@ -64,8 +64,8 @@ bool SimulationModel::prepare() {
 		return false;
 	}
 
-	// (mTotalNumOfModels - 1), because the simulation models itself should not be included
-	if (!mPublisher.synchronizePub(mTotalNumOfModels - 1,
+	// (mTotalNumOfModels - 2), because the simulation and configuration models should not be included
+	if (!mPublisher.synchronizePub(mTotalNumOfModels - 2,
 			mCurrentSimTime.getValue())) {
 		return false;
 	}

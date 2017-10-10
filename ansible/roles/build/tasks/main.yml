@@ -1,3 +1,6 @@
 ---
+#- name: make clean
+#  command: make clean -C ../
+
 - name: build models
   command: make -C ../

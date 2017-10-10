@@ -43,7 +43,7 @@ ConfigurationServer::~ConfigurationServer() {
 
 bool ConfigurationServer::prepare() {
 	pugi::xml_parse_result result = mDocument.load_file(
-			"models/configuration_server/configuration/models-config.xml");
+			"/home/user/tmp/models/configuration_server/configuration/models-config.xml");
 
 	if (!result) {
 		std::cout << "Parse error: " << result.description()
@@ -74,6 +74,7 @@ bool ConfigurationServer::setModelPortNumbers() {
 		}
 
 		mModelInformation[name + "_port"] = std::to_string(portCnt);
+		std::cout << name <<": " << std::to_string(portCnt) << std::endl;
 		portCnt++;
 	}
 
