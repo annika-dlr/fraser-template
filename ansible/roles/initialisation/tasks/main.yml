@@ -6,20 +6,24 @@
   - "../configurations"
   - "../fraser"
   changed_when: False
+  
+#- debug: msg="{{ hostvars[item]['models'] }}"
+#  with_inventory_hostnames:
+#    - all
 
-- name: Get all python-scripts of FRASER
-  find:
-    path: '../fraser/scripts'
-    patterns: '*.py'
-  register: scripts
+#- name: Get all python-scripts of FRASER
+#  find:
+#    path: '../fraser/scripts'
+#    patterns: '*.py'
+#  register: scripts
 
-- debug: msg="{{ item.path }}"
-  with_items: "{{ scripts.files }}"
+#- debug: msg="{{ item.path }}"
+#  with_items: "{{ scripts.files }}"
 
-- name: Execute all scripts of FRASER
+#- name: Execute all scripts of FRASER
 #  become: True
-  command: python3.4 "{{ item.path }}" -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
-  with_items: "{{ scripts.files }}"
+#  command: python3.4 "{{ item.path }}" -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
+#  with_items: "{{ scripts.files }}"
 
 - name: Check if resource folders exists
   file: path="../models/{{ item.name }}/resources/idl" state=directory
