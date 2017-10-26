@@ -8,11 +8,11 @@
 #include <iostream>
 #include "Model_2.h"
 
-static const char BREAKPNTS_PATH[] = "../src/subcomponents/model_2/savepoints/";
+static const char BREAKPNTS_PATH[] = "models/model_2/savepoints/";
 static const char FILE_EXTENTION[] = "_savefile_model_2.xml";
-static const char CONFIG_DIR[] = "../src/subcomponents/model_2/configuration/";
+static const char CONFIG_DIR[] = "models/model_2/configuration/";
 static const char CONFIG_PATH[] =
-		"../src/subcomponents/model_2/configuration/config.xml";
+		"models/model_2/configuration/config.xml";
 
 Model2::Model2(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
@@ -35,17 +35,17 @@ void Model2::configure(std::string filename) {
 bool Model2::prepare() {
 	mSubscriber.setOwnershipName(mName);
 
-	boost::filesystem::path dir1(BREAKPNTS_PATH);
-	if (!boost::filesystem::exists(dir1)) {
-		boost::filesystem::create_directory(dir1);
-		std::cout << "Create savepoints-directory for Model2" << "\n";
-	}
-
-	boost::filesystem::path dir2(CONFIG_DIR);
-	if (!boost::filesystem::exists(dir2)) {
-		boost::filesystem::create_directory(dir2);
-		std::cout << "Create config-directory for Model2" << "\n";
-	}
+//	boost::filesystem::path dir1(BREAKPNTS_PATH);
+//	if (!boost::filesystem::exists(dir1)) {
+//		boost::filesystem::create_directory(dir1);
+//		std::cout << "Create savepoints-directory for Model2" << "\n";
+//	}
+//
+//	boost::filesystem::path dir2(CONFIG_DIR);
+//	if (!boost::filesystem::exists(dir2)) {
+//		boost::filesystem::create_directory(dir2);
+//		std::cout << "Create config-directory for Model2" << "\n";
+//	}
 
 	if (!mPublisher.bindSocket(mDealer.getPortNumFrom(mName))) {
 		return false;
@@ -56,8 +56,8 @@ bool Model2::prepare() {
 		return false;
 	}
 
-	if (!mSubscriber.connectToPub(mDealer.getIPFrom("event_queue"),
-			mDealer.getPortNumFrom("event_queue"))) {
+	if (!mSubscriber.connectToPub(mDealer.getIPFrom("event_queue_1"),
+			mDealer.getPortNumFrom("event_queue_1"))) {
 		return false;
 	}
 

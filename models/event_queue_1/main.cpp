@@ -12,7 +12,7 @@
 #include "Queue.h"
 
 int main() {
-	Queue eventQueue("event_queue", "Queue includes the scheduled events.");
+	Queue eventQueue("event_queue_1", "Queue includes the scheduled events.");
 	try {
 		eventQueue.run();
 

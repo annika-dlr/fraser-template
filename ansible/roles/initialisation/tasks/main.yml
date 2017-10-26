@@ -1,0 +1,45 @@
+---
+- name: Check if folders exists
+  file: path="{{ item }}" state=directory
+  with_items: 
+  - "../models"
+  - "../configurations"
+  - "../fraser"
+  changed_when: False
+  
+#- debug: msg="{{ hostvars[item]['models'] }}"
+#  with_inventory_hostnames:
+#    - all
+
+#- name: Get all python-scripts of FRASER
+#  find:
+#    path: '../fraser/scripts'
+#    patterns: '*.py'
+#  register: scripts
+
+#- debug: msg="{{ item.path }}"
+#  with_items: "{{ scripts.files }}"
+
+#- name: Execute all scripts of FRASER
+#  become: True
+#  command: python3.4 "{{ item.path }}" -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
+#  with_items: "{{ scripts.files }}"
+
+- name: Check if resource folders exists
+  file: path="../models/{{ item.name }}/resources/idl" state=directory
+  with_items: "{{ models }}"
+  changed_when: False
+  
+- name: Check if build folders exists
+  file: path="../models/{{ item.name }}/build/dependencies/idl" state=directory
+  with_items: "{{ models }}"
+  changed_when: False
+  when: item.depends
+  
+- name: Dissolve IDL dependencies between the models
+  copy:
+    src: "../models/{{item.1}}/resources/idl"
+    dest: "../models/{{item.0.name}}/build/dependencies/"
+  with_subelements:
+    - "{{ models }}"
+    - depends

@@ -1,1 +1,7 @@
+<<<<<<< HEAD
 /main.retry
+=======
+/hosts
+/main.retry
+/inventory/
+>>>>>>> feature/deployment

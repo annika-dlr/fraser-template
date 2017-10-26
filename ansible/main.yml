@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Build hosts file
+      command: python3.4 ../fraser/scripts/hostsGenerator.py -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
+
+- hosts: localhost
+  gather_facts: no
+  roles: 
+    - initialisation
+
+- hosts: localhost
+  gather_facts: no
+  roles: 
+    - build
+
+- hosts: all | !localhost
+#  gather_facts: no
+  roles:
+    - deployment

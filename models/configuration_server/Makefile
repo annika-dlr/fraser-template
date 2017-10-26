@@ -1,7 +1,7 @@
 
-PROG = configServer
+PROG = configuration_server
 SRCS= main.cpp ConfigurationServer.cpp
-BINDIR = ../../bin
-OBJDIR = ../../obj
+BINDIR = build/bin
+OBJDIR = build/obj
 
 include ../../makefile.default.mk
