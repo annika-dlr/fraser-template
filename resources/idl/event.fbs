@@ -1,0 +1,31 @@
+// event.fbs
+namespace event;
+
+table Data {
+	bytes:[byte];
+}
+
+union EventData {
+	FMIEventData,
+	ByteArray
+}
+
+enum Priority: int {
+	NORMAL_PRIORITY,
+	HIGH_PRIORITY
+}
+
+//table Events {
+//	events:[Event];
+//}
+
+table Event {
+  name:string (key);
+  timestamp:ulong = -1;
+  priority:Priority = NORMAL_PRIORITY;
+  repeat:uint = 0;
+  period:uint = 0;
+  data:EventData;
+}
+
+root_type Event;

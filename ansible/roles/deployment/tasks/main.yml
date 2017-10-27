@@ -19,7 +19,7 @@
   copy:
     src: ../models/{{ item }}
     dest: "{{ remote_home_path }}/tmp/models"
-  with_items: "{{ models }}"
+  with_items: "{{ hostvars[inventory_hostname]['models'] }}"
 
 - name: Fix 'tmp-folder' permission
   file: path=tmp owner=user mode=0775 state=directory recurse=yes
@@ -28,7 +28,7 @@
   command: "{{ remote_home_path }}/tmp/models/{{ async_item }}/build/bin/{{ async_item }}"
   async: 45
   poll: 0
-  with_items: "{{ models }}"
+  with_items: "{{ hostvars[inventory_hostname]['models'] }}"
   loop_control:
     loop_var: "async_item"
   register: async_results
