@@ -2,35 +2,29 @@
 - name: Check if folders exists
   file: path="{{ item }}" state=directory
   with_items: 
-  - "../models"
-  - "../configurations"
-  - "../fraser"
+    - "../models"
+    - "../configurations"
+    - "../fraser"
+    - "../ansible/inventory"
+    - "../ansible/inventory/group_vars/all"
   changed_when: False
   
-#- debug: msg="{{ hostvars[item]['models'] }}"
-#  with_inventory_hostnames:
-#    - all
+- name: Build hosts file
+  command: python3.4 ../fraser/scripts/hostsGenerator.py -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
 
-#- name: Get all python-scripts of FRASER
-#  find:
-#    path: '../fraser/scripts'
-#    patterns: '*.py'
-#  register: scripts
+- name: Build variables file
+  command: python3.4 ../fraser/scripts/modelsVarsGenerator.py -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
+    
+- name: Include main.yml file in group_vars/all (includes global variables)
+  include_vars:
+   file: "../ansible/inventory/group_vars/all/main.yml"
 
-#- debug: msg="{{ item.path }}"
-#  with_items: "{{ scripts.files }}"
-
-#- name: Execute all scripts of FRASER
-#  become: True
-#  command: python3.4 "{{ item.path }}" -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
-#  with_items: "{{ scripts.files }}"
-
-- name: Check if resource folders exists
+- name: Check if resource/idl folders exists
   file: path="../models/{{ item.name }}/resources/idl" state=directory
   with_items: "{{ models }}"
   changed_when: False
   
-- name: Check if build folders exists
+- name: Check if build/dependencies/idl folders exists
   file: path="../models/{{ item.name }}/build/dependencies/idl" state=directory
   with_items: "{{ models }}"
   changed_when: False

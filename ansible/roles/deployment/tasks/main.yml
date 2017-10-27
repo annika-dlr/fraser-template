@@ -8,7 +8,7 @@
   when: hostsstable|success
   changed_when: False
 
-- name: Print current remote home-path
+- name: Register current remote home-path (pwd)
   shell: pwd
   register: path
 
@@ -25,7 +25,6 @@
   file: path=tmp owner=user mode=0775 state=directory recurse=yes
 
 - name: Run models on the hosts
-  #become: true
   command: "{{ remote_home_path }}/tmp/models/{{ async_item }}/build/bin/{{ async_item }}"
   async: 45
   poll: 0
