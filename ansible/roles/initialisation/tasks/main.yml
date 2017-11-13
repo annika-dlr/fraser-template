@@ -1,7 +1,7 @@
 ---
 - name: Check if folders exists
   file: path="{{ item }}" state=directory
-  with_items: 
+  loop: 
     - "../models"
     - "../configurations"
     - "../fraser"
@@ -10,10 +10,10 @@
   changed_when: False
   
 - name: Build hosts file
-  command: python3.4 ../fraser/scripts/hostsGenerator.py -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
+  command: python3.6 ../fraser/scripts/hostsGenerator.py -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
 
 - name: Build variables file
-  command: python3.4 ../fraser/scripts/modelsVarsGenerator.py -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
+  command: python3.6 ../fraser/scripts/modelsVarsGenerator.py -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
     
 - name: Include main.yml file in group_vars/all (includes global variables)
   include_vars:
@@ -21,12 +21,12 @@
 
 - name: Check if resource/idl folders exists
   file: path="../models/{{ item.name }}/resources/idl" state=directory
-  with_items: "{{ models }}"
+  loop: "{{ models }}"
   changed_when: False
   
 - name: Check if build/dependencies/idl folders exists
   file: path="../models/{{ item.name }}/build/dependencies/idl" state=directory
-  with_items: "{{ models }}"
+  loop: "{{ models }}"
   changed_when: False
   when: item.depends
   

@@ -3,7 +3,6 @@
   gather_facts: no
   tasks:
 
-
 - hosts: localhost
   gather_facts: no
   roles: 
@@ -14,7 +13,7 @@
   roles: 
     - build
 
-- hosts: all | !localhost
+- hosts: all:!localhost
 #  gather_facts: no
   roles:
     - deployment
