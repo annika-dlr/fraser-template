@@ -9,10 +9,8 @@
 
 #include <iostream>
 
-static const char BREAKPNTS_PATH[] = "models/simulation_model/savepoints/";
+static const char BREAKPNTS_PATH[] = "../models/simulation_model/savepoints/";
 static const char FILE_EXTENTION[] = "_savefile_simulation.xml";
-static const char CONFIG_DIR[] = "models/simulation_model/configuration/";
-static const char CONFIG_FILE[] = "models/simulation_model/configuration/config.xml";
 
 SimulationModel::SimulationModel(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mPublisher(mCtx), mDealer(
@@ -74,11 +72,6 @@ bool SimulationModel::prepare() {
 }
 
 void SimulationModel::run() {
-
-	if (mConfigMode) {
-		this->store(CONFIG_FILE);
-		mRun = false;
-	}
 
 	int currentSimTime = mCurrentSimTime.getValue();
 	if (mRun) {
@@ -153,7 +146,7 @@ void SimulationModel::store(std::string filename) {
 
 	if (mConfigMode) {
 		mPublisher.publishEvent(
-				Event("CreateDefaultConfigFiles", mCurrentSimTime.getValue()));
+				Event("CreateDefaultConfigFiles","../configurations/config_1/", mCurrentSimTime.getValue() ));
 	} else {
 		mPublisher.publishEvent(Event("Store", mCurrentSimTime.getValue()));
 	}
@@ -166,7 +159,7 @@ void SimulationModel::store(std::string filename) {
 		oa << boost::serialization::make_nvp("FieldSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << "Archive Exception during serializing:" << std::endl;
+		std::cout << "SIMMODEL: Archive Exception during serializing:" << std::endl;
 		std::cout << ex.what() << std::endl;
 	}
 

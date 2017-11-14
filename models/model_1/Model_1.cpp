@@ -1,5 +1,5 @@
 /*
- * PCDUModel.cpp
+ * Model1.cpp
  *
  *  Created on: Dec 29, 2016
  *      Author: Annika Ofenloch
@@ -10,9 +10,6 @@
 
 static const char BREAKPNTS_PATH[] = "models/model_1/savepoints/";
 static const char FILE_EXTENTION[] = "_savefile_model_1.xml";
-static const char CONFIG_DIR[] = "models/model_1/configuration/";
-static const char CONFIG_PATH[] =
-		"models/model_1/configuration/config.xml";
 
 Model1::Model1(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(

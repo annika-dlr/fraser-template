@@ -13,13 +13,11 @@
 #include "SimulationModel.h"
 
 SimulationModel simulation("simulation_model", "Simulation Environment");
-static const char CONFIG_PATH[] =
-		"../src/simulation_model/configuration/config.xml";
+static const char CONFIG_FILE[] ="../configurations/config_1/simulation_model.config";
 
 void startSimulationThread() {
 	try {
-		simulation.configure(CONFIG_PATH);
-
+		simulation.configure(CONFIG_FILE);
 		simulation.run();
 	} catch (boost::thread_interrupted&) {
 		std::cout << " SimulationModel: Interrupt received: Exit" << std::endl;
@@ -29,7 +27,7 @@ void startSimulationThread() {
 void createConfigurationFilesThread() {
 	try {
 		simulation.setConfigMode(true);
-		simulation.run();
+		simulation.store(CONFIG_FILE);
 	} catch (boost::thread_interrupted&) {
 		std::cout << " SimulationModel: Interrupt received: Exit" << std::endl;
 	}
