@@ -114,6 +114,7 @@ void Queue::handleEvent() {
 	mReceivedEvent = mSubscriber.getEvent();
 	mEventName = mSubscriber.getEventName();
 	mCurrentSimTime = mReceivedEvent.getTimestamp();
+	mData = mReceivedEvent.getData();
 
 	if (mEventName == "SimTimeChanged") {
 
@@ -129,11 +130,11 @@ void Queue::handleEvent() {
 	}
 
 	else if (mEventName == "CreateDefaultConfigFiles") {
-		this->store(CONFIG_PATH);
+		this->store(std::string(mData.begin(), mData.end()).append(mName+".config"));
 	}
 
 	else if (mEventName == "Configure") {
-		this->restore(CONFIG_PATH);
+		this->restore(std::string(mData.begin(), mData.end()).append(mName+".config"));
 	}
 
 	else if (mEventName == "Store" || mEventName == "Restore") {
@@ -166,7 +167,7 @@ void Queue::store(std::string filename) {
 		oa << boost::serialization::make_nvp("EventSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << "Archive Exception during serializing: " << std::endl;
+		std::cout << mName <<": Archive Exception during serializing: " << std::endl;
 		throw ex.what();
 	}
 
@@ -182,7 +183,7 @@ void Queue::restore(std::string filename) {
 		ia >> boost::serialization::make_nvp("EventSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << "Archive Exception during deserializing:" << std::endl;
+		std::cout << mName <<": Archive Exception during deserializing:" << std::endl;
 		throw ex.what();
 	}
 

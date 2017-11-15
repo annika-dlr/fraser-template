@@ -62,6 +62,7 @@ private:
 	Event mReceivedEvent;
 	std::string mEventName;
 	int mCurrentSimTime;
+	std::vector<uint8_t> mData;
 
 
 	friend class boost::serialization::access;

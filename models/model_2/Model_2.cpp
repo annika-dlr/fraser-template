@@ -96,6 +96,7 @@ void Model2::handleEvent() {
 	mReceivedEvent = mSubscriber.getEvent();
 	mEventName = mReceivedEvent.getName();
 	mCurrentSimTime = mReceivedEvent.getTimestamp();
+	mData = mReceivedEvent.getData();
 
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
@@ -104,11 +105,11 @@ void Model2::handleEvent() {
 	}
 
 	else if (mEventName == "CreateDefaultConfigFiles") {
-		this->store(CONFIG_PATH);
+		this->store(std::string(mData.begin(), mData.end()).append(mName+".config"));
 	}
 
 	else if (mEventName == "Configure") {
-		this->configure(CONFIG_PATH);
+		this->configure(std::string(mData.begin(), mData.end()).append(mName+".config"));
 	}
 
 	else if (mEventName == "Store" || mEventName == "Restore") {
@@ -140,7 +141,7 @@ void Model2::store(std::string filename) {
 		oa << boost::serialization::make_nvp("FieldSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << "Archive Exception during serializing:" << std::endl;
+		std::cout << mName <<": Archive Exception during serializing:" << std::endl;
 		std::cout << ex.what() << std::endl;
 	}
 
@@ -155,7 +156,7 @@ void Model2::restore(std::string filename) {
 		ia >> boost::serialization::make_nvp("FieldSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << "Archive Exception during deserializing:" << std::endl;
+		std::cout << mName <<": Archive Exception during deserializing:" << std::endl;
 		std::cout << ex.what() << std::endl;
 	}
 

@@ -106,9 +106,12 @@ void SimulationModel::run() {
 			}
 		}
 	}
+	this->stopSim();
+}
 
+void SimulationModel::stopSim() {
 	// Stop all running models and the dns server
-	mPublisher.publishEvent(Event("End", currentSimTime));
+	mPublisher.publishEvent(Event("End", mCurrentSimTime.getValue()));
 	mDealer.stopDNSserver();
 }
 
@@ -127,7 +130,9 @@ void SimulationModel::restore(std::string filename) {
 	}
 
 	if (mLoadConfigFile) {
-		mPublisher.publishEvent(Event("Configure", mCurrentSimTime.getValue()));
+		std::string filedir = "../configurations/config_1/";
+		std::vector<uint8_t> data(filedir.begin(), filedir.end());
+		mPublisher.publishEvent(Event("Configure", data));
 	} else {
 		mPublisher.publishEvent(Event("Restore", mCurrentSimTime.getValue()));
 	}
@@ -145,8 +150,10 @@ void SimulationModel::store(std::string filename) {
 	this->pauseSim();
 
 	if (mConfigMode) {
-		mPublisher.publishEvent(
-				Event("CreateDefaultConfigFiles","../configurations/config_1/", mCurrentSimTime.getValue() ));
+
+		std::string filedir = "../configurations/config_1/";
+		std::vector<uint8_t> data(filedir.begin(), filedir.end());
+		mPublisher.publishEvent(Event("CreateDefaultConfigFiles", data));
 	} else {
 		mPublisher.publishEvent(Event("Store", mCurrentSimTime.getValue()));
 	}
@@ -159,7 +166,8 @@ void SimulationModel::store(std::string filename) {
 		oa << boost::serialization::make_nvp("FieldSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << "SIMMODEL: Archive Exception during serializing:" << std::endl;
+		std::cout << mName << ": Archive Exception during serializing:"
+				<< std::endl;
 		std::cout << ex.what() << std::endl;
 	}
 
@@ -171,5 +179,9 @@ void SimulationModel::store(std::string filename) {
 			mCurrentSimTime.getValue());
 	//}
 
-	this->continueSim();
+	if (mConfigMode) {
+		this->stopSim();
+	} else {
+		this->continueSim();
+	}
 }

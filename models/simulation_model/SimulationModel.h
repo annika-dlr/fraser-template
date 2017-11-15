@@ -56,6 +56,8 @@ public:
 		mPause = false;
 	}
 
+	void stopSim();
+
 	void setConfigMode(bool status) {
 		mConfigMode = status;
 	}

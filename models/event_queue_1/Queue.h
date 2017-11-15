@@ -76,6 +76,7 @@ private:
 	bool mRun;
 	Event mReceivedEvent;
 	std::string mEventName;
+	std::vector<uint8_t> mData;
 
 	Scheduler mScheduler;
 	int mCurrentSimTime;
