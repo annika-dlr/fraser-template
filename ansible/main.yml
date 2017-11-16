@@ -15,5 +15,7 @@
 
 - hosts: all:!localhost
 #  gather_facts: no
+  vars:
+    - config: config_1
   roles:
     - deployment

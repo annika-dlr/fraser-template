@@ -21,6 +21,19 @@
     dest: "{{ remote_home_path }}/tmp/models"
   loop: "{{ hostvars[inventory_hostname]['models'] }}"
 
+- name: Check if build/configuration folders exists
+  file: path="{{ remote_home_path }}/tmp/models/{{ item }}/build/configuration" state=directory
+  loop: "{{ hostvars[inventory_hostname]['models'] }}"
+  when: item != "configuration_server"
+  changed_when: False
+
+- name: Copy configuration file to model
+  copy:
+    src: ../configurations/{{ config }}/{{ item }}.config
+    dest: "{{ remote_home_path }}/tmp/models/{{ item }}/build/configuration"
+  loop: "{{ hostvars[inventory_hostname]['models'] }}"
+  when: item != "configuration_server"
+
 - name: Fix 'tmp-folder' permission
   file: path=tmp owner=user mode=0775 state=directory recurse=yes
 
