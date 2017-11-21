@@ -1,13 +1,13 @@
 // event.fbs
 namespace event;
 
-table Data {
+table ByteArray {
 	bytes:[byte];
 }
 
 union EventData {
-	FMIEventData,
-	ByteArray
+	ByteArray,
+	String:string
 }
 
 enum Priority: int {
