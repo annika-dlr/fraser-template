@@ -19,7 +19,6 @@
 #include "communication/Dealer.h"
 #include "communication/Publisher.h"
 #include "communication/Subscriber.h"
-#include "data-types/Event.h"
 #include "data-types/EventSet.h"
 #include "communication/zhelpers.hpp"
 #include "interfaces/IModel.h"
@@ -74,12 +73,12 @@ private:
 	Dealer mDealer;
 
 	bool mRun;
-	Event mReceivedEvent;
+	const event::Event* mReceivedEvent;
 	std::string mEventName;
-	std::vector<uint8_t> mData;
+	std::string mData;
 
 	Scheduler mScheduler;
-	int mCurrentSimTime;
+	uint64_t mCurrentSimTime;
 };
 
 #endif /* EVENT_QUEUE_1_QUEUE_H_ */

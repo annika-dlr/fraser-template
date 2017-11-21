@@ -63,13 +63,13 @@ bool Model2::prepare() {
 		return false;
 	}
 
-	mSubscriber.subscribeTo(Event("SubsequentEvent"));
-	mSubscriber.subscribeTo(Event("Restore"));
-	mSubscriber.subscribeTo(Event("Store"));
-	mSubscriber.subscribeTo(Event("End"));
-	mSubscriber.subscribeTo(Event("PCDUCommand"));
-	mSubscriber.subscribeTo(Event("CreateDefaultConfigFiles"));
-	mSubscriber.subscribeTo(Event("Configure"));
+	mSubscriber.subscribeTo("SubsequentEvent");
+	mSubscriber.subscribeTo("Restore");
+	mSubscriber.subscribeTo("Store");
+	mSubscriber.subscribeTo("End");
+	mSubscriber.subscribeTo("PCDUCommand");
+	mSubscriber.subscribeTo("CreateDefaultConfigFiles");
+	mSubscriber.subscribeTo("Configure");
 
 	// Synchronization
 	if (!mSubscriber.prepareSubSynchronization(
@@ -94,14 +94,14 @@ void Model2::run() {
 
 void Model2::handleEvent() {
 	mReceivedEvent = mSubscriber.getEvent();
-	mEventName = mReceivedEvent.getName();
-	mCurrentSimTime = mReceivedEvent.getTimestamp();
-	mData = mReceivedEvent.getData();
+	mEventName = mReceivedEvent->name()->str();
+	mCurrentSimTime = mReceivedEvent->timestamp();
+	mData = mReceivedEvent->data_as_String()->str();
 
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
 	if (mEventName == "SubsequentEvent") {
-		this->mPublisher.publishEvent(Event("ReturnEvent", mCurrentSimTime));
+		this->mPublisher.publishEvent("ReturnEvent", mCurrentSimTime);
 	}
 
 	else if (mEventName == "CreateDefaultConfigFiles") {
@@ -114,7 +114,7 @@ void Model2::handleEvent() {
 
 	else if (mEventName == "Store" || mEventName == "Restore") {
 		std::string filename = BREAKPNTS_PATH
-				+ mReceivedEvent.getTimestampAsString() + FILE_EXTENTION;
+				+ std::to_string(mReceivedEvent->timestamp()) + FILE_EXTENTION;
 
 		if (mEventName == "Store") {
 			std::cout << "Store events from Queue" << std::endl;

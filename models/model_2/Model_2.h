@@ -59,10 +59,10 @@ private:
 	Dealer mDealer;
 
 	bool mRun;
-	Event mReceivedEvent;
+	const event::Event* mReceivedEvent;
 	std::string mEventName;
 	int mCurrentSimTime;
-	std::vector<uint8_t> mData;
+	std::string mData;
 
 
 	friend class boost::serialization::access;

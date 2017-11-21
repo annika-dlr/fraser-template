@@ -72,8 +72,7 @@ bool SimulationModel::prepare() {
 }
 
 void SimulationModel::run() {
-
-	int currentSimTime = mCurrentSimTime.getValue();
+	uint64_t currentSimTime = mCurrentSimTime.getValue();
 	if (mRun) {
 		while (currentSimTime <= mSimTime.getValue()) {
 			if (!mPause) {
@@ -90,8 +89,7 @@ void SimulationModel::run() {
 				}
 
 				std::cout << "[SIMTIME] --> " << currentSimTime << std::endl;
-				mPublisher.publishEvent(
-						Event("SimTimeChanged", currentSimTime));
+				mPublisher.publishEvent("simTimeChanged", currentSimTime);
 
 				std::this_thread::sleep_for(
 						std::chrono::milliseconds(mCycleTime.getValue()));
@@ -111,7 +109,7 @@ void SimulationModel::run() {
 
 void SimulationModel::stopSim() {
 	// Stop all running models and the dns server
-	mPublisher.publishEvent(Event("End", mCurrentSimTime.getValue()));
+	mPublisher.publishEvent("End", mCurrentSimTime.getValue());
 	mDealer.stopDNSserver();
 }
 
@@ -131,10 +129,12 @@ void SimulationModel::restore(std::string filename) {
 
 	if (mLoadConfigFile) {
 		std::string filedir = "../configurations/config_1/";
-		std::vector<uint8_t> data(filedir.begin(), filedir.end());
-		mPublisher.publishEvent(Event("Configure", data));
+
+		mPublisher.publishEvent("Configure", mCurrentSimTime.getValue(),
+				event::Priority_NORMAL_PRIORITY, 0, 0, event::EventData_String,
+				filedir);
 	} else {
-		mPublisher.publishEvent(Event("Restore", mCurrentSimTime.getValue()));
+		mPublisher.publishEvent("Restore", mCurrentSimTime.getValue());
 	}
 
 	// Synchronization is necessary, because the simulation
@@ -150,12 +150,13 @@ void SimulationModel::store(std::string filename) {
 	this->pauseSim();
 
 	if (mConfigMode) {
-
 		std::string filedir = "../configurations/config_1/";
-		std::vector<uint8_t> data(filedir.begin(), filedir.end());
-		mPublisher.publishEvent(Event("CreateDefaultConfigFiles", data));
+
+		mPublisher.publishEvent("CreateDefaultConfigFiles",
+				mCurrentSimTime.getValue(), event::Priority_NORMAL_PRIORITY, 0,
+				0, event::EventData_String, filedir);
 	} else {
-		mPublisher.publishEvent(Event("Store", mCurrentSimTime.getValue()));
+		mPublisher.publishEvent("Store", mCurrentSimTime.getValue());
 	}
 
 	// Store states
@@ -171,13 +172,12 @@ void SimulationModel::store(std::string filename) {
 		std::cout << ex.what() << std::endl;
 	}
 
-	//if (!mConfigMode) {
 	// Synchronization is necessary, because the simulation
 	// has to wait until the other models finished their Store-method
 	// (mNumOfPersistModels - 1), because the simulation model itself should not be included
 	mRun = mPublisher.synchronizePub(mNumOfPersistModels - 1,
 			mCurrentSimTime.getValue());
-	//}
+
 
 	if (mConfigMode) {
 		this->stopSim();

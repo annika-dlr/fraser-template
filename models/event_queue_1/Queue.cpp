@@ -61,12 +61,12 @@ bool Queue::prepare() {
 		return false;
 	}
 
-	mSubscriber.subscribeTo(Event("SimTimeChanged"));
-	mSubscriber.subscribeTo(Event("End"));
-	mSubscriber.subscribeTo(Event("Restore"));
-	mSubscriber.subscribeTo(Event("Store"));
-	mSubscriber.subscribeTo(Event("CreateDefaultConfigFiles"));
-	mSubscriber.subscribeTo(Event("Configure"));
+	mSubscriber.subscribeTo("SimTimeChanged");
+	mSubscriber.subscribeTo("End");
+	mSubscriber.subscribeTo("Restore");
+	mSubscriber.subscribeTo("Store");
+	mSubscriber.subscribeTo("CreateDefaultConfigFiles");
+	mSubscriber.subscribeTo("Configure");
 
 	// Synchronization
 	if (!mSubscriber.prepareSubSynchronization(
@@ -113,8 +113,8 @@ void Queue::updateEvents() {
 void Queue::handleEvent() {
 	mReceivedEvent = mSubscriber.getEvent();
 	mEventName = mSubscriber.getEventName();
-	mCurrentSimTime = mReceivedEvent.getTimestamp();
-	mData = mReceivedEvent.getData();
+	mCurrentSimTime = mReceivedEvent->timestamp();
+	mData = mReceivedEvent->data_as_String()->str();
 
 	if (mEventName == "SimTimeChanged") {
 
@@ -123,23 +123,23 @@ void Queue::handleEvent() {
 
 			if (mCurrentSimTime >= next_event.getTimestamp()) {
 				next_event.setCurrentSimTime(mCurrentSimTime);
-				mPublisher.publishEvent(next_event);
+				mPublisher.publishEvent(next_event.getName(), next_event.getTimestamp());
 				this->updateEvents();
 			}
 		}
 	}
 
 	else if (mEventName == "CreateDefaultConfigFiles") {
-		this->store(std::string(mData.begin(), mData.end()).append(mName+".config"));
+		this->store(mData.append(mName+".config"));
 	}
 
 	else if (mEventName == "Configure") {
-		this->restore(std::string(mData.begin(), mData.end()).append(mName+".config"));
+		this->restore(mData.append(mName+".config"));
 	}
 
 	else if (mEventName == "Store" || mEventName == "Restore") {
 		std::string filename = BREAKPNTS_PATH
-				+ mReceivedEvent.getTimestampAsString() + FILE_EXTENTION;
+				+ std::to_string(mReceivedEvent->timestamp()) + FILE_EXTENTION;
 
 		if (mEventName == "Store") {
 			std::cout << "Store events from Queue" << std::endl;

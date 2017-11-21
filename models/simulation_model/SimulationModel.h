@@ -27,6 +27,9 @@
 #include "data-types/BreakpointSet.h"
 #include "communication/zhelpers.hpp"
 
+#include "../resources/idl/event_generated.h"
+
+
 class SimulationModel: public virtual IModel, public virtual IPersist {
 public:
 	SimulationModel(std::string name, std::string description);
@@ -70,12 +73,12 @@ public:
 	/** Set a breakpoint (given in simulation time, e.g. 200 time units).
 	 * If the simulation reaches a breakpoint (e.g. after 200 time units),
 	 * the store method of all subscribed models and of the simulation-model itself is called. **/
-	void setBreakpoint(int time) {
+	void setBreakpoint(uint64_t time) {
 		mBreakpoints.push_back(time);
 	}
 
 	/** Get all breakpoint which were defined. **/
-	std::vector<int> getBreakpoints() {
+	std::vector<uint64_t> getBreakpoints() {
 		return mBreakpoints;
 	}
 
@@ -95,8 +98,8 @@ private:
 	bool mConfigMode = false;
 	bool mLoadConfigFile = false;
 
-	int mTotalNumOfModels = 0;
-	int mNumOfPersistModels = 0;
+	uint64_t mTotalNumOfModels = 0;
+	uint64_t mNumOfPersistModels = 0;
 
 	friend class boost::serialization::access;
 	template<typename Archive>
@@ -109,11 +112,12 @@ private:
 	}
 
 	// Fields
-	Field<int> mSimTime;
-	Field<int> mSimTimeStep;
-	Field<int> mCurrentSimTime;
-	Field<int> mCycleTime;
+	Field<uint64_t> mSimTime;
+	Field<uint32_t> mSimTimeStep;
+	Field<uint64_t> mCurrentSimTime;
+	Field<uint32_t> mCycleTime;
 	Field<double> mSpeedFactor;
+
 };
 
 //BOOST_CLASS_VERSION(SimulationModel, 0);
