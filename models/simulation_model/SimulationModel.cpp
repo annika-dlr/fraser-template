@@ -131,8 +131,8 @@ void SimulationModel::restore(std::string filename) {
 		std::string filedir = "../configurations/config_1/";
 
 		mPublisher.publishEvent("Configure", mCurrentSimTime.getValue(),
-				event::Priority_NORMAL_PRIORITY, 0, 0, event::EventData_String,
-				filedir);
+				filedir, event::Priority_NORMAL_PRIORITY, 0, 0,
+				event::EventData_String);
 	} else {
 		mPublisher.publishEvent("Restore", mCurrentSimTime.getValue());
 	}
@@ -153,8 +153,8 @@ void SimulationModel::store(std::string filename) {
 		std::string filedir = "../configurations/config_1/";
 
 		mPublisher.publishEvent("CreateDefaultConfigFiles",
-				mCurrentSimTime.getValue(), event::Priority_NORMAL_PRIORITY, 0,
-				0, event::EventData_String, filedir);
+				mCurrentSimTime.getValue(), filedir,
+				event::Priority_NORMAL_PRIORITY, 0, 0, event::EventData_String);
 	} else {
 		mPublisher.publishEvent("Store", mCurrentSimTime.getValue());
 	}
@@ -177,7 +177,6 @@ void SimulationModel::store(std::string filename) {
 	// (mNumOfPersistModels - 1), because the simulation model itself should not be included
 	mRun = mPublisher.synchronizePub(mNumOfPersistModels - 1,
 			mCurrentSimTime.getValue());
-
 
 	if (mConfigMode) {
 		this->stopSim();
