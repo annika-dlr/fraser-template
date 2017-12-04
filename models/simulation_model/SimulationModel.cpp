@@ -26,10 +26,10 @@ SimulationModel::SimulationModel(std::string name, std::string description) :
 SimulationModel::~SimulationModel() {
 }
 
-void SimulationModel::configure(std::string filename) {
+void SimulationModel::configure(std::string configPath) {
 	if (mRun) {
 		mLoadConfigFile = true;
-		this->restore(filename);
+		this->restore(configPath);
 
 		mCycleTime.setValue(
 				double(mSimTimeStep.getValue()) / mSpeedFactor.getValue()); // Wait-time between the cycles in milliseconds
@@ -85,7 +85,6 @@ void SimulationModel::run() {
 						this->store(filename);
 						break;
 					}
-
 				}
 
 				std::cout << "[SIMTIME] --> " << currentSimTime << std::endl;
@@ -96,7 +95,6 @@ void SimulationModel::run() {
 
 				currentSimTime += mSimTimeStep.getValue();
 				mCurrentSimTime.setValue(currentSimTime);
-
 			}
 
 			if (interruptOccured) {
@@ -113,11 +111,11 @@ void SimulationModel::stopSim() {
 	mDealer.stopDNSserver();
 }
 
-void SimulationModel::restore(std::string filename) {
+void SimulationModel::restore(std::string configPath) {
 	this->pauseSim();
 
 	// Restore states
-	std::ifstream ifs(filename);
+	std::ifstream ifs(configPath+mName+".config");
 	boost::archive::xml_iarchive ia(ifs, boost::archive::no_header);
 	try {
 		ia >> boost::serialization::make_nvp("FieldSet", *this);
@@ -128,10 +126,8 @@ void SimulationModel::restore(std::string filename) {
 	}
 
 	if (mLoadConfigFile) {
-		std::string filedir = "../configurations/config_1/";
-
 		mPublisher.publishEvent("Configure", mCurrentSimTime.getValue(),
-				filedir, event::Priority_NORMAL_PRIORITY, 0, 0,
+				configPath, event::Priority_NORMAL_PRIORITY, 0, 0,
 				event::EventData_String);
 	} else {
 		mPublisher.publishEvent("Restore", mCurrentSimTime.getValue());
@@ -146,21 +142,19 @@ void SimulationModel::restore(std::string filename) {
 	this->continueSim();
 }
 
-void SimulationModel::store(std::string filename) {
+void SimulationModel::store(std::string configPath) {
 	this->pauseSim();
 
 	if (mConfigMode) {
-		std::string filedir = "../configurations/config_1/";
-
 		mPublisher.publishEvent("CreateDefaultConfigFiles",
-				mCurrentSimTime.getValue(), filedir,
+				mCurrentSimTime.getValue(), configPath,
 				event::Priority_NORMAL_PRIORITY, 0, 0, event::EventData_String);
 	} else {
 		mPublisher.publishEvent("Store", mCurrentSimTime.getValue());
 	}
 
 	// Store states
-	std::ofstream ofs(filename);
+	std::ofstream ofs(configPath+mName+".config");
 	boost::archive::xml_oarchive oa(ofs, boost::archive::no_header);
 
 	try {

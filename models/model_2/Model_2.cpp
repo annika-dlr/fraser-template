@@ -105,11 +105,11 @@ void Model2::handleEvent() {
 	}
 
 	else if (mEventName == "CreateDefaultConfigFiles") {
-		this->store(std::string(mData.begin(), mData.end()).append(mName+".config"));
+		this->store(std::string(mData.begin(), mData.end())+mName+".config");
 	}
 
 	else if (mEventName == "Configure") {
-		this->configure(std::string(mData.begin(), mData.end()).append(mName+".config"));
+		this->configure(std::string(mData.begin(), mData.end())+mName+".config");
 	}
 
 	else if (mEventName == "Store" || mEventName == "Restore") {
@@ -127,7 +127,6 @@ void Model2::handleEvent() {
 	}
 
 	else if (mEventName == "End") {
-
 		mRun = false;
 	}
 

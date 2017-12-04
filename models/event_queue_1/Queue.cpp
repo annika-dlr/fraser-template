@@ -130,11 +130,11 @@ void Queue::handleEvent() {
 	}
 
 	else if (mEventName == "CreateDefaultConfigFiles") {
-		this->store(mData.append(mName+".config"));
+		this->store(mData+mName+".config");
 	}
 
 	else if (mEventName == "Configure") {
-		this->restore(mData.append(mName+".config"));
+		this->restore(mData+mName+".config");
 	}
 
 	else if (mEventName == "Store" || mEventName == "Restore") {
