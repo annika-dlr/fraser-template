@@ -1,14 +1,14 @@
 ---
 - name: Check if folders exists
   file: path="{{ item }}" state=directory
-  loop: 
+  loop:
     - "../models"
     - "../configurations"
     - "../fraser"
     - "../ansible/inventory"
     - "../ansible/inventory/group_vars/all"
   changed_when: False
-  
+
 - name: Build hosts file
   command: python3.6 ../fraser/scripts/hostsGenerator.py -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
 

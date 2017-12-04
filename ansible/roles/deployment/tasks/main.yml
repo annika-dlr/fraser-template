@@ -37,6 +37,12 @@
 - name: Fix 'tmp-folder' permission
   file: path=tmp owner=user mode=0775 state=directory recurse=yes
 
+- name: Run configuration server on the host
+  command: "{{ remote_home_path }}/tmp/models/{{ item }}/build/bin/{{ item }}"
+  async: 1
+  poll: 0
+  with_items: "configuration_server"
+
 - name: Run models on the hosts
   command: "{{ remote_home_path }}/tmp/models/{{ async_item }}/build/bin/{{ async_item }}"
   async: 45
@@ -44,16 +50,25 @@
   loop: "{{ hostvars[inventory_hostname]['models'] }}"
   loop_control:
     loop_var: "async_item"
+  when:
+    - async_item != "configuration_server"
+    - async_item != "simulation_model"
   register: async_results
+  
+- name: Run simulation model on the host
+  command: "{{ remote_home_path }}/tmp/models/{{ item }}/build/bin/{{ item }} --load-config build/configuration/"
+  async: 1
+  poll: 0
+  with_items: "simulation_model"
 
-- name: Check sync status
-  async_status:
-    jid: "{{ async_result_item.ansible_job_id }}"
-  loop: "{{ async_results.results }}"
-  loop_control:
-    loop_var: "async_result_item"
-  register: async_poll_results
-  until: async_poll_results.finished
-  retries: 30
+#- name: Check sync status
+#  async_status:
+#    jid: "{{ async_result_item.ansible_job_id }}"
+#  loop: "{{ async_results.results }}"
+#  loop_control:
+#    loop_var: "async_result_item"
+#  register: async_poll_results
+#  until: async_poll_results.finished
+#  retries: 30
 
-- debug: var=async_poll_results.results
+#- debug: var=async_poll_results.results
