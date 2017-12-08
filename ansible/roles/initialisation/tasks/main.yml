@@ -39,4 +39,4 @@
     - depends
     
 - name: Generate C++ headers to access and construct serialized events
-  command: flatc --cpp ../resources/idl/event.fbs
+  command: flatc -o ../resources/idl/ --cpp ../resources/idl/event.fbs 
