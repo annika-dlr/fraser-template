@@ -2,11 +2,6 @@
 - name: Ping host machines
   ping:
   register: hostsstable
-  
-- name: Print it was a success
-  command: echo "Yeah"
-  when: hostsstable|success
-  changed_when: False
 
 - name: Register current remote home-path (pwd)
   shell: pwd
@@ -18,57 +13,64 @@
 - name: Copy model directory to the remote hosts
   copy:
     src: ../models/{{ item }}
-    dest: "{{ remote_home_path }}/tmp/models"
+    dest: "{{ remote_home_path }}/tmp_simulation/models"
   loop: "{{ hostvars[inventory_hostname]['models'] }}"
 
-- name: Check if build/configuration folders exists
-  file: path="{{ remote_home_path }}/tmp/models/{{ item }}/build/configuration" state=directory
-  loop: "{{ hostvars[inventory_hostname]['models'] }}"
-  when: item != "configuration_server"
+- name: Check if configuration folder exists
+  file: path="{{ remote_home_path }}/tmp_simulation/configurations/{{ config }}" state=directory
   changed_when: False
 
-- name: Copy configuration file to model
+- name: Copy configuration file to remote hosts
   copy:
     src: ../configurations/{{ config }}/{{ item }}.config
-    dest: "{{ remote_home_path }}/tmp/models/{{ item }}/build/configuration"
+    dest: "{{ remote_home_path }}/tmp_simulation/configurations/{{ config }}/"
+  loop: "{{ hostvars[inventory_hostname]['models'] }}"
+  when: item != "configuration_server"
+  
+- name: Copy resources to remote hosts
+  copy:
+    src: ../resources/idl
+    dest: "{{ remote_home_path }}/tmp_simulation/resources"
   loop: "{{ hostvars[inventory_hostname]['models'] }}"
   when: item != "configuration_server"
 
 - name: Fix 'tmp-folder' permission
-  file: path=tmp owner=user mode=0775 state=directory recurse=yes
+  file: path=tmp_simulation owner=user mode=0775 state=directory recurse=yes
 
 - name: Run configuration server on the host
-  command: "{{ remote_home_path }}/tmp/models/{{ item }}/build/bin/{{ item }}"
-  async: 1
-  poll: 0
-  with_items: "configuration_server"
-
-- name: Run models on the hosts
-  command: "{{ remote_home_path }}/tmp/models/{{ async_item }}/build/bin/{{ async_item }}"
-  async: 45
+  shell: "{{ remote_home_path }}/tmp_simulation/models/{{ item }}/build/bin/{{ item }} --models-config-file {{ remote_home_path }}/tmp_simulation/models/{{ item }}/configuration/models-config.xml"
+  async: 1000
   poll: 0
   loop: "{{ hostvars[inventory_hostname]['models'] }}"
-  loop_control:
-    loop_var: "async_item"
+  when: item == "configuration_server"
+  
+- name: Run models on the hosts
+  shell: "{{ remote_home_path }}/tmp_simulation/models/{{ item }}/build/bin/{{ item }}"
+  async: 1000
+  poll: 0
+  loop: "{{ hostvars[inventory_hostname]['models'] }}"
   when:
-    - async_item != "configuration_server"
-    - async_item != "simulation_model"
+    - item != "simulation_model"
+    - item != "configuration_server"
   register: async_results
   
 - name: Run simulation model on the host
-  command: "{{ remote_home_path }}/tmp/models/{{ item }}/build/bin/{{ item }} --load-config build/configuration/"
-  async: 1
-  poll: 0
-  with_items: "simulation_model"
+  shell: "{{ remote_home_path }}/tmp_simulation/models/{{ item }}/build/bin/{{ item }} --load-config {{ remote_home_path }}/tmp_simulation/configurations/{{ config }}/"
+  loop: "{{ hostvars[inventory_hostname]['models'] }}"
+  when: item == "simulation_model"
+  register: sim_out
 
-#- name: Check sync status
-#  async_status:
-#    jid: "{{ async_result_item.ansible_job_id }}"
-#  loop: "{{ async_results.results }}"
-#  loop_control:
-#    loop_var: "async_result_item"
-#  register: async_poll_results
-#  until: async_poll_results.finished
-#  retries: 30
+- name: Check sync status
+  async_status:
+    jid: "{{ async_result_item.ansible_job_id }}"
+  loop: "{{ async_results.results }}"
+  loop_control:
+    loop_var: "async_result_item"
+  when: async_result_item.ansible_job_id is defined
+  register: async_poll_results
+  until: async_poll_results.finished
+  retries: 30
 
-#- debug: var=async_poll_results.results
+- debug: var="{{ item.stdout_lines }}"
+  loop: "{{ sim_out.results }}"
+  when: item.stdout_lines is defined

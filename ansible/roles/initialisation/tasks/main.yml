@@ -23,20 +23,17 @@
   file: path="../models/{{ item.name }}/resources/idl" state=directory
   loop: "{{ models }}"
   changed_when: False
-  
-- name: Check if build/dependencies/idl folders exists
-  file: path="../models/{{ item.name }}/build/dependencies/idl" state=directory
-  loop: "{{ models }}"
-  changed_when: False
-  when: item.depends
-  
+ 
 - name: Dissolve IDL dependencies between the models
   copy:
-    src: "../models/{{item.1}}/resources/idl"
-    dest: "../models/{{item.0.name}}/build/dependencies/"
+    src: "../models/{{item.1}}/resources/idl/"
+    dest: "../models/{{item.0.name}}/resources/idl"
   with_subelements:
     - "{{ models }}"
     - depends
     
-- name: Generate C++ headers to access and construct serialized events
-  command: flatc -o ../resources/idl/ --cpp ../resources/idl/event.fbs 
+- name: Copy default event IDL C++ header to the models
+  copy:
+    src: "../resources/idl/event.fbs"
+    dest: "../models/{{ item.name }}/resources/idl/"
+  loop: "{{ models }}"
