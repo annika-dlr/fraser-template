@@ -22,6 +22,7 @@
 - name: Check if resource/idl folders exists
   file: path="../models/{{ item.name }}/resources/idl" state=directory
   loop: "{{ models }}"
+  when: item.name != "configuration_server"
   changed_when: False
  
 - name: Dissolve IDL dependencies between the models
@@ -37,3 +38,4 @@
     src: "../resources/idl/event.fbs"
     dest: "../models/{{ item.name }}/resources/idl/"
   loop: "{{ models }}"
+  when: item.name != "configuration_server"
