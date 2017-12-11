@@ -24,6 +24,8 @@
 #include "interfaces/IPersist.h"
 #include "data-types/Field.h"
 
+#include "resources/idl/event_generated.h"
+
 class Model2: public virtual IModel,
 		public virtual IPersist {
 public:
@@ -64,6 +66,8 @@ private:
 	int mCurrentSimTime;
 	std::string mData;
 
+	// Event Serialiazation
+	flatbuffers::FlatBufferBuilder mFbb;
 
 	friend class boost::serialization::access;
 	template<typename Archive>

@@ -24,6 +24,8 @@
 #include "interfaces/IPersist.h"
 #include "data-types/Field.h"
 
+#include "resources/idl/event_generated.h"
+
 class Model1: public virtual IModel,
 		public virtual IPersist {
 public:
@@ -57,6 +59,9 @@ private:
 	Subscriber mSubscriber;
 	Publisher mPublisher;
 	Dealer mDealer;
+
+	// Event Serialization
+	flatbuffers::FlatBufferBuilder mFbb;
 
 	bool mRun;
 	const event::Event* mReceivedEvent;

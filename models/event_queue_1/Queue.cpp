@@ -14,7 +14,8 @@ static const char FILE_EXTENTION[] = "_savefile_queue.xml";
 
 Queue::Queue(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
-				mCtx), mDealer(mCtx, mName), mCurrentSimTime(-1) {
+				mCtx), mDealer(mCtx, mName), mReceivedEvent(NULL), mCurrentSimTime(
+				-1) {
 
 	registerInterruptSignal();
 
@@ -111,7 +112,7 @@ void Queue::updateEvents() {
 }
 
 void Queue::handleEvent() {
-	mReceivedEvent = mSubscriber.getEvent();
+	mReceivedEvent = event::GetEvent(mSubscriber.getEventBuffer());
 	mEventName = mSubscriber.getEventName();
 	mCurrentSimTime = mReceivedEvent->timestamp();
 	mData = mReceivedEvent->data_as_String()->str();
@@ -119,27 +120,32 @@ void Queue::handleEvent() {
 	if (mEventName == "SimTimeChanged") {
 
 		if (!mEventSet.empty()) {
-			Event next_event = mEventSet.back();
+			auto nextEvent = mEventSet.back();
 
-			if (mCurrentSimTime >= next_event.getTimestamp()) {
-				next_event.setCurrentSimTime(mCurrentSimTime);
-				mPublisher.publishEvent(next_event.getName(), next_event.getTimestamp());
+			if (mCurrentSimTime >= nextEvent.getTimestamp()) {
+				nextEvent.setCurrentSimTime(mCurrentSimTime);
+				auto eventOffset = event::CreateEvent(mFbb,
+						mFbb.CreateString(nextEvent.getName()),
+						nextEvent.getTimestamp());
+				mFbb.Finish(eventOffset);
+				mPublisher.publishEvent(nextEvent.getName(),
+						mFbb.GetBufferPointer(), mFbb.GetSize());
 				this->updateEvents();
 			}
 		}
 	}
 
 	else if (mEventName == "CreateDefaultConfigFiles") {
-		this->store(mData+mName+".config");
+		this->store(mData + mName + ".config");
 	}
 
 	else if (mEventName == "Configure") {
-		this->restore(mData+mName+".config");
+		this->restore(mData + mName + ".config");
 	}
 
 	else if (mEventName == "Store" || mEventName == "Restore") {
 		std::string filename = BREAKPNTS_PATH
-				+ std::to_string(mReceivedEvent->timestamp()) + FILE_EXTENTION;
+				+ std::to_string(mCurrentSimTime) + FILE_EXTENTION;
 
 		if (mEventName == "Store") {
 			std::cout << "Store events from Queue" << std::endl;
@@ -167,7 +173,8 @@ void Queue::store(std::string filename) {
 		oa << boost::serialization::make_nvp("EventSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << mName <<": Archive Exception during serializing: " << std::endl;
+		std::cout << mName << ": Archive Exception during serializing: "
+				<< std::endl;
 		throw ex.what();
 	}
 
@@ -183,7 +190,8 @@ void Queue::restore(std::string filename) {
 		ia >> boost::serialization::make_nvp("EventSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << mName <<": Archive Exception during deserializing:" << std::endl;
+		std::cout << mName << ": Archive Exception during deserializing:"
+				<< std::endl;
 		throw ex.what();
 	}
 

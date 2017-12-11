@@ -13,7 +13,8 @@ static const char FILE_EXTENTION[] = "_savefile_model_2.xml";
 
 Model2::Model2(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
-				mCtx), mDealer(mCtx, mName), mCurrentSimTime(0) {
+				mCtx), mDealer(mCtx, mName), mReceivedEvent(NULL), mCurrentSimTime(
+				0) {
 
 	mRun = this->prepare();
 }
@@ -93,7 +94,7 @@ void Model2::run() {
 }
 
 void Model2::handleEvent() {
-	mReceivedEvent = mSubscriber.getEvent();
+	mReceivedEvent = event::GetEvent(mSubscriber.getEventBuffer());
 	mEventName = mReceivedEvent->name()->str();
 	mCurrentSimTime = mReceivedEvent->timestamp();
 	mData = mReceivedEvent->data_as_String()->str();
@@ -101,15 +102,17 @@ void Model2::handleEvent() {
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
 	if (mEventName == "SubsequentEvent") {
-		this->mPublisher.publishEvent("ReturnEvent", mCurrentSimTime);
+		auto eventOffset = event::CreateEvent(mFbb, mFbb.CreateString("ReturnEvent"), mCurrentSimTime);
+		mFbb.Finish(eventOffset);
+		this->mPublisher.publishEvent("ReturnEvent", mFbb.GetBufferPointer(), mFbb.GetSize());
 	}
 
 	else if (mEventName == "CreateDefaultConfigFiles") {
-		this->store(std::string(mData.begin(), mData.end())+mName+".config");
+		this->store(std::string(mData.begin(), mData.end()) + mName + ".config");
 	}
 
 	else if (mEventName == "Configure") {
-		this->configure(std::string(mData.begin(), mData.end())+mName+".config");
+		this->configure(std::string(mData.begin(), mData.end()) + mName + ".config");
 	}
 
 	else if (mEventName == "Store" || mEventName == "Restore") {
@@ -129,7 +132,6 @@ void Model2::handleEvent() {
 	else if (mEventName == "End") {
 		mRun = false;
 	}
-
 }
 
 void Model2::store(std::string filename) {
@@ -140,7 +142,7 @@ void Model2::store(std::string filename) {
 		oa << boost::serialization::make_nvp("FieldSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << mName <<": Archive Exception during serializing:" << std::endl;
+		std::cout << mName << ": Archive Exception during serializing:" << std::endl;
 		std::cout << ex.what() << std::endl;
 	}
 
@@ -155,7 +157,7 @@ void Model2::restore(std::string filename) {
 		ia >> boost::serialization::make_nvp("FieldSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << mName <<": Archive Exception during deserializing:" << std::endl;
+		std::cout << mName << ": Archive Exception during deserializing:" << std::endl;
 		std::cout << ex.what() << std::endl;
 	}
 

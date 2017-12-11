@@ -27,7 +27,7 @@
 #include "data-types/BreakpointSet.h"
 #include "communication/zhelpers.hpp"
 
-#include "../resources/idl/event_generated.h"
+#include "resources/idl/event_generated.h"
 
 
 class SimulationModel: public virtual IModel, public virtual IPersist {
@@ -100,6 +100,9 @@ private:
 
 	uint64_t mTotalNumOfModels = 0;
 	uint64_t mNumOfPersistModels = 0;
+
+	// Event Serialiazation
+	flatbuffers::FlatBufferBuilder mFbb;
 
 	friend class boost::serialization::access;
 	template<typename Archive>

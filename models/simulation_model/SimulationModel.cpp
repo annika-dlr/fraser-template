@@ -88,7 +88,11 @@ void SimulationModel::run() {
 				}
 
 				std::cout << "[SIMTIME] --> " << currentSimTime << std::endl;
-				mPublisher.publishEvent("simTimeChanged", currentSimTime);
+				auto eventOffset = event::CreateEvent(mFbb,
+						mFbb.CreateString("simTimeChanged"), currentSimTime);
+				mFbb.Finish(eventOffset);
+				mPublisher.publishEvent("simTimeChanged",
+						mFbb.GetBufferPointer(), mFbb.GetSize());
 
 				std::this_thread::sleep_for(
 						std::chrono::milliseconds(mCycleTime.getValue()));
@@ -107,7 +111,11 @@ void SimulationModel::run() {
 
 void SimulationModel::stopSim() {
 	// Stop all running models and the dns server
-	mPublisher.publishEvent("End", mCurrentSimTime.getValue());
+	auto eventOffset = event::CreateEvent(mFbb, mFbb.CreateString("End"),
+			mCurrentSimTime.getValue());
+	mFbb.Finish(eventOffset);
+	mPublisher.publishEvent("End", mFbb.GetBufferPointer(), mFbb.GetSize());
+
 	mDealer.stopDNSserver();
 }
 
@@ -115,7 +123,7 @@ void SimulationModel::restore(std::string configPath) {
 	this->pauseSim();
 
 	// Restore states
-	std::ifstream ifs(configPath+mName+".config");
+	std::ifstream ifs(configPath + mName + ".config");
 	boost::archive::xml_iarchive ia(ifs, boost::archive::no_header);
 	try {
 		ia >> boost::serialization::make_nvp("FieldSet", *this);
@@ -126,11 +134,19 @@ void SimulationModel::restore(std::string configPath) {
 	}
 
 	if (mLoadConfigFile) {
-		mPublisher.publishEvent("Configure", mCurrentSimTime.getValue(),
-				configPath, event::Priority_NORMAL_PRIORITY, 0, 0,
-				event::EventData_String);
+		auto eventOffset = event::CreateEvent(mFbb,
+				mFbb.CreateString("Configure"), mCurrentSimTime.getValue(),
+				event::Priority_NORMAL_PRIORITY, 0, 0, event::EventData_String,
+				mFbb.CreateString(configPath).Union());
+		mFbb.Finish(eventOffset);
+		mPublisher.publishEvent("Configure", mFbb.GetBufferPointer(),
+				mFbb.GetSize());
 	} else {
-		mPublisher.publishEvent("Restore", mCurrentSimTime.getValue());
+		auto eventOffset = event::CreateEvent(mFbb,
+				mFbb.CreateString("Restore"), mCurrentSimTime.getValue());
+		mFbb.Finish(eventOffset);
+		mPublisher.publishEvent("Restore", mFbb.GetBufferPointer(),
+				mFbb.GetSize());
 	}
 
 	// Synchronization is necessary, because the simulation
@@ -146,15 +162,24 @@ void SimulationModel::store(std::string configPath) {
 	this->pauseSim();
 
 	if (mConfigMode) {
+		auto eventOffset = event::CreateEvent(mFbb,
+				mFbb.CreateString("CreateDefaultConfigFiles"),
+				mCurrentSimTime.getValue(), event::Priority_NORMAL_PRIORITY, 0,
+				0, event::EventData_String,
+				mFbb.CreateString(configPath).Union());
+		mFbb.Finish(eventOffset);
 		mPublisher.publishEvent("CreateDefaultConfigFiles",
-				mCurrentSimTime.getValue(), configPath,
-				event::Priority_NORMAL_PRIORITY, 0, 0, event::EventData_String);
+				mFbb.GetBufferPointer(), mFbb.GetSize());
 	} else {
-		mPublisher.publishEvent("Store", mCurrentSimTime.getValue());
+		auto eventOffset = event::CreateEvent(mFbb, mFbb.CreateString("Store"),
+				mCurrentSimTime.getValue());
+		mFbb.Finish(eventOffset);
+		mPublisher.publishEvent("Store", mFbb.GetBufferPointer(),
+				mFbb.GetSize());
 	}
 
 	// Store states
-	std::ofstream ofs(configPath+mName+".config");
+	std::ofstream ofs(configPath + mName + ".config");
 	boost::archive::xml_oarchive oa(ofs, boost::archive::no_header);
 
 	try {

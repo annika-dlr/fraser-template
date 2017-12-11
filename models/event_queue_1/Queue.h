@@ -26,6 +26,8 @@
 #include "interfaces/IQueue.h"
 #include "scheduler/Scheduler.h"
 
+#include "resources/idl/event_generated.h"
+
 class Queue: public virtual IModel,
 		public virtual IPersist,
 		public virtual IQueue {
@@ -55,6 +57,7 @@ private:
 
 	// IQueue
 	virtual void updateEvents() override;
+	// TODO: Change to std::vector< flatbuffers::Offset<event::Event> >
 	EventSet mEventSet;
 
 	std::string mName;
@@ -79,6 +82,9 @@ private:
 
 	Scheduler mScheduler;
 	uint64_t mCurrentSimTime;
+
+	// Serialization
+	flatbuffers::FlatBufferBuilder mFbb;
 };
 
 #endif /* EVENT_QUEUE_1_QUEUE_H_ */
