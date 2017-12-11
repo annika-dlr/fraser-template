@@ -22,7 +22,7 @@
 
 class ConfigurationServer: public virtual IModel {
 public:
-	ConfigurationServer();
+	ConfigurationServer(std::string modelsConfigFilePath);
 	virtual ~ConfigurationServer();
 
 	// IModel
@@ -69,6 +69,7 @@ private:
 
 	std::vector<std::string> mModelNames;
 	std::map<std::string, std::string> mModelInformation;
+	std::string mModelsConfigFilePath;
 };
 
 #endif /* CONFIGURATION_SERVER_CONFIGURATIONSERVER_H_ */

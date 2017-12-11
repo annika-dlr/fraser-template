@@ -9,8 +9,9 @@
 
 #define FRONTEND_PORT std::string("5570")
 
-ConfigurationServer::ConfigurationServer() :
-		mCtx(1), mFrontend(mCtx, ZMQ_ROUTER) {
+ConfigurationServer::ConfigurationServer(std::string modelsConfigFilePath) :
+		mModelsConfigFilePath(modelsConfigFilePath), mCtx(1), mFrontend(mCtx,
+				ZMQ_ROUTER) {
 	std::cout << "ConfigurationServer-Model Constructor" << std::endl;
 
 	registerInterruptSignal();
@@ -43,7 +44,7 @@ ConfigurationServer::~ConfigurationServer() {
 
 bool ConfigurationServer::prepare() {
 	pugi::xml_parse_result result = mDocument.load_file(
-			"/home/user/tmp/models/configuration_server/configuration/models-config.xml");
+			mModelsConfigFilePath.c_str());
 
 	if (!result) {
 		std::cout << "Parse error: " << result.description()
@@ -74,7 +75,7 @@ bool ConfigurationServer::setModelPortNumbers() {
 		}
 
 		mModelInformation[name + "_port"] = std::to_string(portCnt);
-		std::cout << name <<": " << std::to_string(portCnt) << std::endl;
+		std::cout << name << ": " << std::to_string(portCnt) << std::endl;
 		portCnt++;
 	}
 
@@ -99,7 +100,8 @@ void ConfigurationServer::setModelIPAddresses() {
 			std::string hostID = xpathSpecificModel.node().child(
 					"HostReference").attribute("hostID").value();
 
-			std::string hostNameSearch = ".//Hosts/*[@id=" + hostID + "]/Address";
+			std::string hostNameSearch = ".//Hosts/*[@id=" + hostID
+					+ "]/Address";
 
 			pugi::xpath_node xpath_hostName = mRootNode.select_single_node(
 					hostNameSearch.c_str());
