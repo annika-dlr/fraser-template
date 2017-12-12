@@ -68,6 +68,7 @@ private:
 
 	// Event Serialiazation
 	flatbuffers::FlatBufferBuilder mFbb;
+	flatbuffers::Offset<event::Event> mEventOffset;
 
 	friend class boost::serialization::access;
 	template<typename Archive>

@@ -124,10 +124,10 @@ void Queue::handleEvent() {
 
 			if (mCurrentSimTime >= nextEvent.getTimestamp()) {
 				nextEvent.setCurrentSimTime(mCurrentSimTime);
-				auto eventOffset = event::CreateEvent(mFbb,
+				mEventOffset = event::CreateEvent(mFbb,
 						mFbb.CreateString(nextEvent.getName()),
 						nextEvent.getTimestamp());
-				mFbb.Finish(eventOffset);
+				mFbb.Finish(mEventOffset);
 				mPublisher.publishEvent(nextEvent.getName(),
 						mFbb.GetBufferPointer(), mFbb.GetSize());
 				this->updateEvents();

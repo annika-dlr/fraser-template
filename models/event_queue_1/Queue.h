@@ -85,6 +85,7 @@ private:
 
 	// Serialization
 	flatbuffers::FlatBufferBuilder mFbb;
+	flatbuffers::Offset<event::Event> mEventOffset;
 };
 
 #endif /* EVENT_QUEUE_1_QUEUE_H_ */

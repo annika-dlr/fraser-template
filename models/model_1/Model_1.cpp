@@ -104,9 +104,9 @@ void Model1::handleEvent() {
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
 	if (mEventName == "FirstEvent") {
-		auto eventOffset = event::CreateEvent(mFbb,
+		mEventOffset = event::CreateEvent(mFbb,
 				mFbb.CreateString("SubsequentEvent"), mCurrentSimTime);
-		mFbb.Finish(eventOffset);
+		mFbb.Finish(mEventOffset);
 		this->mPublisher.publishEvent("SubsequentEvent",
 				mFbb.GetBufferPointer(), mFbb.GetSize());
 	}

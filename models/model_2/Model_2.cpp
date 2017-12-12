@@ -102,8 +102,8 @@ void Model2::handleEvent() {
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
 	if (mEventName == "SubsequentEvent") {
-		auto eventOffset = event::CreateEvent(mFbb, mFbb.CreateString("ReturnEvent"), mCurrentSimTime);
-		mFbb.Finish(eventOffset);
+		mEventOffset = event::CreateEvent(mFbb, mFbb.CreateString("ReturnEvent"), mCurrentSimTime);
+		mFbb.Finish(mEventOffset);
 		this->mPublisher.publishEvent("ReturnEvent", mFbb.GetBufferPointer(), mFbb.GetSize());
 	}
 

@@ -88,9 +88,9 @@ void SimulationModel::run() {
 				}
 
 				std::cout << "[SIMTIME] --> " << currentSimTime << std::endl;
-				auto eventOffset = event::CreateEvent(mFbb,
+				mEventOffset = event::CreateEvent(mFbb,
 						mFbb.CreateString("simTimeChanged"), currentSimTime);
-				mFbb.Finish(eventOffset);
+				mFbb.Finish(mEventOffset);
 				mPublisher.publishEvent("simTimeChanged",
 						mFbb.GetBufferPointer(), mFbb.GetSize());
 
@@ -111,9 +111,9 @@ void SimulationModel::run() {
 
 void SimulationModel::stopSim() {
 	// Stop all running models and the dns server
-	auto eventOffset = event::CreateEvent(mFbb, mFbb.CreateString("End"),
+	mEventOffset = event::CreateEvent(mFbb, mFbb.CreateString("End"),
 			mCurrentSimTime.getValue());
-	mFbb.Finish(eventOffset);
+	mFbb.Finish(mEventOffset);
 	mPublisher.publishEvent("End", mFbb.GetBufferPointer(), mFbb.GetSize());
 
 	mDealer.stopDNSserver();
@@ -134,17 +134,17 @@ void SimulationModel::restore(std::string configPath) {
 	}
 
 	if (mLoadConfigFile) {
-		auto eventOffset = event::CreateEvent(mFbb,
+		mEventOffset = event::CreateEvent(mFbb,
 				mFbb.CreateString("Configure"), mCurrentSimTime.getValue(),
 				event::Priority_NORMAL_PRIORITY, 0, 0, event::EventData_String,
 				mFbb.CreateString(configPath).Union());
-		mFbb.Finish(eventOffset);
+		mFbb.Finish(mEventOffset);
 		mPublisher.publishEvent("Configure", mFbb.GetBufferPointer(),
 				mFbb.GetSize());
 	} else {
-		auto eventOffset = event::CreateEvent(mFbb,
+		mEventOffset = event::CreateEvent(mFbb,
 				mFbb.CreateString("Restore"), mCurrentSimTime.getValue());
-		mFbb.Finish(eventOffset);
+		mFbb.Finish(mEventOffset);
 		mPublisher.publishEvent("Restore", mFbb.GetBufferPointer(),
 				mFbb.GetSize());
 	}
@@ -162,18 +162,18 @@ void SimulationModel::store(std::string configPath) {
 	this->pauseSim();
 
 	if (mConfigMode) {
-		auto eventOffset = event::CreateEvent(mFbb,
+		mEventOffset = event::CreateEvent(mFbb,
 				mFbb.CreateString("CreateDefaultConfigFiles"),
 				mCurrentSimTime.getValue(), event::Priority_NORMAL_PRIORITY, 0,
 				0, event::EventData_String,
 				mFbb.CreateString(configPath).Union());
-		mFbb.Finish(eventOffset);
+		mFbb.Finish(mEventOffset);
 		mPublisher.publishEvent("CreateDefaultConfigFiles",
 				mFbb.GetBufferPointer(), mFbb.GetSize());
 	} else {
-		auto eventOffset = event::CreateEvent(mFbb, mFbb.CreateString("Store"),
+		mEventOffset = event::CreateEvent(mFbb, mFbb.CreateString("Store"),
 				mCurrentSimTime.getValue());
-		mFbb.Finish(eventOffset);
+		mFbb.Finish(mEventOffset);
 		mPublisher.publishEvent("Store", mFbb.GetBufferPointer(),
 				mFbb.GetSize());
 	}

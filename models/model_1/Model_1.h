@@ -62,6 +62,7 @@ private:
 
 	// Event Serialization
 	flatbuffers::FlatBufferBuilder mFbb;
+	flatbuffers::Offset<event::Event> mEventOffset;
 
 	bool mRun;
 	const event::Event* mReceivedEvent;
