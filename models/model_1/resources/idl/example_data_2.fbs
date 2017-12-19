@@ -1,1 +1,9 @@
---- test idl ---
+// Example 2: Customized Event Data -->
+namespace event;
+
+table ExampleEventData2 {
+  name:string;
+  timestamp:ulong = -1;
+}
+
+root_type ExampleEventData2;
