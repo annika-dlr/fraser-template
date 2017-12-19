@@ -52,7 +52,6 @@
   when:
     - item != "simulation_model"
     - item != "configuration_server"
-  register: async_results
   
 - name: Run simulation model on the host
   shell: "{{ remote_home_path }}/tmp_simulation/models/{{ item }}/build/bin/{{ item }} --load-config {{ remote_home_path }}/tmp_simulation/configurations/{{ config }}/"
