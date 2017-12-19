@@ -15,10 +15,6 @@ enum Priority: int {
 	HIGH_PRIORITY
 }
 
-//table Events {
-//	events:[Event];
-//}
-
 table Event {
   name:string (key);
   timestamp:ulong = -1;
