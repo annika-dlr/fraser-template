@@ -60,17 +60,6 @@
   when: item == "simulation_model"
   register: sim_out
 
-- name: Check sync status
-  async_status:
-    jid: "{{ async_result_item.ansible_job_id }}"
-  loop: "{{ async_results.results }}"
-  loop_control:
-    loop_var: "async_result_item"
-  when: async_result_item.ansible_job_id is defined
-  register: async_poll_results
-  until: async_poll_results.finished
-  retries: 30
-
 - debug: var="{{ item.stdout_lines }}"
   loop: "{{ sim_out.results }}"
   when: item.stdout_lines is defined
