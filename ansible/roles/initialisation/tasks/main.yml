@@ -14,7 +14,7 @@
 
 - name: Build variables file
   command: python3.6 ../fraser/scripts/modelsVarsGenerator.py -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
-    
+
 - name: Include main.yml file in group_vars/all (includes global variables)
   include_vars:
    file: "../ansible/inventory/group_vars/all/main.yml"
@@ -24,18 +24,57 @@
   loop: "{{ models }}"
   when: item.name != "configuration_server"
   changed_when: False
- 
+
 - name: Dissolve IDL dependencies between the models
   copy:
-    src: "../models/{{item.1}}/resources/idl/"
-    dest: "../models/{{item.0.name}}/resources/idl"
+    src: "../models/{{ item.1 }}/resources/idl/"
+    dest: "../models/{{ item.0.name }}/resources/idl"
   with_subelements:
     - "{{ models }}"
     - depends
-    
+
+- name: Find Flatbuffers files ending with .fbs
+  find:
+    paths: ../models
+    patterns: "*.fbs"
+    recurse: yes
+  register: fbsfiles
+
 - name: Copy default event IDL C++ header to the models
   copy:
     src: "../resources/idl/event.fbs"
     dest: "../models/{{ item.name }}/resources/idl/"
   loop: "{{ models }}"
   when: item.name != "configuration_server"
+
+- name: Include specific eventdata-fbs into default event-fbs
+  lineinfile:
+    path: "../models/{{ item[0].name }}/resources/idl/event.fbs"
+    insertafter: "// event.fbs"
+    line: 'include "{{ item[1].path | basename }}";'
+  when:
+    - item[1].path is search(item[0].name)
+    - item[0].name != "configuration_server"
+    - (item[1].path | basename) != "event.fbs"
+  with_nested:
+    - "{{ models }}"
+    - "{{ fbsfiles.files }}"
+    
+- name: Read fbs-data files
+  command: python3.6 ../fraser/scripts/fbsDataReader.py -f {{ item.path }}
+  loop: "{{ fbsfiles.files }}"
+  when: (item.path | basename) != "event.fbs"
+  register: datanames
+    
+- name: Add specific eventdata-fbs to union type of default event-fbs
+  lineinfile:
+    path: "../models/{{ item[0].name }}/resources/idl/event.fbs"
+    insertafter: "union EventData {"
+    line: '{{ item[1].stdout }},'
+  when:
+    - item[1].item.path is search(item[0].name)
+    - item[0].name != "configuration_server"
+    - item[1].stdout is defined
+  with_nested:
+    - "{{ models }}"
+    - "{{ datanames.results }}"
