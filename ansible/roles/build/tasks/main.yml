@@ -14,8 +14,10 @@
 - name: Generate C++ headers to access and construct serialized events
   command: flatc -o {{ item.path | dirname }} --cpp {{ item.path }}
   loop: "{{ fbs_files.files }}"
+  changed_when: False
 
   # build project
 - name: build models
   command: make -C ../
+  changed_when: False
 
