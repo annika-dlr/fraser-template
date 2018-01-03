@@ -3,15 +3,18 @@
   file: path="{{ item }}" state=directory
   loop:
     - "../models"
-    - "../configurations"
+    # The folder 'config_0' is for the default configuration files (automated generated with initial values)
+    - "../configurations/config_0"          
     - "../fraser"
     - "../ansible/inventory"
     - "../ansible/inventory/group_vars/all"
   changed_when: False
-
+  
+  # Create hosts file (inventory file)
 - name: Build hosts file
   command: python3.6 ../fraser/scripts/hostsGenerator.py -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
 
+  # Define global variables
 - name: Build variables file
   command: python3.6 ../fraser/scripts/modelsVarsGenerator.py -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
 
@@ -19,12 +22,16 @@
   include_vars:
    file: "../ansible/inventory/group_vars/all/main.yml"
 
+  # Create folders if they not exist
 - name: Check if resource/idl folders exists
   file: path="../models/{{ item.name }}/resources/idl" state=directory
   loop: "{{ models }}"
   when: item.name != "configuration_server"
   changed_when: False
 
+  # -------------------------------------------------------
+  # All models have all available IDLs of the other models.
+  # -------------------------------------------------------
 - name: Dissolve IDL dependencies between the models
   copy:
     src: "../models/{{ item.1.name }}/resources/idl/"
@@ -81,3 +88,4 @@
   with_nested:
     - "{{ models }}"
     - "{{ datanames.results }}"
+  # -------------------------------------------------------
