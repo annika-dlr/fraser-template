@@ -1,21 +1,17 @@
 ---
 - hosts: localhost
   gather_facts: no
-  tasks:
+  roles: 
+    - { role: initialisation, tags: initialisation }
 
 - hosts: localhost
   gather_facts: no
   roles: 
-    - initialisation
-
-- hosts: localhost
-  gather_facts: no
-  roles: 
-    - build
+    - { role: build, tags: build }
 
 - hosts: all:!localhost
-#  gather_facts: no
+  gather_facts: no
   vars:
-    - config: config_1
+    - config: config_0
   roles:
-    - deployment
+    - { role: deployment, tags: deployment }
