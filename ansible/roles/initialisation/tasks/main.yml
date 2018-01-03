@@ -27,11 +27,14 @@
 
 - name: Dissolve IDL dependencies between the models
   copy:
-    src: "../models/{{ item.1 }}/resources/idl/"
+    src: "../models/{{ item.1.name }}/resources/idl/"
     dest: "../models/{{ item.0.name }}/resources/idl"
-  with_subelements:
+  with_nested:
     - "{{ models }}"
-    - depends
+    - "{{ models }}"
+  when: 
+    - item.0.name != "configuration_server"
+    - item.1.name != "configuration_server"
 
 - name: Find Flatbuffers files ending with .fbs
   find:
@@ -69,7 +72,7 @@
 - name: Add specific eventdata-fbs to union type of default event-fbs
   lineinfile:
     path: "../models/{{ item[0].name }}/resources/idl/event.fbs"
-    insertafter: "union EventData {"
+    insertafter: "String:string,"
     line: '{{ item[1].stdout }},'
   when:
     - item[1].item.path is search(item[0].name)
