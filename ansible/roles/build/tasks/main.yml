@@ -1,10 +1,5 @@
 ---
-#- name: make clean
-#  command: make clean -C ../
-
-- name: build models
-  command: make -C ../
-
+  # Generate C++ headers from the flatbuffers
 - name: Find Flatbuffers files ending with .fbs
   find:
     paths: ../models
@@ -19,3 +14,8 @@
 - name: Generate C++ headers to access and construct serialized events
   command: flatc -o {{ item.path | dirname }} --cpp {{ item.path }}
   loop: "{{ fbs_files.files }}"
+
+  # build project
+- name: build models
+  command: make -C ../
+
