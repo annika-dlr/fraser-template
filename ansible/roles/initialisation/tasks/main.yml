@@ -8,15 +8,16 @@
     - "../fraser"
     - "../ansible/inventory"
     - "../ansible/inventory/group_vars/all"
-  changed_when: False
   
   # Create hosts file (inventory file)
 - name: Build hosts file
   command: python3.6 ../fraser/scripts/hostsGenerator.py -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
+  changed_when: False
 
   # Define global variables
 - name: Build variables file
   command: python3.6 ../fraser/scripts/modelsVarsGenerator.py -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
+  changed_when: False
 
 - name: Include main.yml file in group_vars/all (includes global variables)
   include_vars:
@@ -28,6 +29,11 @@
   loop: "{{ models }}"
   when: item.name != "configuration_server"
   changed_when: False
+  
+  # Create default configuration files (config_0)
+- name: Start bash-script to create default configuration files
+  command: sh ../scripts/createConfigurationFiles.sh
+  changed_when: False
 
   # -------------------------------------------------------
   # All models have all available IDLs of the other models.
@@ -35,7 +41,7 @@
 - name: Dissolve IDL dependencies between the models
   copy:
     src: "../models/{{ item.1.name }}/resources/idl/"
-    dest: "../models/{{ item.0.name }}/resources/idl"
+    dest: "../models/{{ item.0.name }}/resources/idl/"
   with_nested:
     - "{{ models }}"
     - "{{ models }}"
@@ -75,6 +81,7 @@
   loop: "{{ fbsfiles.files }}"
   when: (item.path | basename) != "event.fbs"
   register: datanames
+  changed_when: False
     
 - name: Add specific eventdata-fbs to union type of default event-fbs
   lineinfile:
