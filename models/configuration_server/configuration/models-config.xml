@@ -35,19 +35,11 @@
 		<Model persist="true" id="3">
 			<Name>model_1</Name>
 			<HostReference hostID="1" />
-			<Dependencies>
-				<ModelReference modelID="2" />
-				<ModelReference modelID="4" />
-			</Dependencies>
 		</Model>
 
 		<Model persist="true" id="4">
 			<Name>model_2</Name>
 			<HostReference hostID="1" />
-			<Dependencies>
-				<ModelReference modelID="2" />
-				<ModelReference modelID="3" />
-			</Dependencies>
 		</Model>
 	</Models>
 </root>
