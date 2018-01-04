@@ -18,12 +18,12 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 
+#include "data-types/SavepointSet.h"
 #include "interfaces/IModel.h"
 #include "interfaces/IPersist.h"
 #include "communication/Publisher.h"
 #include "communication/Dealer.h"
 #include "data-types/Field.h"
-#include "data-types/BreakpointSet.h"
 #include "communication/zhelpers.hpp"
 
 #include "resources/idl/event_generated.h"
@@ -72,13 +72,13 @@ public:
 	/** Set a breakpoint (given in simulation time, e.g. 200 time units).
 	 * If the simulation reaches a breakpoint (e.g. after 200 time units),
 	 * the store method of all subscribed models and of the simulation-model itself is called. **/
-	void setBreakpoint(uint64_t time) {
-		mBreakpoints.push_back(time);
+	void setSavepoint(uint64_t time) {
+		mSavepoints.push_back(time);
 	}
 
 	/** Get all breakpoint which were defined. **/
-	std::vector<uint64_t> getBreakpoints() {
-		return mBreakpoints;
+	std::vector<uint64_t> getSavepoints() {
+		return mSavepoints;
 	}
 
 private:
@@ -91,7 +91,7 @@ private:
 	Publisher mPublisher; // ZMQ-PUB
 	Dealer mDealer;		  // ZMQ-DEALER
 
-	BreakpointSet mBreakpoints;
+	SavepointSet mSavepoints;
 	bool mRun = true;
 	bool mPause = false;
 	bool mConfigMode = false;
@@ -111,7 +111,7 @@ private:
 		archive & boost::serialization::make_nvp("IntField", mSimTimeStep);
 		archive & boost::serialization::make_nvp("IntField", mCurrentSimTime);
 		archive & boost::serialization::make_nvp("DoubleField", mSpeedFactor);
-		archive & boost::serialization::make_nvp("BreakpointSet", mBreakpoints);
+		archive & boost::serialization::make_nvp("BreakpointSet", mSavepoints);
 	}
 
 	// Fields

@@ -9,9 +9,6 @@
 
 #include <iostream>
 
-static const char BREAKPNTS_PATH[] = "../models/simulation_model/savepoints/";
-static const char FILE_EXTENTION[] = "_savefile_simulation.xml";
-
 SimulationModel::SimulationModel(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mPublisher(mCtx), mDealer(
 				mCtx, mName), mSimTime("SimTime", 1000), mSimTimeStep(
@@ -62,10 +59,11 @@ void SimulationModel::run() {
 		while (currentSimTime <= mSimTime.getValue()) {
 			if (!mPause) {
 
-				for (auto breakpoint : getBreakpoints()) {
-					if (currentSimTime == breakpoint) {
-						std::string filePath = BREAKPNTS_PATH
-								+ std::to_string(breakpoint) + FILE_EXTENTION;
+				for (auto savepoint : getSavepoints()) {
+					if (currentSimTime == savepoint) {
+						std::string filePath = "../savepoints/savepnt_"
+								+ std::to_string(savepoint) + "/" + mName
+								+ ".config";
 
 						this->saveState(filePath);
 						break;
@@ -139,8 +137,7 @@ void SimulationModel::loadState(std::string filePath) {
 void SimulationModel::saveState(std::string filePath) {
 	this->pauseSim();
 
-	mEventOffset = event::CreateEvent(mFbb,
-			mFbb.CreateString("SaveState"),
+	mEventOffset = event::CreateEvent(mFbb, mFbb.CreateString("SaveState"),
 			mCurrentSimTime.getValue(), event::Priority_NORMAL_PRIORITY, 0, 0,
 			event::EventData_String, mFbb.CreateString(filePath).Union());
 	mFbb.Finish(mEventOffset);
