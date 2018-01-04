@@ -26,6 +26,8 @@ Queue::~Queue() {
 
 void Queue::init() {
 	// Set or calculate other parameters ...
+	mEventSet.push_back(Event("Test_Event", 0, 3, 199, Priority::NORMAL_PRIORITY));
+	mEventSet.push_back(Event("Test_Event", 0, 3, 199, Priority::HIGH_PRIORITY));
 }
 
 bool Queue::prepare() {

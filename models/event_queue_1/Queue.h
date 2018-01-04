@@ -64,7 +64,9 @@ private:
 	friend class boost::serialization::access;
 	template<typename Archive>
 	void serialize(Archive& archive, const unsigned int) {
-		archive & boost::serialization::make_nvp("EventSet", mEventSet);
+		for (auto event : mEventSet) {
+			archive & boost::serialization::make_nvp("Event", event);
+		}
 	}
 
 	// Subscriber & Publisher
