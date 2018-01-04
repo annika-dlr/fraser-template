@@ -12,8 +12,6 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
-#include <boost/filesystem.hpp>
-
 #include <zmq.hpp>
 
 #include "communication/zhelpers.hpp"

@@ -17,7 +17,6 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
-#include <boost/filesystem.hpp>
 
 #include "interfaces/IModel.h"
 #include "interfaces/IPersist.h"
