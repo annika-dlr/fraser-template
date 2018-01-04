@@ -27,8 +27,8 @@ Queue::~Queue() {
 
 }
 
-void Queue::configure(std::string filename) {
-	this->restore(filename);
+void Queue::configure(std::string configFile) {
+	this->loadState(configFile);
 }
 
 void Queue::setDefaultEvents() {
@@ -136,24 +136,24 @@ void Queue::handleEvent() {
 	}
 
 	else if (mEventName == "CreateDefaultConfigFiles") {
-		this->store(mData + mName + ".config");
+		this->saveState(mData + mName + ".config");
 	}
 
 	else if (mEventName == "Configure") {
-		this->restore(mData + mName + ".config");
+		this->loadState(mData + mName + ".config");
 	}
 
 	else if (mEventName == "Store" || mEventName == "Restore") {
-		std::string filename = BREAKPNTS_PATH
+		std::string filePath = BREAKPNTS_PATH
 				+ std::to_string(mCurrentSimTime) + FILE_EXTENTION;
 
 		if (mEventName == "Store") {
 			std::cout << "Store events from Queue" << std::endl;
-			this->store(filename);
+			this->saveState(filePath);
 
 		} else {
 			std::cout << "Restore events from Queue" << std::endl;
-			this->restore(filename);
+			this->loadState(filePath);
 		}
 	}
 
@@ -164,9 +164,9 @@ void Queue::handleEvent() {
 
 }
 
-void Queue::store(std::string filename) {
+void Queue::saveState(std::string filePath) {
 	// Store states
-	std::ofstream ofs(filename);
+	std::ofstream ofs(filePath);
 	boost::archive::xml_oarchive oa(ofs, boost::archive::no_header);
 
 	try {
@@ -181,9 +181,9 @@ void Queue::store(std::string filename) {
 	mRun = mSubscriber.synchronizeSub();
 }
 
-void Queue::restore(std::string filename) {
+void Queue::loadState(std::string filePath) {
 	// Restore states
-	std::ifstream ifs(filename);
+	std::ifstream ifs(filePath);
 	boost::archive::xml_iarchive ia(ifs, boost::archive::no_header);
 
 	try {

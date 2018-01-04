@@ -45,8 +45,8 @@ public:
 	}
 
 	// IPersist
-	virtual void store(std::string filename) override;
-	virtual void restore(std::string filename) override;
+	virtual void saveState(std::string filename) override;
+	virtual void loadState(std::string filename) override;
 
 private:
 	// IModel

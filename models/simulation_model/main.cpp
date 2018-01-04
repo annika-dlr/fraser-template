@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 		if (static_cast<std::string>(argv[1]) == "--create-config-files") {
 			std::cout << "Create default configuration files" << std::endl;
 			simulation.setConfigMode(true);
-			simulation.store(configFile);
+			simulation.saveState(configFile);
 
 		} else if (static_cast<std::string>(argv[1]) == "--load-config") {
 			simulation.configure(configFile);

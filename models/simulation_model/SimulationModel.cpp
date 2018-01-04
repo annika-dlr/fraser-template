@@ -29,7 +29,7 @@ SimulationModel::~SimulationModel() {
 void SimulationModel::configure(std::string configPath) {
 	if (mRun) {
 		mLoadConfigFile = true;
-		this->restore(configPath);
+		this->loadState(configPath);
 
 		mCycleTime.setValue(
 				double(mSimTimeStep.getValue()) / mSpeedFactor.getValue()); // Wait-time between the cycles in milliseconds
@@ -79,10 +79,10 @@ void SimulationModel::run() {
 
 				for (auto breakpoint : getBreakpoints()) {
 					if (currentSimTime == breakpoint) {
-						std::string filename = BREAKPNTS_PATH
+						std::string filePath = BREAKPNTS_PATH
 								+ std::to_string(breakpoint) + FILE_EXTENTION;
 
-						this->store(filename);
+						this->saveState(filePath);
 						break;
 					}
 				}
@@ -119,11 +119,11 @@ void SimulationModel::stopSim() {
 	mDealer.stopDNSserver();
 }
 
-void SimulationModel::restore(std::string configPath) {
+void SimulationModel::loadState(std::string filePath) {
 	this->pauseSim();
 
 	// Restore states
-	std::ifstream ifs(configPath + mName + ".config");
+	std::ifstream ifs(filePath + mName + ".config");
 	boost::archive::xml_iarchive ia(ifs, boost::archive::no_header);
 	try {
 		ia >> boost::serialization::make_nvp("FieldSet", *this);
@@ -137,7 +137,7 @@ void SimulationModel::restore(std::string configPath) {
 		mEventOffset = event::CreateEvent(mFbb,
 				mFbb.CreateString("Configure"), mCurrentSimTime.getValue(),
 				event::Priority_NORMAL_PRIORITY, 0, 0, event::EventData_String,
-				mFbb.CreateString(configPath).Union());
+				mFbb.CreateString(filePath).Union());
 		mFbb.Finish(mEventOffset);
 		mPublisher.publishEvent("Configure", mFbb.GetBufferPointer(),
 				mFbb.GetSize());
@@ -158,7 +158,7 @@ void SimulationModel::restore(std::string configPath) {
 	this->continueSim();
 }
 
-void SimulationModel::store(std::string configPath) {
+void SimulationModel::saveState(std::string filePath) {
 	this->pauseSim();
 
 	if (mConfigMode) {
@@ -166,7 +166,7 @@ void SimulationModel::store(std::string configPath) {
 				mFbb.CreateString("CreateDefaultConfigFiles"),
 				mCurrentSimTime.getValue(), event::Priority_NORMAL_PRIORITY, 0,
 				0, event::EventData_String,
-				mFbb.CreateString(configPath).Union());
+				mFbb.CreateString(filePath).Union());
 		mFbb.Finish(mEventOffset);
 		mPublisher.publishEvent("CreateDefaultConfigFiles",
 				mFbb.GetBufferPointer(), mFbb.GetSize());
@@ -179,7 +179,7 @@ void SimulationModel::store(std::string configPath) {
 	}
 
 	// Store states
-	std::ofstream ofs(configPath + mName + ".config");
+	std::ofstream ofs(filePath + mName + ".config");
 	boost::archive::xml_oarchive oa(ofs, boost::archive::no_header);
 
 	try {

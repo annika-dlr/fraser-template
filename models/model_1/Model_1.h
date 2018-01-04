@@ -45,8 +45,8 @@ public:
 	}
 
 	// IPersist
-	void store(std::string filename);
-	void restore(std::string filename);
+	void saveState(std::string filename);
+	void loadState(std::string filename);
 
 private:
 	// IModel

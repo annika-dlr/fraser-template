@@ -22,10 +22,10 @@ Model1::Model1(std::string name, std::string description) :
 Model1::~Model1() {
 }
 
-void Model1::configure(std::string filename) {
+void Model1::configure(std::string configPath) {
 	// Load config-file
 	// Set values for the fields
-	this->restore(filename);
+	this->loadState(configPath);
 
 	// Set or calculate other parameters ...
 }
@@ -116,7 +116,7 @@ void Model1::handleEvent() {
 	}
 
 	else if (mEventName == "CreateDefaultConfigFiles") {
-		this->store(std::string(mData.begin(), mData.end()) + mName + ".config");
+		this->saveState(std::string(mData.begin(), mData.end()) + mName + ".config");
 	}
 
 	else if (mEventName == "Configure") {
@@ -124,16 +124,16 @@ void Model1::handleEvent() {
 	}
 
 	else if (mEventName == "Store" || mEventName == "Restore") {
-		std::string filename = BREAKPNTS_PATH
+		std::string filePath = BREAKPNTS_PATH
 				+ std::to_string(mReceivedEvent->timestamp()) + FILE_EXTENTION;
 
 		if (mEventName == "Store") {
 			std::cout << "Store events from Queue" << std::endl;
-			this->store(filename);
+			this->saveState(filePath);
 
 		} else {
 			std::cout << "Restore events from Queue" << std::endl;
-			this->restore(filename);
+			this->loadState(filePath);
 		}
 	}
 
@@ -143,9 +143,9 @@ void Model1::handleEvent() {
 
 }
 
-void Model1::store(std::string filename) {
+void Model1::saveState(std::string filePath) {
 	// Store states
-	std::ofstream ofs(filename);
+	std::ofstream ofs(filePath);
 	boost::archive::xml_oarchive oa(ofs, boost::archive::no_header);
 	try {
 		oa << boost::serialization::make_nvp("FieldSet", *this);
@@ -158,9 +158,9 @@ void Model1::store(std::string filename) {
 	mRun = mSubscriber.synchronizeSub();
 }
 
-void Model1::restore(std::string filename) {
+void Model1::loadState(std::string filePath) {
 	// Restore states
-	std::ifstream ifs(filename);
+	std::ifstream ifs(filePath);
 	boost::archive::xml_iarchive ia(ifs, boost::archive::no_header);
 	try {
 		ia >> boost::serialization::make_nvp("FieldSet", *this);

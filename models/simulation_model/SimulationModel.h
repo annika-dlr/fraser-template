@@ -48,8 +48,8 @@ public:
 	}
 
 	// IPersist
-	virtual void store(std::string configPath) override;
-	virtual void restore(std::string configPath) override;
+	virtual void saveState(std::string configPath) override;
+	virtual void loadState(std::string configPath) override;
 
 	void pauseSim() {
 		mPause = true;

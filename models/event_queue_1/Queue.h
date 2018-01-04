@@ -37,7 +37,7 @@ public:
 	virtual ~Queue();
 
 	// IModel
-	virtual void configure(std::string filename) override;
+	virtual void configure(std::string configPath) override;
 	virtual bool prepare() override;
 	virtual void run() override;
 	virtual std::string getName() const override {
@@ -48,8 +48,8 @@ public:
 	}
 
 	// IPersist
-	virtual void store(std::string filename) override;
-	virtual void restore(std::string filename) override;
+	virtual void saveState(std::string filePath) override;
+	virtual void loadState(std::string filePath) override;
 
 private:
 	void handleEvent();
