@@ -21,19 +21,15 @@ SimulationModel::SimulationModel(std::string name, std::string description) :
 	registerInterruptSignal();
 
 	mRun = this->prepare();
+	this->init();
 }
 
 SimulationModel::~SimulationModel() {
 }
 
-void SimulationModel::configure(std::string configPath) {
-	if (mRun) {
-		mLoadConfigFile = true;
-		this->loadState(configPath);
-
-		mCycleTime.setValue(
-				double(mSimTimeStep.getValue()) / mSpeedFactor.getValue()); // Wait-time between the cycles in milliseconds
-	}
+void SimulationModel::init() {
+	mCycleTime.setValue(
+			double(mSimTimeStep.getValue()) / mSpeedFactor.getValue()); // Wait-time between the cycles in milliseconds
 }
 
 bool SimulationModel::prepare() {
@@ -122,21 +118,12 @@ void SimulationModel::loadState(std::string filePath) {
 		std::cout << ex.what() << std::endl;
 	}
 
-	if (mLoadConfigFile) {
-		mEventOffset = event::CreateEvent(mFbb,
-				mFbb.CreateString("Configure"), mCurrentSimTime.getValue(),
-				event::Priority_NORMAL_PRIORITY, 0, 0, event::EventData_String,
-				mFbb.CreateString(filePath).Union());
-		mFbb.Finish(mEventOffset);
-		mPublisher.publishEvent("Configure", mFbb.GetBufferPointer(),
-				mFbb.GetSize());
-	} else {
-		mEventOffset = event::CreateEvent(mFbb,
-				mFbb.CreateString("Restore"), mCurrentSimTime.getValue());
-		mFbb.Finish(mEventOffset);
-		mPublisher.publishEvent("Restore", mFbb.GetBufferPointer(),
-				mFbb.GetSize());
-	}
+	mEventOffset = event::CreateEvent(mFbb, mFbb.CreateString("LoadState"),
+			mCurrentSimTime.getValue(), event::Priority_NORMAL_PRIORITY, 0, 0,
+			event::EventData_String, mFbb.CreateString(filePath).Union());
+	mFbb.Finish(mEventOffset);
+	mPublisher.publishEvent("LoadState", mFbb.GetBufferPointer(),
+			mFbb.GetSize());
 
 	// Synchronization is necessary, because the simulation
 	// has to wait until the other models finished their Restore-method
@@ -144,28 +131,21 @@ void SimulationModel::loadState(std::string filePath) {
 	mRun = mPublisher.synchronizePub(mNumOfPersistModels - 1,
 			mCurrentSimTime.getValue());
 
+	this->init();
+
 	this->continueSim();
 }
 
 void SimulationModel::saveState(std::string filePath) {
 	this->pauseSim();
 
-	if (mConfigMode) {
-		mEventOffset = event::CreateEvent(mFbb,
-				mFbb.CreateString("CreateDefaultConfigFiles"),
-				mCurrentSimTime.getValue(), event::Priority_NORMAL_PRIORITY, 0,
-				0, event::EventData_String,
-				mFbb.CreateString(filePath).Union());
-		mFbb.Finish(mEventOffset);
-		mPublisher.publishEvent("CreateDefaultConfigFiles",
-				mFbb.GetBufferPointer(), mFbb.GetSize());
-	} else {
-		mEventOffset = event::CreateEvent(mFbb, mFbb.CreateString("Store"),
-				mCurrentSimTime.getValue());
-		mFbb.Finish(mEventOffset);
-		mPublisher.publishEvent("Store", mFbb.GetBufferPointer(),
-				mFbb.GetSize());
-	}
+	mEventOffset = event::CreateEvent(mFbb,
+			mFbb.CreateString("SaveState"),
+			mCurrentSimTime.getValue(), event::Priority_NORMAL_PRIORITY, 0, 0,
+			event::EventData_String, mFbb.CreateString(filePath).Union());
+	mFbb.Finish(mEventOffset);
+	mPublisher.publishEvent("SaveState", mFbb.GetBufferPointer(),
+			mFbb.GetSize());
 
 	// Store states
 	std::ofstream ofs(filePath + mName + ".config");

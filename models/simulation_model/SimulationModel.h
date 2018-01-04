@@ -36,7 +36,7 @@ public:
 	virtual ~SimulationModel();
 
 	// IModel
-	virtual void configure(std::string configPath) override;
+	virtual void init() override;
 	virtual bool prepare() override;
 	virtual void run() override;
 	virtual std::string getName() const override {

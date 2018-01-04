@@ -12,16 +12,16 @@
 
 int main(int argc, char* argv[]) {
 	if (argc > 2) {
-		std::string configFile = argv[2];
+		std::string configFilePath = argv[2];
 		SimulationModel simulation("simulation_model", "Simulation Environment");
 
 		if (static_cast<std::string>(argv[1]) == "--create-config-files") {
 			std::cout << "Create default configuration files" << std::endl;
 			simulation.setConfigMode(true);
-			simulation.saveState(configFile);
+			simulation.saveState(configFilePath);
 
 		} else if (static_cast<std::string>(argv[1]) == "--load-config") {
-			simulation.configure(configFile);
+			simulation.loadState(configFilePath);
 			simulation.run();
 
 		} else {

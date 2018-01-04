@@ -8,25 +8,19 @@
 #include <iostream>
 #include "Model_1.h"
 
-static const char BREAKPNTS_PATH[] = "models/model_1/savepoints/";
-static const char FILE_EXTENTION[] = "_savefile_model_1.xml";
-
 Model1::Model1(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
 				mCtx), mDealer(mCtx, mName), mReceivedEvent(NULL), mCurrentSimTime(
 				0) {
 
 	mRun = this->prepare();
+	this->init();
 }
 
 Model1::~Model1() {
 }
 
-void Model1::configure(std::string configPath) {
-	// Load config-file
-	// Set values for the fields
-	this->loadState(configPath);
-
+void Model1::init() {
 	// Set or calculate other parameters ...
 }
 
@@ -52,14 +46,13 @@ bool Model1::prepare() {
 		return false;
 	}
 
-	mSubscriber.subscribeTo("FirstEvent");
-	mSubscriber.subscribeTo("ReturnEvent");
-	mSubscriber.subscribeTo("Restore");
-	mSubscriber.subscribeTo("Store");
+
+	mSubscriber.subscribeTo("LoadState");
+	mSubscriber.subscribeTo("SaveState");
 	mSubscriber.subscribeTo("End");
 	mSubscriber.subscribeTo("PCDUCommand");
-	mSubscriber.subscribeTo("CreateDefaultConfigFiles");
-	mSubscriber.subscribeTo("Configure");
+	mSubscriber.subscribeTo("FirstEvent");
+	mSubscriber.subscribeTo("ReturnEvent");
 
 	// Synchronization
 	if (!mSubscriber.prepareSubSynchronization(
@@ -102,26 +95,12 @@ void Model1::handleEvent() {
 
 	}
 
-	else if (mEventName == "CreateDefaultConfigFiles") {
+	else if (mEventName == "SaveState") {
 		this->saveState(std::string(mData.begin(), mData.end()) + mName + ".config");
 	}
 
-	else if (mEventName == "Configure") {
-		this->configure(std::string(mData.begin(), mData.end()) + mName + ".config");
-	}
-
-	else if (mEventName == "Store" || mEventName == "Restore") {
-		std::string filePath = BREAKPNTS_PATH
-				+ std::to_string(mReceivedEvent->timestamp()) + FILE_EXTENTION;
-
-		if (mEventName == "Store") {
-			std::cout << "Store events from Queue" << std::endl;
-			this->saveState(filePath);
-
-		} else {
-			std::cout << "Restore events from Queue" << std::endl;
-			this->loadState(filePath);
-		}
+	else if (mEventName == "LoadState") {
+		this->loadState(std::string(mData.begin(), mData.end()) + mName + ".config");
 	}
 
 	else if (mEventName == "End") {
@@ -158,4 +137,6 @@ void Model1::loadState(std::string filePath) {
 	}
 
 	mRun = mSubscriber.synchronizeSub();
+
+	this->init();
 }

@@ -9,9 +9,6 @@
 
 #include <iostream>
 
-static const char BREAKPNTS_PATH[] = "models/event_queue_1/savepoints/";
-static const char FILE_EXTENTION[] = "_savefile_queue.xml";
-
 Queue::Queue(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
 				mCtx), mDealer(mCtx, mName), mReceivedEvent(NULL), mCurrentSimTime(
@@ -19,23 +16,16 @@ Queue::Queue(std::string name, std::string description) :
 
 	registerInterruptSignal();
 
-	this->setDefaultEvents();
 	mRun = this->prepare();
+	this->init();
 }
 
 Queue::~Queue() {
 
 }
 
-void Queue::configure(std::string configFile) {
-	this->loadState(configFile);
-}
-
-void Queue::setDefaultEvents() {
-	// For the performance test
-	mEventSet.push_back(Event("FirstEvent", 0));
-
-	mScheduler.scheduleEvents(mEventSet);
+void Queue::init() {
+	// Set or calculate other parameters ...
 }
 
 bool Queue::prepare() {
@@ -52,10 +42,8 @@ bool Queue::prepare() {
 
 	mSubscriber.subscribeTo("SimTimeChanged");
 	mSubscriber.subscribeTo("End");
-	mSubscriber.subscribeTo("Restore");
-	mSubscriber.subscribeTo("Store");
-	mSubscriber.subscribeTo("CreateDefaultConfigFiles");
-	mSubscriber.subscribeTo("Configure");
+	mSubscriber.subscribeTo("LoadState");
+	mSubscriber.subscribeTo("SaveState");
 
 	// Synchronization
 	if (!mSubscriber.prepareSubSynchronization(
@@ -123,26 +111,12 @@ void Queue::handleEvent() {
 		}
 	}
 
-	else if (mEventName == "CreateDefaultConfigFiles") {
+	else if (mEventName == "SaveState") {
 		this->saveState(mData + mName + ".config");
 	}
 
-	else if (mEventName == "Configure") {
+	else if (mEventName == "LoadState") {
 		this->loadState(mData + mName + ".config");
-	}
-
-	else if (mEventName == "Store" || mEventName == "Restore") {
-		std::string filePath = BREAKPNTS_PATH
-				+ std::to_string(mCurrentSimTime) + FILE_EXTENTION;
-
-		if (mEventName == "Store") {
-			std::cout << "Store events from Queue" << std::endl;
-			this->saveState(filePath);
-
-		} else {
-			std::cout << "Restore events from Queue" << std::endl;
-			this->loadState(filePath);
-		}
 	}
 
 	else if (mEventName == "End") {
@@ -186,4 +160,6 @@ void Queue::loadState(std::string filePath) {
 	mScheduler.scheduleEvents(mEventSet);
 
 	mRun = mSubscriber.synchronizeSub();
+
+	this->init();
 }

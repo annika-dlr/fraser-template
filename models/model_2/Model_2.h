@@ -31,7 +31,7 @@ public:
 	virtual ~Model2();
 
 	// IModel
-	virtual void configure(std::string filename) override;
+	virtual void init() override;
 	virtual bool prepare() override;
 	virtual void run() override;
 
