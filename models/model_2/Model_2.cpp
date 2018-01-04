@@ -33,18 +33,6 @@ void Model2::configure(std::string filename) {
 bool Model2::prepare() {
 	mSubscriber.setOwnershipName(mName);
 
-//	boost::filesystem::path dir1(BREAKPNTS_PATH);
-//	if (!boost::filesystem::exists(dir1)) {
-//		boost::filesystem::create_directory(dir1);
-//		std::cout << "Create savepoints-directory for Model2" << "\n";
-//	}
-//
-//	boost::filesystem::path dir2(CONFIG_DIR);
-//	if (!boost::filesystem::exists(dir2)) {
-//		boost::filesystem::create_directory(dir2);
-//		std::cout << "Create config-directory for Model2" << "\n";
-//	}
-
 	if (!mPublisher.bindSocket(mDealer.getPortNumFrom(mName))) {
 		return false;
 	}

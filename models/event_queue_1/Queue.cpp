@@ -41,18 +41,6 @@ void Queue::setDefaultEvents() {
 bool Queue::prepare() {
 	mSubscriber.setOwnershipName(mName);
 
-//	boost::filesystem::path dir1(BREAKPNTS_PATH);
-//	if (!boost::filesystem::exists(dir1)) {
-//		boost::filesystem::create_directory(dir1);
-//		std::cout << "Create savepoints-directory for Queue" << "\n";
-//	}
-//
-//	boost::filesystem::path dir2(CONFIG_DIR);
-//	if (!boost::filesystem::exists(dir2)) {
-//		boost::filesystem::create_directory(dir2);
-//		std::cout << "Create config-directory for Queue" << "\n";
-//	}
-
 	if (!mPublisher.bindSocket(mDealer.getPortNumFrom(mName))) {
 		return false;
 	}
