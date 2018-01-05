@@ -1,5 +1,10 @@
 ---
 - hosts: localhost
+  gather_facts: no
+  roles: 
+    - { role: initialisation, tags: initialisation }
+
+- hosts: localhost
   become: True
   gather_facts: no
   vars: 
@@ -9,11 +14,6 @@
     - zeromq_prefix: /usr/local   
   roles:
     - { role: configure, tags: configure }
-
-- hosts: localhost
-  gather_facts: no
-  roles: 
-    - { role: initialisation, tags: initialisation }
 
 - hosts: localhost
   gather_facts: no
