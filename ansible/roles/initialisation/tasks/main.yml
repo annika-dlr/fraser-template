@@ -13,6 +13,7 @@
 - name: Build hosts file
   command: python3 ../fraser/scripts/hostsGenerator.py -f ../models/configuration_server/configuration/models-config.xml -d ../ansible/
   changed_when: False
+- meta: refresh_inventory
 
   # Define global variables
 - name: Build variables file
