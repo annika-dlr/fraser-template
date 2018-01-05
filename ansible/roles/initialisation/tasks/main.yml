@@ -29,11 +29,6 @@
   loop: "{{ models }}"
   when: item.name != "configuration_server"
   changed_when: False
-  
-  # Create default configuration files (config_0)
-- name: Start bash-script to create default configuration files
-  command: sh ../scripts/createConfigurationFiles.sh
-  changed_when: False
 
   # -------------------------------------------------------
   # All models have all available IDLs of the other models.
