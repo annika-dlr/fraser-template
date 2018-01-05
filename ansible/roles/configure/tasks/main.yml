@@ -27,5 +27,28 @@
   file: path=/tmp/zeromq.zip state=absent
 
   # ---------------------------------------------------------
+  # Install Git
+  # ---------------------------------------------------------
+- name: Install Git
+  apt:
+    name: git
+    state: present
+  register: installed_git
+
+  # ---------------------------------------------------------
   # Install Flatbuffers
   # ---------------------------------------------------------
+- name: Read-write checkout from Gitlab
+  git: repo="https://github.com/google/flatbuffers.git"
+       dest=/tmp/flatbuffers
+  when: 
+    - installed_git is success   
+
+- name: Create Makefile for Flatbuffers
+  shell: cmake -G "Unix Makefiles" chdir=/tmp/flatbuffers
+  
+- name: Build Flatbuffers
+  shell: make chdir=/tmp/flatbuffers
+  
+- name: Run Tests of Flatbuffers
+  shell: ./flattests chdir=/tmp/flatbuffers 
