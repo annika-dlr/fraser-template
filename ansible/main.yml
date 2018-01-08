@@ -19,6 +19,11 @@
   gather_facts: no
   roles: 
     - { role: build, tags: build }
+    
+- hosts: localhost
+  gather_facts: no
+  roles: 
+    - { role: default-configs, tags: default-configs }
   
 - hosts: all:!localhost
   gather_facts: no
