@@ -4,7 +4,7 @@
   loop:
     - "../models"
     # The folder 'config_0' is for the default configuration files (automated generated with initial values)
-    - "../configurations/config_0"          
+    - "../configurations"          
     - "../fraser"
     - "../ansible/inventory"
     - "../ansible/inventory/group_vars/all"
