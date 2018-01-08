@@ -1,4 +1,31 @@
 ---
-- name: Start bash-script to create default configuration files
-  command: sh ../scripts/createConfigurationFiles.sh
+  # -------------------------------------------------------------------
+  # Execute models locally to create default configuration files
+  # -------------------------------------------------------------------
+- name: Check if folder for configuration files exists
+  file: path="../configurations/{{ config }}" state=directory
+
+- name: Run configuration server locally
+  shell: "../models/configuration_server/build/bin/configuration_server --models-config-file ../models/configuration_server/configuration/models-config.xml"
+  async: 1000
+  poll: 0
   changed_when: False
+  
+- name: Run models locally
+  shell: "../models/{{ item.name }}/build/bin/{{ item.name }}"
+  async: 1000
+  poll: 0
+  loop: "{{ models }}"
+  when:
+    - item.name != "simulation_model"
+    - item.name != "configuration_server"
+  changed_when: False
+  
+- name: Run simulation model locally
+  shell: "../models/simulation_model/build/bin/simulation_model --create-config-files ../configurations/{{ config }}/"
+  register: sim_output
+  changed_when: False
+
+- debug: var=sim_output.stdout_lines
+  when: sim_output.stdout_lines is defined
+  # -------------------------------------------------------------------
