@@ -31,6 +31,4 @@ $(OBJDIR)/%.o : %.cpp
 .PHONY:
 clean:
 	$(RM) $(OBJS)
-
-distclean: clean
 	$(RM) $(BINDIR)/$(PROG)
