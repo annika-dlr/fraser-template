@@ -164,6 +164,7 @@ void SimulationModel::saveState(std::string filePath) {
 			mCurrentSimTime.getValue());
 
 	if (mConfigMode) {
+		std::cout<<"Default configuration files were created"<<std::endl;
 		this->stopSim();
 	} else {
 		this->continueSim();
