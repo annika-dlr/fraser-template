@@ -1,6 +1,4 @@
-- hosts: localhost
-  gather_facts: no
-  tasks:
-  - name: Start bash-script to create default configuration files
-    command: sh ../scripts/createConfigurationFiles.sh
-    changed_when: False
+---
+- name: Start bash-script to create default configuration files
+  command: sh ../scripts/createConfigurationFiles.sh
+  changed_when: False
