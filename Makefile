@@ -13,6 +13,13 @@ help:
 	@echo "  deploy             to run all models"
 	@echo "  clean              to remove temporary data (\`build\` folder)"
 
+configure:
+
+init:
+
+default-configs:
+
+deploy:
 
 build:
 	@$(MAKE) -C $(CONFIGURATION_SERVER_DIR) -f Makefile
@@ -27,10 +34,3 @@ clean:
 	@$(MAKE) -C $(EVENT_QUEUE_DIR) -f Makefile clean
 	@$(MAKE) -C $(MODEL_1_DIR) -f Makefile clean
 	@$(MAKE) -C $(MODEL_2_DIR) -f Makefile clean
-	
-distclean:
-	@$(MAKE) -C $(CONFIGURATION_SERVER_DIR) -f Makefile distclean
-	@$(MAKE) -C $(SIMULATION_MODEL_DIR) -f Makefile distclean
-	@$(MAKE) -C $(EVENT_QUEUE_DIR) -f Makefile distclean
-	@$(MAKE) -C $(MODEL_1_DIR) -f Makefile distclean
-	@$(MAKE) -C $(MODEL_2_DIR) -f Makefile distclean
