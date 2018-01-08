@@ -20,13 +20,6 @@
   roles: 
     - { role: build, tags: build }
   
-- hosts: localhost
-  gather_facts: no
-  tasks:
-  - name: Start bash-script to create default configuration files
-    command: sh ../scripts/createConfigurationFiles.sh
-    changed_when: False
-
 - hosts: all:!localhost
   gather_facts: no
   vars:
