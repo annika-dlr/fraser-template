@@ -15,10 +15,10 @@ help:
 	@echo "  clean              to remove temporary data (\`build\` folder)"
 
 configure:
-	ansible-playbook $(ANSIBLE_DIR)/configure.yml --ask-become-pass
+	ansible-playbook $(ANSIBLE_DIR)/configure.yml --ask-become-pass --inventory ansible/inventory/hosts
 
 init:
-	ansible-playbook $(ANSIBLE_DIR)/init.yml --connection=local
+	ansible-playbook $(ANSIBLE_DIR)/init.yml --connection=local --inventory ansible/inventory/hosts
 
 build:
 	@$(MAKE) -C $(CONFIGURATION_SERVER_DIR) -f Makefile
@@ -28,7 +28,7 @@ build:
 	@$(MAKE) -C $(MODEL_2_DIR) -f Makefile
 
 default-configs:
-	ansible-playbook $(ANSIBLE_DIR)/default-configs.yml --connection=local
+	ansible-playbook $(ANSIBLE_DIR)/default-configs.yml --connection=local --inventory ansible/inventory/hosts
 
 deploy:
 	ansible-playbook $(ANSIBLE_DIR)/deploy.yml --inventory ansible/inventory/hosts
