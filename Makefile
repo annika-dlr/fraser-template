@@ -5,6 +5,13 @@ MODEL_1_DIR := models/model_1
 MODEL_2_DIR := models/model_2
 ANSIBLE_DIR := ansible
 
+all:
+	make configure
+	make init
+	make build
+	make default-configs
+	make deploy
+
 help:
 	@echo "Please use \`make <target>\` where <target> is one of"
 	@echo "  configure          to configure the hosts"
