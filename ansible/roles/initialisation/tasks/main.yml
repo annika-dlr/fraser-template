@@ -34,7 +34,7 @@
   # -------------------------------------------------------
   # All models have all available IDLs of the other models.
   # -------------------------------------------------------
-- name: Dissolve IDL dependencies between the models
+- name: Dissolve event-data dependencies between the models (fbs-files)
   copy:
     src: "../models/{{ item.1.name }}/resources/idl/"
     dest: "../models/{{ item.0.name }}/resources/idl/"
@@ -52,7 +52,7 @@
     recurse: yes
   register: fbsfiles
 
-- name: Copy default event IDL C++ header to the models
+- name: Copy default event (fbs-file) to the models
   copy:
     src: "../resources/idl/event.fbs"
     dest: "../models/{{ item.name }}/resources/idl/"
