@@ -5,26 +5,40 @@
 - name: install build-essential package
   apt: name=build-essential update_cache=no state=present
 
+- name: Download zeromq version checker
+  get_url: url=https://raw.githubusercontent.com/zeromq/pyzmq/master/zmqversion.py dest=/tmp/zmqversion.py
+
+- name: Check that zeromq is not installed
+  command: python /tmp/zmqversion.py
+  register: wanted
+  changed_when: False
+
 - name: Download ZeroMQ
   get_url: url={{ zeromq_download_url }} dest=/tmp/zeromq.zip
+  when: wanted.stdout_lines[1] != zeromq_version
 
 - name: Unarchive ZeroMQ tarball
   unarchive: >
     copy=no
     src=/tmp/zeromq.zip
     dest=/tmp/
+  when: wanted.stdout_lines[1] != zeromq_version
 
 - name: Configure ZeroMQ
-  shell: ./configure --prefix={{ zeromq_prefix }} chdir=/tmp/zeromq-{{ zeromq_version }}
+  command: ./configure --prefix={{ zeromq_prefix }} chdir=/tmp/zeromq-{{ zeromq_version }}
+  when: wanted.stdout_lines[1] != zeromq_version
 
 - name: Build ZeroMQ
-  shell: make chdir=/tmp/zeromq-{{ zeromq_version }}
+  command: make chdir=/tmp/zeromq-{{ zeromq_version }}
+  when: wanted.stdout_lines[1] != zeromq_version
 
 - name: Install ZeroMQ
-  shell: make install chdir=/tmp/zeromq-{{ zeromq_version }}
+  command: make install chdir=/tmp/zeromq-{{ zeromq_version }}
+  when: wanted.stdout_lines[1] != zeromq_version
 
 - name: Remove ZeroMQ tarball
   file: path=/tmp/zeromq.zip state=absent
+  when: wanted.stdout_lines[1] != zeromq_version
 
   # ---------------------------------------------------------
   # Install Git
@@ -38,17 +52,26 @@
   # ---------------------------------------------------------
   # Install Flatbuffers
   # ---------------------------------------------------------
+- name: Check that flatbuffers is not installed
+  command: flatc --version
+  register: wanted
+  changed_when: False
+  
 - name: Read-write checkout from Gitlab
   git: repo="https://github.com/google/flatbuffers.git"
        dest=/tmp/flatbuffers
   when: 
-    - installed_git is success   
+    - installed_git is success  
+    - wanted.stdout_lines[1] is defined
 
 - name: Create Makefile for Flatbuffers
-  shell: cmake -G "Unix Makefiles" chdir=/tmp/flatbuffers
+  command: cmake -G "Unix Makefiles" chdir=/tmp/flatbuffers
+  when: wanted.stdout_lines[1] is defined
   
 - name: Build Flatbuffers
-  shell: make chdir=/tmp/flatbuffers
+  command: make chdir=/tmp/flatbuffers
+  when: wanted.stdout_lines[1] is defined
   
 - name: Run Tests of Flatbuffers
-  shell: ./flattests chdir=/tmp/flatbuffers 
+  command: ./flattests chdir=/tmp/flatbuffers
+  when: wanted.stdout_lines[1] is defined
