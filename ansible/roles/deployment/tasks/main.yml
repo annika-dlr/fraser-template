@@ -1,12 +1,4 @@
 ---
-- name: Register current remote home-path (pwd)
-  shell: pwd
-  register: path
-  changed_when: False
-
-- set_fact:
-    remote_home_path: "{{ path.stdout }}"
-
   # -------------------------------------------------------------------
   # Copy files to remote hosts
   # -------------------------------------------------------------------
