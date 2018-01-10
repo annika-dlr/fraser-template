@@ -111,7 +111,7 @@ private:
 		archive & boost::serialization::make_nvp("IntField", mSimTimeStep);
 		archive & boost::serialization::make_nvp("IntField", mCurrentSimTime);
 		archive & boost::serialization::make_nvp("DoubleField", mSpeedFactor);
-		archive & boost::serialization::make_nvp("BreakpointSet", mSavepoints);
+		archive & boost::serialization::make_nvp("SavepointSet", mSavepoints);
 	}
 
 	// Fields
