@@ -2,11 +2,18 @@
   # -------------------------------------------------------------------
   # Copy files to remote hosts
   # -------------------------------------------------------------------
+  
+- name: Copy configuration server directory to the remote hosts
+  copy:
+    src: ../models/configuration_server
+    dest: "{{ remote_home_path }}/tmp_simulation/models"
+  
 - name: Copy model directory to the remote hosts
   copy:
     src: ../models/{{ item }}
     dest: "{{ remote_home_path }}/tmp_simulation/models"
   loop: "{{ hostvars[inventory_hostname]['models'] }}"
+  when: item != "configuration_server"
 
 - name: Check if configuration folder exists
   file: path="{{ remote_home_path }}/tmp_simulation/configurations/{{ config }}" state=directory
@@ -32,11 +39,9 @@
   # Execute models local or remote
   # -------------------------------------------------------------------
 - name: Run configuration server on the host
-  shell: "{{ remote_home_path }}/tmp_simulation/models/{{ item }}/build/bin/{{ item }} --models-config-file {{ remote_home_path }}/tmp_simulation/models/{{ item }}/configuration/models-config.xml"
+  shell: "{{ remote_home_path }}/tmp_simulation/models/configuration_server/build/bin/configuration_server --models-config-file {{ remote_home_path }}/tmp_simulation/models/configuration_server/configuration/models-config.xml"
   async: 1000
   poll: 0
-  loop: "{{ hostvars[inventory_hostname]['models'] }}"
-  when: item == "configuration_server"
   changed_when: False
   
 - name: Run models on the hosts
