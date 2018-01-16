@@ -1,8 +1,8 @@
 - hosts: all
   become: True
   gather_facts: no
-  remote_user: user
   vars: 
+    - ssh_user: user
     - zeromq_version: 4.2.3
     - zeromq_download_url: https://github.com/zeromq/libzmq/releases/download/v4.2.3/zeromq-4.2.3.tar.gz
     - zeromq_prefix: /usr/local
