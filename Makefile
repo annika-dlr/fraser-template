@@ -22,7 +22,7 @@ help:
 	@echo "  clean              to remove temporary data (\`build\` folder)"
 
 configure:
-	ansible-playbook $(ANSIBLE_DIR)/configure.yml --ask-become-pass --inventory ansible/inventory/hosts
+	ansible-playbook $(ANSIBLE_DIR)/configure.yml --ask-become-pass --ask-pass --inventory ansible/inventory/hosts
 
 init:
 	ansible-playbook $(ANSIBLE_DIR)/init.yml --connection=local --inventory ansible/inventory/hosts
