@@ -1,4 +1,7 @@
 ---
+  # ---------------------------------------------------------
+  # Initialize and Dissolve dependencies
+  # ---------------------------------------------------------
 - name: Check if folders exists
   file: path="{{ item }}" state=directory
   loop:
@@ -30,6 +33,15 @@
   loop: "{{ models }}"
   when: item.name != "configuration_server"
   changed_when: False
+  
+  # -------------------------------------------------------
+  # Set up SSH agent
+  # ------------------------------------------------------- 
+- name: Set up SSH agent to avoid retyping passwords
+  command: ssh-agent bash
+  
+- name: Add SSH key
+  command: ssh-add ~/.ssh/id_rsa
 
   # -------------------------------------------------------
   # All models have all available IDLs of the other models.
