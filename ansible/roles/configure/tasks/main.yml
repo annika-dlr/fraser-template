@@ -1,8 +1,25 @@
 ---
   # ---------------------------------------------------------
+  # Manage authorized key
+  # ---------------------------------------------------------    
+- name: Create ssh user
+  user: 
+    name: "{{ ssh_user }}"
+    state: present
+    createhome: yes
+
+- name: Add authorized key to remote hosts
+  authorized_key:
+    user: "{{ ssh_user }}"
+    state: present
+    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+    
+  # ---------------------------------------------------------
   # Install ZeroMQ
   # ---------------------------------------------------------
 - name: install build-essential package
+  vars: 
+    ansible_python_interpreter: /usr/bin/python
   apt: name=build-essential update_cache=no state=present
 
 - name: Download zeromq version checker
@@ -44,6 +61,8 @@
   # Install Git
   # ---------------------------------------------------------
 - name: Install Git
+  vars: 
+    ansible_python_interpreter: /usr/bin/python
   apt:
     name: git
     state: present
