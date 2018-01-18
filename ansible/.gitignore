@@ -8,3 +8,4 @@
 /default-configs.retry
 /deploy.retry
 /configure.retry
+/update-inv.retry
