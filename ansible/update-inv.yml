@@ -1,0 +1,6 @@
+- hosts: localhost
+  gather_facts: no
+  vars:
+    - hosts_config_filepath: ../hosts-configs/config0.xml
+  roles:
+    - { role: update-inventory, tags: update-inventory }
