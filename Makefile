@@ -6,8 +6,9 @@ MODEL_2_DIR := models/model_2
 ANSIBLE_DIR := ansible
 
 all:
-	make configure
+	make update-hosts
 	make init
+	make configure
 	make build
 	make default-configs
 	make deploy
@@ -20,6 +21,9 @@ help:
 	@echo "  default-configs    to create default configuration files (saved in \`configurations/config_0\`)"
 	@echo "  deploy             to run all models"
 	@echo "  clean              to remove temporary data (\`build\` folder)"
+
+update-hosts:
+	ansible-playbook $(ANSIBLE_DIR)/update-inv.yml --connection=local
 
 configure:
 	ansible-playbook $(ANSIBLE_DIR)/configure.yml --ask-become-pass --ask-pass --inventory ansible/inventory/hosts
