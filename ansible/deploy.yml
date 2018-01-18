@@ -3,6 +3,5 @@
   remote_user: user
   vars:
     - remote_home_path: /home/{{ ansible_ssh_user }}
-    - config: config_0
   roles:
     - { role: deployment, tags: deployment }
