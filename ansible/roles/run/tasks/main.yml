@@ -19,7 +19,7 @@
   changed_when: False
   
 - name: Run simulation model on the host
-  command: "{{ remote_home_path }}/tmp_simulation/models/{{ item }}/build/bin/{{ item }} --load-config {{ remote_home_path }}/tmp_simulation/configurations/{{ config }}/"
+  command: "{{ remote_home_path }}/tmp_simulation/models/{{ item }}/build/bin/{{ item }} --load-config {{ remote_home_path }}/tmp_simulation/configurations/{{ config_path }}/"
   loop: "{{ hostvars[inventory_hostname]['models'] }}"
   when: item == "simulation_model"
   register: sim_out

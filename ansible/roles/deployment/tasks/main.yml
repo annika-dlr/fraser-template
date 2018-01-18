@@ -20,12 +20,12 @@
   when: item != "configuration_server"
 
 - name: Check if configuration folder exists
-  file: path="{{ remote_home_path }}/tmp_simulation/configurations/{{ config }}" state=directory
+  file: path="{{ remote_home_path }}/tmp_simulation/configurations/{{ config_path }}" state=directory
 
 - name: Copy configuration file to remote hosts
   copy:
-    src: ../configurations/{{ config }}/{{ item }}.config
-    dest: "{{ remote_home_path }}/tmp_simulation/configurations/{{ config }}/"
+    src: ../configurations/{{ config_path }}/{{ item }}.config
+    dest: "{{ remote_home_path }}/tmp_simulation/configurations/{{ config_path }}/"
   loop: "{{ hostvars[inventory_hostname]['models'] }}"
   when: item != "configuration_server"
   
