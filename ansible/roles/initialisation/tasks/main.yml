@@ -6,7 +6,6 @@
   file: path="{{ item }}" state=directory
   loop:
     - "../models"
-    # The folder 'config_0' is for the default configuration files (automated generated with initial values)
     - "../configurations"          
     - "../fraser"
 
@@ -15,7 +14,6 @@
   file: path="../models/{{ item.name }}/resources/idl" state=directory
   loop: "{{ models }}"
   when: item.name != "configuration_server"
-  changed_when: False
   
   # -------------------------------------------------------
   # Set up SSH agent
