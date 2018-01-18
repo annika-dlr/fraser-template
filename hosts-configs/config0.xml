@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:noNamespaceSchemaLocation="../../../schemas/models-config.xsd">
+	xsi:noNamespaceSchemaLocation="../fraser/schemas/models-config.xsd">
+	
+	<Configuration path="../configurations/config_0"/>
+	
 	<Hosts minPort="6000" maxPort="6100">
 		<Host id="0">
 			<Name>host0</Name>
