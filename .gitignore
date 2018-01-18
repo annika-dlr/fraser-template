@@ -6,3 +6,6 @@ ansible/init.retry
 .project
 /bin/
 /obj/
+models/event_queue_1/resources/idl/example_data_3.fbs
+models/model_1/resources/idl/example_data_3.fbs
+models/simulation_model/resources/idl/example_data_3.fbs
