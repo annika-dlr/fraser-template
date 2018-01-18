@@ -1,0 +1,8 @@
+- hosts: all
+  gather_facts: no
+  remote_user: user
+  vars:
+    - remote_home_path: /home/{{ ansible_ssh_user }}
+    - config: config_0
+  roles:
+    - { role: run, tags: run }
