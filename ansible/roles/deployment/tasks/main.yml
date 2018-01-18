@@ -2,12 +2,16 @@
   # -------------------------------------------------------------------
   # Copy files to remote hosts
   # -------------------------------------------------------------------
-  
+- name: Copy hosts configuration file to the remote hosts for the configuration server
+  copy:
+    src: "{{ hosts_config_filepath }}"
+    dest: "{{ remote_home_path }}/tmp_simulation/hosts_config.xml"
+
 - name: Copy configuration server directory to the remote hosts
   copy:
     src: ../models/configuration_server
     dest: "{{ remote_home_path }}/tmp_simulation/models"
-  
+
 - name: Copy model directory to the remote hosts
   copy:
     src: ../models/{{ item }}
