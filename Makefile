@@ -26,10 +26,10 @@ update-hosts:
 	ansible-playbook $(ANSIBLE_DIR)/update-inv.yml --connection=local
 
 configure:
-	ansible-playbook $(ANSIBLE_DIR)/configure.yml --ask-become-pass --ask-pass --inventory ansible/inventory/hosts
+	ansible-playbook $(ANSIBLE_DIR)/configure.yml --ask-become-pass --ask-pass -i ./ansible/inventory/hosts
 
 init:
-	ansible-playbook $(ANSIBLE_DIR)/init.yml --connection=local --inventory ansible/inventory/hosts
+	ansible-playbook $(ANSIBLE_DIR)/init.yml --connection=local -i ./ansible/inventory/hosts
 
 build:
 	@$(MAKE) -C $(CONFIGURATION_SERVER_DIR) -f Makefile
@@ -39,10 +39,10 @@ build:
 	@$(MAKE) -C $(MODEL_2_DIR) -f Makefile
 
 default-configs:
-	ansible-playbook $(ANSIBLE_DIR)/default-configs.yml --connection=local --inventory ansible/inventory/hosts
+	ansible-playbook $(ANSIBLE_DIR)/default-configs.yml --connection=local -i ./ansible/inventory/hosts
 
 deploy:
-	ansible-playbook $(ANSIBLE_DIR)/deploy.yml --inventory ansible/inventory/hosts
+	ansible-playbook $(ANSIBLE_DIR)/deploy.yml -i ./ansible/inventory/hosts
 
 clean:
 	@$(MAKE) -C $(CONFIGURATION_SERVER_DIR) -f Makefile clean
