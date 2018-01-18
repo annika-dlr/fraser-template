@@ -6,12 +6,13 @@ MODEL_2_DIR := models/model_2
 ANSIBLE_DIR := ansible
 
 all:
-	make update-hosts
+	make update
 	make init
 	make configure
 	make build
 	make default-configs
 	make deploy
+	make run
 
 help:
 	@echo "Please use \`make <target>\` where <target> is one of"
@@ -22,7 +23,7 @@ help:
 	@echo "  deploy             to run all models"
 	@echo "  clean              to remove temporary data (\`build\` folder)"
 
-update-hosts:
+update:
 	ansible-playbook $(ANSIBLE_DIR)/update-inv.yml --connection=local
 
 configure:
@@ -43,6 +44,9 @@ default-configs:
 
 deploy:
 	ansible-playbook $(ANSIBLE_DIR)/deploy.yml -i ./ansible/inventory/hosts
+
+run:
+	ansible-playbook $(ANSIBLE_DIR)/run.yml -i ./ansible/inventory/hosts
 
 clean:
 	@$(MAKE) -C $(CONFIGURATION_SERVER_DIR) -f Makefile clean
