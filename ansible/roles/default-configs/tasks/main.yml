@@ -6,7 +6,7 @@
   file: path="../configurations/{{ config }}" state=directory
 
 - name: Run configuration server locally
-  shell: "../models/configuration_server/build/bin/configuration_server --models-config-file ../models/configuration_server/configuration/models-config.xml"
+  shell: "../models/configuration_server/build/bin/configuration_server --config-file {{ hosts_config_filepath }}"
   async: 1000
   poll: 0
   changed_when: False

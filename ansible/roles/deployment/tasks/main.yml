@@ -43,7 +43,7 @@
   # Execute models local or remote
   # -------------------------------------------------------------------
 - name: Run configuration server on the host
-  shell: "{{ remote_home_path }}/tmp_simulation/models/configuration_server/build/bin/configuration_server --models-config-file {{ remote_home_path }}/tmp_simulation/models/configuration_server/configuration/models-config.xml"
+  shell: "{{ remote_home_path }}/tmp_simulation/models/configuration_server/build/bin/configuration_server --config-file {{ remote_home_path }}/tmp_simulation/hosts_config.xml"
   async: 1000
   poll: 0
   changed_when: False

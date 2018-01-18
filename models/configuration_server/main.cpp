@@ -12,7 +12,7 @@
 
 int main(int argc, char* argv[]) {
 	if (argc > 2) {
-		if (static_cast<std::string>(argv[1]) == "--models-config-file") {
+		if (static_cast<std::string>(argv[1]) == "--config-file") {
 			ConfigurationServer configServerModel(argv[2]);
 			try {
 				configServerModel.run();
@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
 	} else if (argc > 1) {
 		if (static_cast<std::string>(argv[1]) == "--help") {
 			std::cout << "<< Help >>" << std::endl;
-			std::cout << "--models-config-file CONFIG-PATH >> "
+			std::cout << "--config-file CONFIG-PATH >> "
 					<< "Set path of models-configuration file" << std::endl;
 		} else {
 			std::cout << " Invalid argument/s: --help" << std::endl;
