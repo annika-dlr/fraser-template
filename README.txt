@@ -1,4 +1,4 @@
-<img src="doc/images/FRASER_logo.pdf" height="200px" />
+<img src="doc/images/FRASER_logo.png" height="200px" />
 
 License
 -------
