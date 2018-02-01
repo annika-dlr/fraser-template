@@ -6,11 +6,11 @@ License
 Unless otherwise noted the source code is licensed under the
 terms of the *Mozilla Public License, v. 2.0* (see mpl-v2.0.txt).
 
-Files with a different license:
+The following open source software is used:
 
- - tools/l3test/src/lua/exception.h (BSD 3-clause)
- - modules/utils/ext/rapidcheck/* (BSD 2-clause)
- - modules/utils/ext/googletest-1.8.0-fused/* (BSD 3-clause)
+ - Flatbuffers (licensed under Apache V2)
+ - ZeroMQ (licensed under LGPL V3)
+ - Pugixml (licensed under MIT)
 
 
 [German Aerospace Center (DLR)]: http://www.dlr.de/irs/en/
