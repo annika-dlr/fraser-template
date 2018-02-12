@@ -28,7 +28,7 @@ update:
 	ansible-playbook $(ANSIBLE_DIR)/update-inv.yml --connection=local
 
 configure:
-	ansible-playbook $(ANSIBLE_DIR)/configure.yml --ask-become-pass --ask-pass -i ./ansible/inventory/hosts
+	ansible-playbook $(ANSIBLE_DIR)/configure.yml --ask-become-pass -i ./ansible/inventory/hosts
 
 init:
 	ansible-playbook $(ANSIBLE_DIR)/init.yml --connection=local -i ./ansible/inventory/hosts
