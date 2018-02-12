@@ -9,6 +9,7 @@
 			<Name>host0</Name>
 			<Address>localhost</Address>
 		</Host>
+<!--
 		<Host id="1">
 			<Name>host1</Name>
 			<Address>localhost</Address>
@@ -17,6 +18,7 @@
 			<Name>host2</Name>
 			<Address>localhost</Address>
 		</Host>
+-->
 	</Hosts>
 
 	<Models>
@@ -32,17 +34,17 @@
 
 		<Model persist="true" id="2">
 			<Name>event_queue_1</Name>
-			<HostReference hostID="2" />
+			<HostReference hostID="0" />
 		</Model>
 
 		<Model persist="true" id="3">
 			<Name>model_1</Name>
-			<HostReference hostID="1" />
+			<HostReference hostID="0" />
 		</Model>
 
 		<Model persist="true" id="4">
 			<Name>model_2</Name>
-			<HostReference hostID="1" />
+			<HostReference hostID="0" />
 		</Model>
 	</Models>
 </root>
