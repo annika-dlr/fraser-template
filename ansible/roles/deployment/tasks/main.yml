@@ -16,40 +16,43 @@
   # -------------------------------------------------------------------
   # Copy files to remote hosts
   # -------------------------------------------------------------------
+- name: Check if tmp_simulation folder exists
+  file: path="~/tmp_simulation" state=directory  
+  
 - name: Copy hosts configuration file to the remote hosts for the configuration server
   copy:
     src: "{{ hosts_config_filepath }}"
-    dest: "{{ remote_home_path }}/tmp_simulation/hosts_config.xml"
+    dest: "~/tmp_simulation/hosts_config.xml"
 
 - name: Copy configuration server directory to the remote hosts
   copy:
     src: ../models/configuration_server
-    dest: "{{ remote_home_path }}/tmp_simulation/models"
+    dest: "~/tmp_simulation/models"
 
 - name: Copy model directory to the remote hosts
   copy:
     src: ../models/{{ item }}
-    dest: "{{ remote_home_path }}/tmp_simulation/models"
+    dest: "~/tmp_simulation/models"
   loop: "{{ hostvars[inventory_hostname]['models'] }}"
   when: item != "configuration_server"
 
 - name: Check if configuration folder exists
-  file: path="{{ remote_home_path }}/tmp_simulation/configurations/{{ config_path }}" state=directory
+  file: path="~/tmp_simulation/configurations/{{ config_path }}" state=directory
 
 - name: Copy configuration file to remote hosts
   copy:
     src: ../configurations/{{ config_path }}/{{ item }}.config
-    dest: "{{ remote_home_path }}/tmp_simulation/configurations/{{ config_path }}/"
+    dest: "~/tmp_simulation/configurations/{{ config_path }}/"
   loop: "{{ hostvars[inventory_hostname]['models'] }}"
   when: item != "configuration_server"
   
 - name: Copy resources to remote hosts
   copy:
     src: ../resources/idl
-    dest: "{{ remote_home_path }}/tmp_simulation/resources"
+    dest: "~/tmp_simulation/resources"
   loop: "{{ hostvars[inventory_hostname]['models'] }}"
   when: item != "configuration_server"
 
 - name: Fix 'tmp-folder' permission
-  file: path=tmp_simulation owner=user mode=0775 state=directory recurse=yes
+  file: path=~/tmp_simulation owner=user mode=0775 state=directory recurse=yes
   # -------------------------------------------------------------------

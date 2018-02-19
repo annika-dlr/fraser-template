@@ -17,13 +17,13 @@
   # Execute models local or remote
   # -------------------------------------------------------------------
 - name: Run configuration server on the host
-  command: "{{ remote_home_path }}/tmp_simulation/models/configuration_server/build/bin/configuration_server --config-file {{ remote_home_path }}/tmp_simulation/hosts_config.xml"
+  command: "~/tmp_simulation/models/configuration_server/build/bin/configuration_server --config-file ~/tmp_simulation/hosts_config.xml"
   async: 1000
   poll: 0
   changed_when: False
   
 - name: Run models on the hosts
-  command: "{{ remote_home_path }}/tmp_simulation/models/{{ item }}/build/bin/{{ item }}"
+  command: "~/tmp_simulation/models/{{ item }}/build/bin/{{ item }}"
   async: 1000
   poll: 0
   loop: "{{ hostvars[inventory_hostname]['models'] }}"
@@ -33,7 +33,7 @@
   changed_when: False
   
 - name: Run simulation model on the host
-  command: "{{ remote_home_path }}/tmp_simulation/models/{{ item }}/build/bin/{{ item }} --load-config {{ remote_home_path }}/tmp_simulation/configurations/{{ config_path }}/"
+  command: "~/tmp_simulation/models/{{ item }}/build/bin/{{ item }} --load-config ~/tmp_simulation/configurations/{{ config_path }}/"
   loop: "{{ hostvars[inventory_hostname]['models'] }}"
   when: item == "simulation_model"
   register: sim_out
