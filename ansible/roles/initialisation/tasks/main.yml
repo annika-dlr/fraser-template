@@ -28,15 +28,6 @@
   file: path="../models/{{ item.name }}/resources/idl" state=directory
   loop: "{{ models }}"
   when: item.name != "configuration_server"
-  
-  # -------------------------------------------------------
-  # Set up SSH agent
-  # ------------------------------------------------------- 
-- name: Set up SSH agent to avoid retyping passwords
-  command: ssh-agent bash
-  
-- name: Add SSH key
-  command: ssh-add ~/.ssh/id_rsa
 
   # -------------------------------------------------------
   # All models have all available IDLs of the other models.
