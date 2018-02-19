@@ -1,24 +1,16 @@
 <?xml version="1.0"?>
 <root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="../fraser/schemas/models-config.xsd">
-	
-	<Configuration path="../configurations/config_0"/>
-	
+
+	<Configuration path="../configurations/config_0" />
+
 	<Hosts minPort="6000" maxPort="6100">
 		<Host id="0">
 			<Name>host0</Name>
 			<Address>localhost</Address>
 		</Host>
-<!--
-		<Host id="1">
-			<Name>host1</Name>
-			<Address>localhost</Address>
-		</Host>
-		<Host id="2">
-			<Name>host2</Name>
-			<Address>localhost</Address>
-		</Host>
--->
+		<!-- <Host id="1"> <Name>host1</Name> <Address>localhost</Address> </Host> 
+			<Host id="2"> <Name>host2</Name> <Address>localhost</Address> </Host> -->
 	</Hosts>
 
 	<Models>
@@ -26,7 +18,7 @@
 			<Name>configuration_server</Name>
 			<HostReference hostID="0" />
 		</Model>
-	
+
 		<Model id="1" persist="true">
 			<Name>simulation_model</Name>
 			<HostReference hostID="0" />
@@ -44,6 +36,11 @@
 
 		<Model persist="true" id="4">
 			<Name>model_2</Name>
+			<HostReference hostID="0" />
+		</Model>
+
+		<Model persist="true" id="5">
+			<Name>router_1</Name>
 			<HostReference hostID="0" />
 		</Model>
 	</Models>
