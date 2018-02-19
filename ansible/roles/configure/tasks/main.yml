@@ -83,6 +83,21 @@
   register: installed_git
 
   # ---------------------------------------------------------
+  # Install C++ binding for 0MQ
+  # ---------------------------------------------------------
+- name: Checkout cppzmq from Gitlab
+  git: repo="https://github.com/zeromq/cppzmq.git"
+       dest=/tmp/cppzmq
+  when: 
+    - installed_git is success  
+    
+- name: Create Makefile for cppzmq
+  command: cmake -G "Unix Makefiles" chdir=/tmp/cppzmq
+  
+- name: Install cppzmq
+  command: make install chdir=/tmp/cppzmq
+
+  # ---------------------------------------------------------
   # Install Flatbuffers
   # ---------------------------------------------------------
 - name: Check that flatbuffers is not installed
@@ -93,7 +108,7 @@
 - name: Read-write checkout from Gitlab
   git: repo="https://github.com/google/flatbuffers.git"
        dest=/tmp/flatbuffers
-  when: 
+  when:
     - installed_git is success  
     - wanted.stdout_lines[1] is defined
 
