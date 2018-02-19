@@ -9,3 +9,5 @@
 /deploy.retry
 /configure.retry
 /update-inv.retry
+/run.yml
+/run.retry
