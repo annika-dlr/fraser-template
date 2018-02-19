@@ -8,8 +8,8 @@ ANSIBLE_DIR := ansible
 
 all:
 	make update
-	make init
 	make configure
+	make init
 	make build
 	make default-configs
 	make deploy
