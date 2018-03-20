@@ -32,15 +32,15 @@
   # Install ZeroMQ
   # ---------------------------------------------------------
 - name: install build-essential package
-  vars: 
-    ansible_python_interpreter: /usr/bin/python
+#  vars: 
+#    ansible_python_interpreter: /usr/bin/python
   apt: name=build-essential update_cache=no state=present
 
 - name: Download zeromq version checker
   get_url: url=https://raw.githubusercontent.com/zeromq/pyzmq/master/zmqversion.py dest=/tmp/zmqversion.py
 
 - name: Check that zeromq is not installed
-  command: python /tmp/zmqversion.py
+  command: python3.6 /tmp/zmqversion.py
   register: wanted
   changed_when: False
 
@@ -75,8 +75,8 @@
   # Install Git
   # ---------------------------------------------------------
 - name: Install Git
-  vars: 
-    ansible_python_interpreter: /usr/bin/python
+#  vars: 
+#    ansible_python_interpreter: /usr/bin/python
   apt:
     name: git
     state: present
