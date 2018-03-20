@@ -14,23 +14,41 @@
 
 ---
   # -----------------------------------------------------------------------
+  # Install python package dependencies
+  # -----------------------------------------------------------------------
+- name: Install needed python packages via pip3.6
+  become: True
+  pip:
+    name: "{{ item }}"
+    executable: pip3.6
+    extra_args: --upgrade
+  loop:
+    - "pip"
+    - "setuptools"
+    - "lxml"
+    - "configparser"
+    - "pyyaml"
+    - "pyOpenSSL"
+    - "cryptography"
+
+  # -----------------------------------------------------------------------
   # Update inventory file and the group variables
   # -----------------------------------------------------------------------
 - name: Check if folders exists
   file: path="{{ item }}" state=directory
   loop:
     - "../ansible/inventory"
-    - "../ansible/inventory/group_vars/all"
-    
+    - "../ansible/inventory/group_vars/all"  
+  
   # Create hosts file (inventory file)
 - name: Build hosts file
-  command: python ../fraser/scripts/hostsGenerator.py -f {{ hosts_config_filepath }} -d ../ansible/
+  command: python3.6 ../fraser/scripts/hostsGenerator.py -f {{ hosts_config_filepath }} -d ../ansible/
   changed_when: False
 - meta: refresh_inventory
 
   # Define global variables
 - name: Build variables file
-  command: python ../fraser/scripts/modelsVarsGenerator.py -f {{ hosts_config_filepath }} -d ../ansible/
+  command: python3.6 ../fraser/scripts/modelsVarsGenerator.py -f {{ hosts_config_filepath }} -d ../ansible/
   changed_when: False
 
 - name: Include main.yml file in group_vars/all (includes global variables)
