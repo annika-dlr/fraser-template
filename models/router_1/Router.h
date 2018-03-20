@@ -15,6 +15,9 @@
 #define FRASER_TEMPLATE_MODELS_ROUTER_1_ROUTER_H_
 
 #include <fstream>
+#include <vector>
+#include <list>
+#include <string>
 #include <boost/serialization/serialization.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
