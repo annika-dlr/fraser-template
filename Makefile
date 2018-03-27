@@ -8,6 +8,7 @@ ROUTER_1_DIR := models/router_1
 ANSIBLE_DIR := ansible
 
 all:
+	make configure-local
 	make update
 	make configure
 	make init
@@ -24,6 +25,9 @@ help:
 	@echo "  default-configs    to create default configuration files (saved in \`configurations/config_0\`)"
 	@echo "  deploy             to run all models"
 	@echo "  clean              to remove temporary data (\`build\` folder)"
+
+configure-local:
+	ansible-playbook $(ANSIBLE_DIR)/configure-local.yml --ask-become-pass -i ./ansible/inventory/hosts
 
 update:
 	ansible-playbook $(ANSIBLE_DIR)/update-inv.yml --connection=local

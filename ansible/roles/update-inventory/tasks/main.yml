@@ -14,24 +14,6 @@
 
 ---
   # -----------------------------------------------------------------------
-  # Install python package dependencies
-  # -----------------------------------------------------------------------
-- name: Install needed python packages via pip3.6
-  become: True
-  pip:
-    name: "{{ item }}"
-    executable: pip3.6
-    extra_args: --upgrade
-  loop:
-    - "pip"
-    - "setuptools"
-    - "lxml"
-    - "configparser"
-    - "pyyaml"
-    - "pyOpenSSL"
-    - "cryptography"
-
-  # -----------------------------------------------------------------------
   # Update inventory file and the group variables
   # -----------------------------------------------------------------------
 - name: Check if folders exists
