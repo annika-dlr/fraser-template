@@ -30,7 +30,7 @@
   become: True
   gather_facts: no
   vars: 
-    - ssh_user: user
+    - ssh_user: "{{ lookup('env', 'USER') }}"
     - zeromq_version: 4.2.3
     - zeromq_download_url: https://github.com/zeromq/libzmq/releases/download/v4.2.3/zeromq-4.2.3.tar.gz
     - zeromq_prefix: /usr/local
