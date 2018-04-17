@@ -12,22 +12,29 @@
 # Authors:
 # - 2018, Annika Ofenloch (DLR RY-AVS)
  
----
- 
+--- 
   # -----------------------------------------------------------------------
   # Install python package dependencies
   # -----------------------------------------------------------------------
 - name: Install needed python packages via pip3.6
-  become: True
   pip:
     name: "{{ item }}"
     executable: pip3.6
     extra_args: --upgrade
   loop:
-    - "pip"
-    - "setuptools"
-    - "lxml"
-    - "configparser"
-    - "pyyaml"
-    - "pyOpenSSL"
-    - "cryptography"
+    - pip
+    - setuptools
+    - lxml
+    - configparser
+    - pyyaml
+    - pyOpenSSL
+    - cryptography
+
+  # -----------------------------------------------------------------------
+  # Install PugiXML
+  # -----------------------------------------------------------------------
+- name: Install PugiXML
+  apt: name="{{ item }}" update_cache=no state=present
+  loop:
+    - libpugixml-dev
+  
