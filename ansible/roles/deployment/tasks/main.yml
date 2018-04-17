@@ -54,5 +54,5 @@
   when: item != "configuration_server"
 
 - name: Fix 'tmp-folder' permission
-  file: path=~/tmp_simulation owner=user mode=0775 state=directory recurse=yes
+  file: path=~/tmp_simulation owner="{{ lookup('env', 'USER') }}" mode=0775 state=directory recurse=yes
   # -------------------------------------------------------------------
