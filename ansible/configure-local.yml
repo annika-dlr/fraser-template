@@ -14,5 +14,6 @@
 
 - hosts: localhost
   gather_facts: no
+  become: True
   roles:
     - { role: configure-local, tags: configure-local }
