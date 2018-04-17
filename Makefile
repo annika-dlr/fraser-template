@@ -27,7 +27,7 @@ help:
 	@echo "  clean              to remove temporary data (\`build\` folder)"
 
 configure-local:
-	ansible-playbook $(ANSIBLE_DIR)/configure-local.yml --ask-become-pass -i ./ansible/inventory/hosts
+	ansible-playbook $(ANSIBLE_DIR)/configure-local.yml --ask-become-pass --connection=local -e ansible_python_interpreter=/usr/bin/python -i ./ansible/inventory/hosts
 
 update:
 	ansible-playbook $(ANSIBLE_DIR)/update-inv.yml --connection=local
