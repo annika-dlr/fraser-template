@@ -66,34 +66,35 @@
 #define SIZEOF_PACKET_ID		8
 
 /*
-* Decode the flit header.
-*
-* header:  incoming header
-* packetID:	 Counter specifying the packet ID (one-hot, 8-bit)
-* srcAddr:		 Address of the source node (4-bit)
-* dstAddr:		 Address of the destination node (4-bit)
-* packetLength: Length of the packet in flits (including the header and tail, 12 bits)
-*
-* return:		 Error value
-*/
+ * Decode the flit header.
+ *
+ * header:  incoming header
+ * packetID:	 Counter specifying the packet ID (one-hot, 8-bit)
+ * srcAddr:		 Address of the source node (4-bit)
+ * dstAddr:		 Address of the destination node (4-bit)
+ * packetLength: Length of the packet in flits (including the header and tail, 12 bits)
+ *
+ * return:		 Error value
+ */
 
-unsigned int header_decode(unsigned int header1,unsigned int header2, int *packetID, int *srcAddr, int *dstAddr, int *packetLength, int noc_size);
+unsigned int header_decode(unsigned int header1, int *srcAddr, int *dstAddr,
+		int noc_size);
 
 /*
-* Returns the flit type
-*
-* flit: The flit to be analyzed
-*
-* return:   flit type
+ * Returns the flit type
+ *
+ * flit: The flit to be analyzed
+ *
+ * return:   flit type
  */
 unsigned int get_flit_type(unsigned int flit);
 
 /*
-* Returns flit payload
-*
-* flit: The flit to be analyzed
-*
-* return:   flit payload
+ * Returns flit payload
+ *
+ * flit: The flit to be analyzed
+ *
+ * return:   flit payload
  */
 unsigned int get_flit_payload(unsigned int flit);
 

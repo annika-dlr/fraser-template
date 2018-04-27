@@ -15,7 +15,7 @@
 #define FRASER_TEMPLATE_MODELS_ROUTER_1_ROUTER_H_
 
 #include <fstream>
-#include <vector>
+#include <queue>
 #include <list>
 #include <string>
 #include <boost/serialization/serialization.hpp>
@@ -32,12 +32,12 @@
 #include "interfaces/IModel.h"
 #include "interfaces/IPersist.h"
 #include "data-types/Field.h"
-#include "resources/idl/event_generated.h"
 
 #define NOC_SIZE 4
 
 class Router: public virtual IModel, public virtual IPersist {
 public:
+
 	Router(std::string name, std::string description);
 	virtual ~Router();
 
@@ -91,21 +91,22 @@ private:
 	bool mLastReveived = false;
 	uint32_t mNextFlit = 0;
 
-	std::vector<uint32_t> mFlits_RX_L; // FIFO
-	std::vector<uint32_t> mFlits_RX_N; // FIFO
-	std::vector<uint32_t> mFlits_RX_E; // FIFO
-	std::vector<uint32_t> mFlits_RX_S; // FIFO
-	std::vector<uint32_t> mFlits_RX_W; // FIFO
+	std::queue<uint32_t> mFlits_RX_L; // FIFO
+	std::queue<uint32_t> mFlits_RX_N;// FIFO
+	std::queue<uint32_t> mFlits_RX_E;// FIFO
+	std::queue<uint32_t> mFlits_RX_S;// FIFO
+	std::queue<uint32_t> mFlits_RX_W;// FIFO
 
-	std::list<std::string> mLocalRequests; // L LBDR
-	std::list<std::string> mNorthRequests; // N LBDR
-	std::list<std::string> mEastRequests;  // E LBDR
-	std::list<std::string> mSouthRequests; // S LBDR
-	std::list<std::string> mWestRequests;  // W LBDR
+	// Generated requests from LDBRs
+	std::list<uint8_t> mL_LDBR_Reqs;
+	std::list<uint8_t> mN_LDBR_Reqs;
+	std::list<uint8_t> mE_LDBR_Reqs;
+	std::list<uint8_t> mW_LDBR_Reqs;
+	std::list<uint8_t> mS_LDBR_Reqs;
 
-	void generateRequests(std::list<std::string> reqs);
-	std::string getRequestWithHighestPriority(std::list<std::string> reqs);
-	void sendFlit(std::string req);
+	void generateRequests(std::list<uint8_t> reqs);
+	uint8_t getRequestWithHighestPriority(std::list<uint8_t> reqs);
+	void sendFlit(uint8_t req);
 };
 
 #endif /* FRASER_TEMPLATE_MODELS_ROUTER_1_ROUTER_H_ */
