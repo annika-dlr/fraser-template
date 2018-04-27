@@ -29,19 +29,40 @@
 			<HostReference hostID="0" />
 		</Model>
 
-		<Model persist="true" id="3">
-			<Name>model_1</Name>
-			<HostReference hostID="0" />
-		</Model>
-
-		<Model persist="true" id="4">
-			<Name>model_2</Name>
-			<HostReference hostID="0" />
-		</Model>
-
 		<Model persist="true" id="5">
+			<Name>router_0</Name>
+			<HostReference hostID="0" />
+			<Dependencies>
+				<ModelReference modelID="6" />
+				<ModelReference modelID="7" />
+			</Dependencies>
+		</Model>
+		
+		<Model persist="true" id="6">
 			<Name>router_1</Name>
 			<HostReference hostID="0" />
+			<Dependencies>
+				<ModelReference modelID="5" />
+				<ModelReference modelID="8" />
+			</Dependencies>
+		</Model>
+		
+		<Model persist="true" id="7">
+			<Name>router_2</Name>
+			<HostReference hostID="0" />
+			<Dependencies>
+				<ModelReference modelID="5" />
+				<ModelReference modelID="8" />
+			</Dependencies>
+		</Model>
+		
+		<Model persist="true" id="8">
+			<Name>router_3</Name>
+			<HostReference hostID="0" />
+			<Dependencies>
+				<ModelReference modelID="6" />
+				<ModelReference modelID="7" />
+			</Dependencies>
 		</Model>
 	</Models>
 </root>
