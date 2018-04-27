@@ -1,10 +1,4 @@
 
-CONFIGURATION_SERVER_DIR := models/configuration_server
-SIMULATION_MODEL_DIR := models/simulation_model
-EVENT_QUEUE_DIR := models/event_queue_1
-MODEL_1_DIR := models/model_1
-MODEL_2_DIR := models/model_2
-ROUTER_1_DIR := models/router_1
 ANSIBLE_DIR := ansible
 
 all:
@@ -39,12 +33,7 @@ init:
 	ansible-playbook $(ANSIBLE_DIR)/init.yml --connection=local -i ./ansible/inventory/hosts
 
 build:
-	@$(MAKE) -C $(CONFIGURATION_SERVER_DIR) -f Makefile
-	@$(MAKE) -C $(SIMULATION_MODEL_DIR) -f Makefile
-	@$(MAKE) -C $(EVENT_QUEUE_DIR) -f Makefile
-	@$(MAKE) -C $(MODEL_1_DIR) -f Makefile
-	@$(MAKE) -C $(MODEL_2_DIR) -f Makefile
-	@$(MAKE) -C $(ROUTER_1_DIR) -f Makefile
+	ansible-playbook $(ANSIBLE_DIR)/build.yml --connection=local -i ./ansible/inventory/hosts
 
 default-configs:
 	ansible-playbook $(ANSIBLE_DIR)/default-configs.yml --connection=local -i ./ansible/inventory/hosts
@@ -56,9 +45,4 @@ run:
 	ansible-playbook $(ANSIBLE_DIR)/run.yml -i ./ansible/inventory/hosts
 
 clean:
-	@$(MAKE) -C $(CONFIGURATION_SERVER_DIR) -f Makefile clean
-	@$(MAKE) -C $(SIMULATION_MODEL_DIR) -f Makefile clean
-	@$(MAKE) -C $(EVENT_QUEUE_DIR) -f Makefile clean
-	@$(MAKE) -C $(MODEL_1_DIR) -f Makefile clean
-	@$(MAKE) -C $(MODEL_2_DIR) -f Makefile clean
-	@$(MAKE) -C $(ROUTER_1_DIR) -f Makefile clean
+	ansible-playbook $(ANSIBLE_DIR)/clean.yml -i ./ansible/inventory/hosts
