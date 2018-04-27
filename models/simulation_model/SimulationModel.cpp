@@ -118,7 +118,7 @@ void SimulationModel::loadState(std::string filePath) {
 		ia >> boost::serialization::make_nvp("FieldSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << "Archive Exception during deserializing:" << std::endl;
+		std::cout << mName<<": Archive Exception during deserializing:" << std::endl;
 		std::cout << ex.what() << std::endl;
 	}
 
