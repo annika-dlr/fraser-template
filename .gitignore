@@ -13,3 +13,10 @@ models/event_queue_1/resources/idl/example_data_4.fbs
 models/model_1/resources/idl/example_data_4.fbs
 models/model_2/resources/idl/example_data_4.fbs
 models/simulation_model/resources/idl/example_data_4.fbs
+models/router_0/build
+models/router_1/build
+models/router_2/build
+models/router_3/build
+models/router_0/resources
+models/router_2/resources
+models/router_3/resources
