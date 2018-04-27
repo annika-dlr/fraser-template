@@ -33,13 +33,10 @@
   changed_when: False
   
 - name: Run simulation model on the host
-  command: "~/tmp_simulation/models/{{ item }}/build/bin/{{ item }} --load-config ~/tmp_simulation/configurations/{{ config_path }}/"
-  loop: "{{ hostvars[inventory_hostname]['models'] }}"
-  when: item == "simulation_model"
+  command: "~/tmp_simulation/models/simulation_model/build/bin/simulation_model --load-config ~/tmp_simulation/configurations/{{ config_path }}/"
   register: sim_out
   changed_when: False
 
-- debug: var="{{ item.stdout_lines }}"
-  loop: "{{ sim_out.results }}"
-  when: item.stdout_lines is defined
+- debug: var="sim_out.stdout_lines"
+  when: sim_out.stdout_lines is defined
   # -------------------------------------------------------------------
