@@ -48,6 +48,7 @@ public:
 	int getNumberOfPersistModels();
 	std::vector<std::string> getModelNames();
 	std::string getModelInformation(std::string request);
+	std::vector<std::string> getModelDependencies(std::string modelName);
 
 	// Get informations from xml-file
 	void setMinAndMaxPort();

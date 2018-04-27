@@ -12,12 +12,13 @@
  */
 
 #include "ConfigurationServer.h"
+#include <iostream>
 
 #define FRONTEND_PORT std::string("5570")
 
 ConfigurationServer::ConfigurationServer(std::string modelsConfigFilePath) :
 		mModelsConfigFilePath(modelsConfigFilePath), mCtx(1), mFrontend(mCtx,
-				ZMQ_ROUTER) {
+		ZMQ_ROUTER) {
 	std::cout << "ConfigurationServer-Model Constructor" << std::endl;
 
 	registerInterruptSignal();
@@ -159,6 +160,40 @@ std::vector<std::string> ConfigurationServer::getModelNames() {
 	return modelNames;
 }
 
+std::vector<std::string> ConfigurationServer::getModelDependencies(
+		std::string modelName) {
+	std::vector<std::string> modelDependencies;
+
+	// Search for the first matching entry with the given hint attribute
+	std::string specificModelSearch = ".//Models/Model[./Name='" + modelName + "']";
+
+	pugi::xpath_node xpathModel = mRootNode.select_node(
+			specificModelSearch.c_str());
+
+	std::cout << modelName << " depends on: ";
+	if (xpathModel) {
+		// Search for the first matching entry with the given hint attribute
+		std::string specificModelDependSearch = ".//Dependencies/ModelReference";
+		pugi::xpath_node_set xpathModelDepends = xpathModel.node().select_nodes(
+				specificModelDependSearch.c_str());
+
+		for (auto &modelDepend : xpathModelDepends) {
+			std::string modelID =
+					modelDepend.node().attribute("modelID").value();
+
+			std::string modelNameSearch = ".//Models/*[@id=" + modelID
+					+ "]/Name";
+
+			pugi::xpath_node xpath_modelName = mRootNode.select_single_node(
+					modelNameSearch.c_str());
+
+			modelDependencies.push_back(xpath_modelName.node().text().get());
+		}
+	}
+
+	return modelDependencies;
+}
+
 void ConfigurationServer::run() {
 
 	while (mRun) {
@@ -179,6 +214,11 @@ void ConfigurationServer::run() {
 			s_send(mFrontend, std::to_string(getNumberOfPersistModels()));
 		} else if (msg == "all_model_names") {
 			v_send(mFrontend, getModelNames());
+		} else if (msg == "all_model_dependencies") {
+			std::string sought = "_dependencies";
+			v_send(mFrontend,
+					getModelDependencies(
+							msg.replace(msg.find(sought), sought.size(), "")));
 		} else {
 			s_send(mFrontend, getModelInformation(msg));
 		}
