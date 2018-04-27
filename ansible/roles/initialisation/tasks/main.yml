@@ -100,10 +100,6 @@
     recurse: yes
   register: fbs_files
 
-- debug:
-    msg: "{{ item.path | dirname }}"
-  loop: "{{ fbs_files.files }}"
-
 - name: Generate C++ headers to access and construct serialized events
   command: flatc -o {{ item.path | dirname }} --cpp {{ item.path }}
   loop: "{{ fbs_files.files }}"
