@@ -15,7 +15,7 @@
 #include <boost/thread.hpp>
 #include <zmq.hpp>
 
-#include "Router.h"
+#include "resources/src/Router.h"
 
 int main() {
 	Router router1("router_1", "Router 1");
