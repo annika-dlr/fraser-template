@@ -22,6 +22,7 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <zmq.hpp>
+#include <stdint.h>
 
 #include "Packets.h"
 #include "resources/idl/event_generated.h"
@@ -34,6 +35,13 @@
 #include "data-types/Field.h"
 
 #define NOC_SIZE 4
+#define MASK_PROPERTY_NS 	0b00000000001100
+#define MASK_PROPERTY_EW 	0b00000000000011
+#define NORTH 				0b00001
+#define EAST				0b00010
+#define WEST				0b00100
+#define SOUTH				0b01000
+#define LOCAL				0b10000
 
 class Router: public virtual IModel, public virtual IPersist {
 public:
@@ -90,6 +98,8 @@ private:
 	uint16_t mCredits = 3;
 	bool mLastReveived = false;
 	uint32_t mNextFlit = 0;
+	uint8_t mCurrentAddr = 0;
+	uint8_t mState = 0b00000; // IDLE
 
 	std::queue<uint32_t> mFlits_RX_L; // FIFO
 	std::queue<uint32_t> mFlits_RX_N;// FIFO
@@ -98,13 +108,13 @@ private:
 	std::queue<uint32_t> mFlits_RX_W;// FIFO
 
 	// Generated requests from LDBRs
-	std::list<uint8_t> mL_LDBR_Reqs;
-	std::list<uint8_t> mN_LDBR_Reqs;
-	std::list<uint8_t> mE_LDBR_Reqs;
-	std::list<uint8_t> mW_LDBR_Reqs;
-	std::list<uint8_t> mS_LDBR_Reqs;
+	std::list<uint8_t> mReq_N_LBDR;
+	std::list<uint8_t> mReq_E_LBDR;
+	std::list<uint8_t> mReq_W_LBDR;
+	std::list<uint8_t> mReq_S_LBDR;
+	std::list<uint8_t> mReq_L_LBDR;
 
-	void generateRequests(std::list<uint8_t> reqs);
+	void generateRequests(std::list<uint8_t> reqs, bool emptyFIFO);
 	uint8_t getRequestWithHighestPriority(std::list<uint8_t> reqs);
 	void sendFlit(uint8_t req);
 };

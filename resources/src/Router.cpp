@@ -113,58 +113,68 @@ void Router::handleEvent() {
 	}
 
 	else if (mEventName == "Local") {
+		mState = 0b10000;
+
 		if (mFlits_RX_L.size() < 3) {
 			mFlits_RX_L.push(mFlitData);
 		} else {
 			mNextFlit = mFlits_RX_L.front();
 			mFlits_RX_L.pop();
-			this->generateRequests(mL_LDBR_Reqs);
-			this->sendFlit(this->getRequestWithHighestPriority(mL_LDBR_Reqs));
+			this->generateRequests(mReq_L_LBDR, mFlits_RX_L.empty());
+			this->sendFlit(this->getRequestWithHighestPriority(mReq_L_LBDR));
 		}
 	}
 
 	else if (mEventName == "North") {
+		mState = 0b00001;
+
 		if (mFlits_RX_N.size() < 3) {
 			mFlits_RX_N.push(mFlitData);
 		} else {
 			mNextFlit = mFlits_RX_N.front();
 			mFlits_RX_N.pop();
-			this->generateRequests(mN_LDBR_Reqs);
-			this->sendFlit(this->getRequestWithHighestPriority(mN_LDBR_Reqs));
+			this->generateRequests(mReq_N_LBDR, mFlits_RX_N.empty());
+			this->sendFlit(this->getRequestWithHighestPriority(mReq_N_LBDR));
 		}
 
 	}
 
 	else if (mEventName == "East") {
+		mState = 0b00010;
+
 		if (mFlits_RX_E.size() < 3) {
 			mFlits_RX_E.push(mFlitData);
 		} else {
 			mNextFlit = mFlits_RX_E.front();
 			mFlits_RX_E.pop();
-			this->generateRequests(mE_LDBR_Reqs);
-			this->sendFlit(this->getRequestWithHighestPriority(mE_LDBR_Reqs));
+			this->generateRequests(mReq_E_LBDR, mFlits_RX_E.empty());
+			this->sendFlit(this->getRequestWithHighestPriority(mReq_E_LBDR));
 		}
 	}
 
 	else if (mEventName == "South") {
+		mState = 0b01000;
+
 		if (mFlits_RX_S.size() < 3) {
 			mFlits_RX_S.push(mFlitData);
 		} else {
 			mNextFlit = mFlits_RX_S.front();
 			mFlits_RX_S.pop();
-			this->generateRequests(mS_LDBR_Reqs);
-			this->sendFlit(this->getRequestWithHighestPriority(mS_LDBR_Reqs));
+			this->generateRequests(mReq_S_LBDR, mFlits_RX_S.empty());
+			this->sendFlit(this->getRequestWithHighestPriority(mReq_S_LBDR));
 		}
 	}
 
 	else if (mEventName == "West") {
+		mState = 0b00100;
+
 		if (mFlits_RX_W.size() < 3) {
 			mFlits_RX_W.push(mFlitData);
 		} else {
 			mNextFlit = mFlits_RX_W.front();
 			mFlits_RX_W.pop();
-			this->generateRequests(mW_LDBR_Reqs);
-			this->sendFlit(this->getRequestWithHighestPriority(mW_LDBR_Reqs));
+			this->generateRequests(mReq_W_LBDR, mFlits_RX_W.empty());
+			this->sendFlit(this->getRequestWithHighestPriority(mReq_W_LBDR));
 		}
 	}
 
@@ -173,33 +183,71 @@ void Router::handleEvent() {
 	}
 }
 
-void Router::generateRequests(std::list<uint8_t> reqs) {
+void Router::generateRequests(std::list<uint8_t> reqs, bool emptyFIFO) {
 	mFlitType = get_flit_type(mNextFlit);
-	if (mFlitType == FLIT_TYPE_HEADER) {
+	if (mFlitType == FLIT_TYPE_HEADER && (!emptyFIFO)) {
 		int srcAddr = 0;
 		int dstAddr = 0;
-
+		bool n1, e1, w1, s1 = 0;
 		header_decode(mNextFlit, &srcAddr, &dstAddr, NOC_SIZE);
 
-		// TODO: Generate Requests
-		// Add request to reqs-list
+		int tmp_des_addr_ns = (dstAddr & MASK_PROPERTY_NS) >> 2;
+		int tmp_cur_addr_ns = (srcAddr & MASK_PROPERTY_NS) >> 2;
+		int tmp_des_addr_ew = (dstAddr & MASK_PROPERTY_EW);
+		int tmp_cur_addr_ew = (srcAddr & MASK_PROPERTY_EW);
 
-		reqs.push_back(0); // Add request
+		if (tmp_des_addr_ns < tmp_cur_addr_ns) {
+			n1 = 1;
+		}
+		if (tmp_cur_addr_ew < tmp_des_addr_ew) {
+			e1 = 1;
+		}
+		if (tmp_des_addr_ew < tmp_cur_addr_ew) {
+			w1 = 1;
+		}
+		if (tmp_cur_addr_ns < tmp_des_addr_ns) {
+			s1 = 1;
+		}
+
+		// Generate Request
+		if (n1 && !e1 && !w1) {
+			// Req_N
+			reqs.push_back(0b00001);
+		} else if ((e1 && !n1 && !s1) || (e1 && n1) || (e1 && s1)) {
+			// Req_E
+			reqs.push_back(0b00010);
+		} else if ((w1 && !n1 && !s1) || (w1 && n1) || (w1 && s1)) {
+			// Req_W
+			reqs.push_back(0b00100);
+		} else if (s1 && !e1 && !w1) {
+			// Req_S
+			reqs.push_back(0b01000);
+		} else /*if (!n1 && !e1 && !w1 && !s1)*/{
+			// Req_L
+			reqs.push_back(0b10000);
+		}
 	}
-	// TODO: else if (flit = header and empty = 1) then all request should keep the previous value
 
 	else if (mFlitType == FLIT_TYPE_TAIL) {
 		reqs.clear();
 	}
 
-	// else if (flit != Header and flit != Tail) then all request should keep the previous value
 }
 
 uint8_t Router::getRequestWithHighestPriority(std::list<uint8_t> reqs) {
 	uint8_t prioritizedReq = 0;
 
-	// TODO: Get highest priority request
-	// North, East, West, South, Local, ...
+	if (reqs.size() > 1) {
+		for (auto req : reqs) {
+			if (mState == req) {
+				prioritizedReq = req;
+			} else if ((mState << 1) == req) {
+				prioritizedReq = req;
+			}
+		}
+	} else {
+		prioritizedReq = reqs.front();
+	}
 
 	return prioritizedReq;
 }
@@ -211,7 +259,7 @@ void Router::sendFlit(uint8_t req) {
 //
 //	mFbb.Finish(mEventOffset);
 
-	//this->mPublisher.publishEvent(req, mFbb.GetBufferPointer(), mFbb.GetSize());
+//this->mPublisher.publishEvent(req, mFbb.GetBufferPointer(), mFbb.GetSize());
 }
 
 void Router::saveState(std::string filePath) {
