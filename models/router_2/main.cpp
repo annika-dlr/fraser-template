@@ -19,6 +19,8 @@
 
 int main() {
 	Router router2("router_2", "Router 2");
+	router2.setRouterAddr(0b00110111111100);
+
 	try {
 		router2.run();
 

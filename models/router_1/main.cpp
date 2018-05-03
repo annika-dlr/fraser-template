@@ -19,6 +19,8 @@
 
 int main() {
 	Router router1("router_1", "Router 1");
+	router1.setRouterAddr(0b00111111100011);
+
 	try {
 		router1.run();
 
