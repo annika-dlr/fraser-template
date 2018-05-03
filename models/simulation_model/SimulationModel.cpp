@@ -78,9 +78,9 @@ void SimulationModel::run() {
 
 				std::cout << "[SIMTIME] --> " << currentSimTime << std::endl;
 				mEventOffset = event::CreateEvent(mFbb,
-						mFbb.CreateString("simTimeChanged"), currentSimTime);
+						mFbb.CreateString("SimTimeChanged"), currentSimTime);
 				mFbb.Finish(mEventOffset);
-				mPublisher.publishEvent("simTimeChanged",
+				mPublisher.publishEvent("SimTimeChanged",
 						mFbb.GetBufferPointer(), mFbb.GetSize());
 
 				std::this_thread::sleep_for(
@@ -118,7 +118,7 @@ void SimulationModel::loadState(std::string filePath) {
 		ia >> boost::serialization::make_nvp("FieldSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << mName<<": Archive Exception during deserializing:" << std::endl;
+		std::cout << mName<<": Archive Exception during deserializing: " << std::endl;
 		std::cout << ex.what() << std::endl;
 	}
 
