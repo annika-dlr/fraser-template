@@ -35,6 +35,7 @@
 			<Dependencies>
 				<ModelReference modelID="6" />
 				<ModelReference modelID="7" />
+				<ModelReference modelID="2" />
 			</Dependencies>
 		</Model>
 		
