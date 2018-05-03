@@ -165,12 +165,13 @@ std::vector<std::string> ConfigurationServer::getModelDependencies(
 	std::vector<std::string> modelDependencies;
 
 	// Search for the first matching entry with the given hint attribute
-	std::string specificModelSearch = ".//Models/Model[./Name='" + modelName + "']";
+	std::string specificModelSearch = ".//Models/Model[./Name='" + modelName
+			+ "']";
 
 	pugi::xpath_node xpathModel = mRootNode.select_node(
 			specificModelSearch.c_str());
 
-	std::cout << modelName << " depends on: ";
+	//std::cout << modelName << " depends on: ";
 	if (xpathModel) {
 		// Search for the first matching entry with the given hint attribute
 		std::string specificModelDependSearch = ".//Dependencies/ModelReference";
@@ -187,6 +188,7 @@ std::vector<std::string> ConfigurationServer::getModelDependencies(
 			pugi::xpath_node xpath_modelName = mRootNode.select_single_node(
 					modelNameSearch.c_str());
 
+			//std::cout<<xpath_modelName.node().text().get()<<", ";
 			modelDependencies.push_back(xpath_modelName.node().text().get());
 		}
 	}
@@ -214,11 +216,9 @@ void ConfigurationServer::run() {
 			s_send(mFrontend, std::to_string(getNumberOfPersistModels()));
 		} else if (msg == "all_model_names") {
 			v_send(mFrontend, getModelNames());
-		} else if (msg == "all_model_dependencies") {
+		} else if (msg == "model_dependencies") {
 			std::string sought = "_dependencies";
-			v_send(mFrontend,
-					getModelDependencies(
-							msg.replace(msg.find(sought), sought.size(), "")));
+			v_send(mFrontend, getModelDependencies(identity));
 		} else {
 			s_send(mFrontend, getModelInformation(msg));
 		}
