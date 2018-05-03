@@ -61,7 +61,6 @@ private:
 
 	// IQueue
 	virtual void updateEvents() override;
-	// TODO: Change to std::vector< flatbuffers::Offset<event::Event> >
 	EventSet mEventSet;
 
 	std::string mName;
@@ -91,7 +90,6 @@ private:
 
 	// Serialization
 	flatbuffers::FlatBufferBuilder mFbb;
-	flatbuffers::Offset<event::Event> mEventOffset;
 };
 
 #endif /* EVENT_QUEUE_1_QUEUE_H_ */

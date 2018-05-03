@@ -32,8 +32,9 @@ Queue::~Queue() {
 
 void Queue::init() {
 	// Set or calculate other parameters ...
-	mEventSet.push_back(Event("Test_Event", 0, 3, 199, Priority::NORMAL_PRIORITY));
-	mEventSet.push_back(Event("Test_Event", 0, 3, 199, Priority::HIGH_PRIORITY));
+	mEventSet.push_back(
+			Event("Local_Req", 0b001111111100011, 100, 100, -1,
+					Priority::NORMAL_PRIORITY));
 }
 
 bool Queue::prepare() {
@@ -82,7 +83,7 @@ void Queue::updateEvents() {
 
 	if (mEventSet.back().getRepeat() != 0) {
 		int timestamp = mCurrentSimTime + mEventSet.back().getPeriod();
-		mEventSet.back().set_timestamp(timestamp);
+		mEventSet.back().setTimestamp(timestamp);
 
 		if (mEventSet.back().getRepeat() != -1) {
 			mEventSet.back().setRepeat(mEventSet.back().getRepeat() - 1);
@@ -99,7 +100,6 @@ void Queue::handleEvent() {
 	mReceivedEvent = event::GetEvent(mSubscriber.getEventBuffer());
 	mEventName = mSubscriber.getEventName();
 	mCurrentSimTime = mReceivedEvent->timestamp();
-	mData = mReceivedEvent->data_as_String()->str();
 
 	if (mEventName == "SimTimeChanged") {
 
@@ -108,10 +108,15 @@ void Queue::handleEvent() {
 
 			if (mCurrentSimTime >= nextEvent.getTimestamp()) {
 				nextEvent.setCurrentSimTime(mCurrentSimTime);
-				mEventOffset = event::CreateEvent(mFbb,
-						mFbb.CreateString(nextEvent.getName()),
-						nextEvent.getTimestamp());
-				mFbb.Finish(mEventOffset);
+				mFbb.Finish(
+						event::CreateEvent(mFbb,
+								mFbb.CreateString(nextEvent.getName()),
+								nextEvent.getTimestamp(),
+								event::Priority_NORMAL_PRIORITY,
+								nextEvent.getRepeat(), nextEvent.getPeriod(),
+								event::EventData_Flit,
+								event::CreateFlit(mFbb, nextEvent.getData()).Union()));
+
 				mPublisher.publishEvent(nextEvent.getName(),
 						mFbb.GetBufferPointer(), mFbb.GetSize());
 				this->updateEvents();
@@ -120,11 +125,11 @@ void Queue::handleEvent() {
 	}
 
 	else if (mEventName == "SaveState") {
-		this->saveState(mData + mName + ".config");
+		this->saveState(mReceivedEvent->data_as_String()->str() + mName + ".config");
 	}
 
 	else if (mEventName == "LoadState") {
-		this->loadState(mData + mName + ".config");
+		this->loadState(mReceivedEvent->data_as_String()->str() + mName + ".config");
 	}
 
 	else if (mEventName == "End") {
@@ -160,7 +165,7 @@ void Queue::loadState(std::string filePath) {
 		ia >> boost::serialization::make_nvp("EventSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << mName << ": Archive Exception during deserializing:"
+		std::cout << mName << ": Archive Exception during deserializing: "
 				<< std::endl;
 		throw ex.what();
 	}
