@@ -110,7 +110,7 @@ void Router::handleEvent() {
 			mFlits_RX_L.pop();
 			this->generateRequests(mReq_L_LBDR, mFlits_RX_L.empty());
 
-			if (mCredit_Cnt_L > 0) {
+			if (mCredit_Cnt_L > 0 && !mReq_L_LBDR.empty()) {
 				this->sendFlit(
 						this->getRequestWithHighestPriority(mReq_L_LBDR));
 				mCredit_Cnt_L--;
@@ -129,7 +129,7 @@ void Router::handleEvent() {
 			mFlits_RX_N.pop();
 			this->generateRequests(mReq_N_LBDR, mFlits_RX_N.empty());
 
-			if (mCredit_Cnt_N > 0) {
+			if (mCredit_Cnt_N > 0 && !mReq_N_LBDR.empty()) {
 				this->sendFlit(
 						this->getRequestWithHighestPriority(mReq_N_LBDR));
 				mCredit_Cnt_N--;
@@ -148,7 +148,7 @@ void Router::handleEvent() {
 			mFlits_RX_E.pop();
 			this->generateRequests(mReq_E_LBDR, mFlits_RX_E.empty());
 
-			if (mCredit_Cnt_E > 0) {
+			if (mCredit_Cnt_E > 0 && !mReq_E_LBDR.empty()) {
 				this->sendFlit(
 						this->getRequestWithHighestPriority(mReq_E_LBDR));
 				mCredit_Cnt_E--;
@@ -167,7 +167,7 @@ void Router::handleEvent() {
 			mFlits_RX_S.pop();
 			this->generateRequests(mReq_S_LBDR, mFlits_RX_S.empty());
 
-			if (mCredit_Cnt_S > 0) {
+			if (mCredit_Cnt_S > 0 && !mReq_S_LBDR.empty()) {
 				this->sendFlit(
 						this->getRequestWithHighestPriority(mReq_S_LBDR));
 				mCredit_Cnt_S--;
@@ -186,7 +186,7 @@ void Router::handleEvent() {
 			mFlits_RX_W.pop();
 			this->generateRequests(mReq_W_LBDR, mFlits_RX_W.empty());
 
-			if (mCredit_Cnt_W > 0) {
+			if (mCredit_Cnt_W > 0 && !mReq_W_LBDR.empty()) {
 				this->sendFlit(
 						this->getRequestWithHighestPriority(mReq_W_LBDR));
 				this->updateCreditCounter("Credit_in_W");
@@ -234,6 +234,7 @@ void Router::handleEvent() {
 void Router::generateRequests(std::list<uint8_t> reqs, bool emptyFIFO) {
 	mFlitType = get_flit_type(mNextFlit);
 	if (mFlitType == FLIT_TYPE_HEADER && (!emptyFIFO)) {
+		std::cout<<"Flit type = HEADER"<<std::endl;
 		int srcAddr = 0;
 		int dstAddr = 0;
 		bool n1, e1, w1, s1 = 0;
@@ -277,6 +278,7 @@ void Router::generateRequests(std::list<uint8_t> reqs, bool emptyFIFO) {
 	}
 
 	else if (mFlitType == FLIT_TYPE_TAIL) {
+		std::cout<<"Flit type = TAIL"<<std::endl;
 		reqs.clear();
 	}
 
