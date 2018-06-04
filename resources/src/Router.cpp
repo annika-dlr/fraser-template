@@ -57,13 +57,15 @@ bool Router::prepare() {
 	mSubscriber.subscribeTo("West_Req");
 	mSubscriber.subscribeTo("South_Req");
 	mSubscriber.subscribeTo("East_Req");
-	mSubscriber.subscribeTo("Local_Req");
+	// FIXME: Connected to the PE
+	//mSubscriber.subscribeTo("Local_Req");
 
 	mSubscriber.subscribeTo("Credit_in_N");
 	mSubscriber.subscribeTo("Credit_in_W");
 	mSubscriber.subscribeTo("Credit_in_S");
 	mSubscriber.subscribeTo("Credit_in_E");
-	mSubscriber.subscribeTo("Credit_in_L");
+	// FIXME: Connected to the PE
+	//mSubscriber.subscribeTo("Credit_in_L");
 
 	// Synchronization
 	if (!mSubscriber.prepareSubSynchronization(

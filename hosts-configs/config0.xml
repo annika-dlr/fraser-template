@@ -23,19 +23,14 @@
 			<Name>simulation_model</Name>
 			<HostReference hostID="0" />
 		</Model>
-
-		<Model persist="true" id="2">
-			<Name>event_queue_1</Name>
-			<HostReference hostID="0" />
-		</Model>
-
+		
 		<Model persist="true" id="5">
 			<Name>router_0</Name>
 			<HostReference hostID="0" />
 			<Dependencies>
 				<ModelReference modelID="6" />
 				<ModelReference modelID="7" />
-				<ModelReference modelID="2" />
+				<ModelReference modelID="9" />
 			</Dependencies>
 		</Model>
 		
@@ -45,6 +40,7 @@
 			<Dependencies>
 				<ModelReference modelID="5" />
 				<ModelReference modelID="8" />
+				<ModelReference modelID="10" />
 			</Dependencies>
 		</Model>
 		
@@ -54,6 +50,7 @@
 			<Dependencies>
 				<ModelReference modelID="5" />
 				<ModelReference modelID="8" />
+				<ModelReference modelID="11" />
 			</Dependencies>
 		</Model>
 		
@@ -63,6 +60,39 @@
 			<Dependencies>
 				<ModelReference modelID="6" />
 				<ModelReference modelID="7" />
+				<ModelReference modelID="12" />
+			</Dependencies>
+		</Model>
+		
+		<Model persist="true" id="9">
+			<Name>processing_element_0</Name>
+			<HostReference hostID="0" />
+			<Dependencies>
+				<ModelReference modelID="5" />
+			</Dependencies>
+		</Model>
+		
+		<Model persist="true" id="10">
+			<Name>processing_element_1</Name>
+			<HostReference hostID="0" />
+			<Dependencies>
+				<ModelReference modelID="6" />
+			</Dependencies>
+		</Model>
+		
+		<Model persist="true" id="11">
+			<Name>processing_element_2</Name>
+			<HostReference hostID="0" />
+			<Dependencies>
+				<ModelReference modelID="7" />
+			</Dependencies>
+		</Model>
+		
+		<Model persist="true" id="12">
+			<Name>processing_element_3</Name>
+			<HostReference hostID="0" />
+			<Dependencies>
+				<ModelReference modelID="8" />
 			</Dependencies>
 		</Model>
 	</Models>

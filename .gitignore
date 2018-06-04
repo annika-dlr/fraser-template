@@ -20,3 +20,11 @@ models/router_3/build
 models/router_0/resources
 models/router_2/resources
 models/router_3/resources
+models/processing_element_0/resources
+models/processing_element_1/resources
+models/processing_element_2/resources
+models/processing_element_3/resources
+models/processing_element_0/build
+models/processing_element_1/build
+models/processing_element_2/build
+models/processing_element_3/build
