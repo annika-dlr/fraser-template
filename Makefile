@@ -1,4 +1,3 @@
-
 ANSIBLE_DIR := ansible
 
 all:
@@ -6,22 +5,23 @@ all:
 	make update
 	make configure
 	make init
-	make build
+	make build-all
 	make default-configs
 	make deploy
 	make run
 
 help:
 	@echo "Please use \`make <target>\` where <target> is one of"
-	@echo "  configure-local    to configure the localhost"
-	@echo "  update             to update inventory file (hosts definition)"
-	@echo "  configure          to configure the hosts (install dependencies)"
-	@echo "  init               to dissolve model dependencies and generate C++ header files from the flatbuffers"
-	@echo "  build              to build the models"
-	@echo "  default-configs    to create default configuration files (saved in \`configurations/config_0\`)"
-	@echo "  deploy             to deploy the software to the hosts"
-	@echo "  run                to run models on the hosts"
-	@echo "  clean              to remove temporary data (\`build\` folder)"
+	@echo "  configure-local    					to configure the localhost"
+	@echo "  update             					to update inventory file (hosts definition)"
+	@echo "  configure          					to configure the hosts (install dependencies)"
+	@echo "  init               					to dissolve model dependencies and generate C++ header files from the flatbuffers"
+	@echo "  build-all              				to build the models"
+	@echo "  build model=<name>						to build a specific model"
+	@echo "  default-configs    					to create default configuration files (saved in \`configurations/config_0\`)"
+	@echo "  deploy             					to deploy the software to the hosts"
+	@echo "  run                					to run models on the hosts"
+	@echo "  clean              					to remove temporary data (\`build\` folder)"
 
 configure-local:
 	ansible-playbook $(ANSIBLE_DIR)/configure-local.yml --ask-become-pass --connection=local -e ansible_python_interpreter=/usr/bin/python -i ./ansible/inventory/hosts
@@ -35,8 +35,11 @@ configure:
 init:
 	ansible-playbook $(ANSIBLE_DIR)/init.yml --connection=local -i ./ansible/inventory/hosts
 
-build:
+build-all:
 	ansible-playbook $(ANSIBLE_DIR)/build.yml --connection=local -i ./ansible/inventory/hosts
+	
+build:
+	ansible-playbook $(ANSIBLE_DIR)/build.yml --connection=local -i ./ansible/inventory/hosts --extra-vars 'models=[{"name":"$(model)"}]'
 
 default-configs:
 	ansible-playbook $(ANSIBLE_DIR)/default-configs.yml --connection=local -i ./ansible/inventory/hosts
@@ -46,6 +49,9 @@ deploy:
 
 run:
 	ansible-playbook $(ANSIBLE_DIR)/run.yml -i ./ansible/inventory/hosts
+
+list-models:
+	cat ansible/inventory/group_vars/all/main.yml
 
 clean:
 	ansible-playbook $(ANSIBLE_DIR)/clean.yml -i ./ansible/inventory/hosts
