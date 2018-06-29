@@ -1,3 +1,4 @@
+config-file?=config0.xml
 ANSIBLE_DIR := ansible
 
 all:
@@ -13,7 +14,7 @@ all:
 help:
 	@echo "Please use \`make <target>\` where <target> is one of"
 	@echo "  configure-local                        to configure the localhost"
-	@echo "  update                                 to update inventory file (hosts definition)"
+	@echo "  update config-file=<filename>          to update inventory file (hosts definition)"
 	@echo "  configure                              to configure the hosts (install dependencies)"
 	@echo "  init                                   to dissolve model dependencies and generate C++ header files from the flatbuffers"
 	@echo "  build-all                              to build the models"
@@ -28,7 +29,7 @@ configure-local:
 	ansible-playbook $(ANSIBLE_DIR)/configure-local.yml --ask-become-pass --connection=local -e ansible_python_interpreter=/usr/bin/python -i ./ansible/inventory/hosts
 
 update:
-	ansible-playbook $(ANSIBLE_DIR)/update-inv.yml --connection=local
+	ansible-playbook $(ANSIBLE_DIR)/update-inv.yml --connection=local --extra-vars hosts_config_file=$(config-file)
 
 configure:
 	ansible-playbook $(ANSIBLE_DIR)/configure.yml --ask-become-pass -i ./ansible/inventory/hosts
