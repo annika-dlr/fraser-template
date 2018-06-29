@@ -26,13 +26,13 @@
   changed_when: False
   
 - name: Run models locally
-  shell: "../models/{{ item.name }}/build/bin/{{ item.name }}"
+  shell: "../models/{{ item }}/build/bin/{{ item }}"
   async: 1000
   poll: 0
   loop: "{{ models }}"
   when:
-    - item.name != "simulation_model"
-    - item.name != "configuration_server"
+    - item != "simulation_model"
+    - item != "configuration_server"
   changed_when: False
   
 - name: Run simulation model locally
