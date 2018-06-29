@@ -13,11 +13,14 @@ all:
 
 help:
 	@echo "Please use \`make <target>\` where <target> is one of"
-	@echo "  configure          to configure the hosts"
-	@echo "  init               to initial the template and dissolve dependencies"
+	@echo "  configure-local    to configure the localhost"
+	@echo "  update             to update inventory file (hosts definition)"
+	@echo "  configure          to configure the hosts (install dependencies)"
+	@echo "  init               to dissolve model dependencies and generate C++ header files from the flatbuffers"
 	@echo "  build              to build the models"
 	@echo "  default-configs    to create default configuration files (saved in \`configurations/config_0\`)"
-	@echo "  deploy             to run all models"
+	@echo "  deploy             to deploy the software to the hosts"
+	@echo "  run                to run models on the hosts"
 	@echo "  clean              to remove temporary data (\`build\` folder)"
 
 configure-local:
