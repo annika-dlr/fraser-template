@@ -8,20 +8,21 @@ all:
 	make build-all
 	make default-configs
 	make deploy
-	make run
+	make run-all
 
 help:
 	@echo "Please use \`make <target>\` where <target> is one of"
-	@echo "  configure-local    					to configure the localhost"
-	@echo "  update             					to update inventory file (hosts definition)"
-	@echo "  configure          					to configure the hosts (install dependencies)"
-	@echo "  init               					to dissolve model dependencies and generate C++ header files from the flatbuffers"
-	@echo "  build-all              				to build the models"
-	@echo "  build model=<name>						to build a specific model"
-	@echo "  default-configs    					to create default configuration files (saved in \`configurations/config_0\`)"
-	@echo "  deploy             					to deploy the software to the hosts"
-	@echo "  run                					to run models on the hosts"
-	@echo "  clean              					to remove temporary data (\`build\` folder)"
+	@echo "  configure-local                        to configure the localhost"
+	@echo "  update                                 to update inventory file (hosts definition)"
+	@echo "  configure                              to configure the hosts (install dependencies)"
+	@echo "  init                                   to dissolve model dependencies and generate C++ header files from the flatbuffers"
+	@echo "  build-all                              to build the models"
+	@echo "  build model=<name>                     to build a specific model"
+	@echo "  default-configs                        to create default configuration files (saved in \`configurations/config_0\`)"
+	@echo "  deploy                                 to deploy the software to the hosts"
+	@echo "  run-all                                to run models on the hosts"
+	@echo "  run model=<name>                       to run a specific custom model"
+	@echo "  clean                                  to remove temporary data (\`build\` folder)"
 
 configure-local:
 	ansible-playbook $(ANSIBLE_DIR)/configure-local.yml --ask-become-pass --connection=local -e ansible_python_interpreter=/usr/bin/python -i ./ansible/inventory/hosts
@@ -47,8 +48,11 @@ default-configs:
 deploy:
 	ansible-playbook $(ANSIBLE_DIR)/deploy.yml -i ./ansible/inventory/hosts
 
-run:
+run-all:
 	ansible-playbook $(ANSIBLE_DIR)/run.yml -i ./ansible/inventory/hosts
+	
+run:
+	models/$(model)/build/bin/$(model)
 
 list-models:
 	cat ansible/inventory/group_vars/all/main.yml
