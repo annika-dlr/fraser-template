@@ -12,10 +12,6 @@
  */
 
 #include "ConfigurationServer.h"
-
-//  The main thread simply starts several clients and a server, and then
-//  waits for the server to finish.
-
 int main(int argc, char* argv[]) {
 	if (argc > 2) {
 		if (static_cast<std::string>(argv[1]) == "--config-file") {

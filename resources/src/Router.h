@@ -102,7 +102,7 @@ private:
 	uint64_t mCycles = 0;
 	bool mLastReveived = false;
 	uint32_t mNextFlit = 0;
-	uint8_t mCurrentAddr = 0;
+	uint16_t mCurrentAddr = 0;
 	uint8_t mCurrentState = 0b00000; // IDLE
 
 	// Credit based flow

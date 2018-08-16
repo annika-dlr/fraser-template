@@ -55,7 +55,7 @@ run-all:
 run:
 	models/$(model)/build/bin/$(model)
 
-list-models:
+list-models-info:
 	cat ansible/inventory/group_vars/all/main.yml
 
 clean:

@@ -17,15 +17,43 @@
 
 #include "resources/src/Router.h"
 
-int main() {
-	Router router0("router_0", "Router 0");
-	router0.setRouterAddr(0b00111111110101);
+int main(int argc, char* argv[]) {
+	if (argc > 4) {
+		bool validArgs = true;
+		std::string routerName = "";
+		uint16_t routerAddress = 0;
 
-	try {
-		router0.run();
+		if (static_cast<std::string>(argv[1]) == "-a") {
+			routerAddress = atoi(argv[4]);
 
-	} catch (zmq::error_t& e) {
-		std::cout << "Router 0: Interrupt received: Exit" << std::endl;
+		} else if (static_cast<std::string>(argv[1]) == "-n") {
+			routerName = static_cast<std::string>(argv[2]);
+		} else {
+			validArgs = false;
+			std::cout << " Invalid argument/s: --help" << std::endl;
+		}
+
+		if (validArgs) {
+			Router router(routerName, "Bonfire Router Model");
+			router.setRouterAddr(routerAddress);
+			try {
+				router.run();
+
+			} catch (zmq::error_t& e) {
+				std::cout << routerName << ": Interrupt received: Exit"
+						<< std::endl;
+			}
+		}
+	} else if (argc > 1) {
+		if (static_cast<std::string>(argv[1]) == "--help") {
+			std::cout << "<< Help >>" << std::endl;
+			std::cout << "--config-file CONFIG-PATH >> "
+					<< "Set path of models-configuration file" << std::endl;
+		} else {
+			std::cout << " Invalid argument/s: --help" << std::endl;
+		}
+	} else {
+		std::cout << " Invalid or missing argument/s: --help" << std::endl;
 	}
 
 	return 0;

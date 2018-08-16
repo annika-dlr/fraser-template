@@ -2,97 +2,110 @@
 <root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="../fraser/schemas/models-config.xsd">
 
-	<Configuration path="../configurations/config_0" />
-
+	<!-- Port numbers p∈Z|minPort≤x≤maxPort) are automatically assigned -->
 	<Hosts minPort="6000" maxPort="6100">
-		<Host id="0">
-			<Name>host0</Name>
+		<Host id="host_0">
+			<Description>PC in room 2.21</Description>
 			<Address>localhost</Address>
 		</Host>
-		<!-- <Host id="1"> <Name>host1</Name> <Address>localhost</Address> </Host> 
-			<Host id="2"> <Name>host2</Name> <Address>localhost</Address> </Host> -->
+		<!-- Add more hosts for a distributed simulation -->
 	</Hosts>
 
-	<Models>
-		<Model id="0">
-			<Name>configuration_server</Name>
-			<HostReference hostID="0" />
+	<!-- [configPath]: Define the configuration path for the models -->
+	<!-- The folder contains files with the initialized state of each persistent model -->
+	<Models configPath= "../configurations/config_0">
+	
+		<!-- Do not remove this model! -->
+		<!-- Model is part of the environment -->
+		<Model id="configuration_server" path="../models/configuration_server"> 
+  			<HostReference hostID="host_0" /> 
+  		</Model>
+
+  		<!-- Do not remove this model! -->
+		<!-- Model is part of the environment -->
+  		<Model persist="true" id="simulation_model" path="../models/simulation_model"> 
+  			<HostReference hostID="host_0" />
+  		</Model>
+
+		<!-- Add your Custom Models -->
+		<!-- [type]: name of the folder within the models-folder -->
+		<!-- [id]: unique model identifier/name -->
+		<!-- [HostReference]: define on which host the model is executed  -->
+		<!-- [Dependencies]: define the dependencies to other models  -->
+		<Model persist="true" id="router_0" path="../models/router_0">
+			<HostReference hostID="host_0" />
+			<Dependencies>
+				<ModelReference modelID="router_1" />
+				<ModelReference modelID="router_2" />
+				<ModelReference modelID="processing_element_0" />
+			</Dependencies>
+			<!-- Add commandline arguments, e.g., to set or initialize model parameters -->
+			<CommandLine>
+				<Argument option="--address">0b00111111110101</Argument>
+			</CommandLine>
 		</Model>
 
-		<Model id="1" persist="true">
-			<Name>simulation_model</Name>
-			<HostReference hostID="0" />
-		</Model>
-		
-		<Model persist="true" id="5">
-			<Name>router_0</Name>
-			<HostReference hostID="0" />
+		<Model persist="true" id="router_1" path="../models/router_0">
+			<HostReference hostID="host_0" />
 			<Dependencies>
-				<ModelReference modelID="6" />
-				<ModelReference modelID="7" />
-				<ModelReference modelID="9" />
+				<ModelReference modelID="router_0" />
+				<ModelReference modelID="router_3" />
+				<ModelReference modelID="processing_element_1" />
+			</Dependencies>
+			<CommandLine>
+				<Argument option="--address">0b00111111100011</Argument>
+			</CommandLine>
+		</Model>
+
+		<Model persist="true" id="router_2" path="../models/router_0">
+			<HostReference hostID="host_0" />
+			<Dependencies>
+				<ModelReference modelID="router_0" />
+				<ModelReference modelID="router_3" />
+				<ModelReference modelID="processing_element_2" />
+			</Dependencies>
+			<CommandLine>
+				<Argument option="--address">0b00110111111100</Argument>
+			</CommandLine>
+		</Model>
+
+		<Model persist="true" id="router_3" path="../models/router_0">
+			<HostReference hostID="host_0" />
+			<Dependencies>
+				<ModelReference modelID="router_1" />
+				<ModelReference modelID="router_2" />
+				<ModelReference modelID="processing_element_3" />
+			</Dependencies>
+			<CommandLine>
+				<Argument option="--address">0b00111111111010</Argument>
+			</CommandLine>
+		</Model>
+
+		<Model persist="true" id="processing_element_0" path="../models/processing_element_0">
+			<HostReference hostID="host_0" />
+			<Dependencies>
+				<ModelReference modelID="router_0" />
 			</Dependencies>
 		</Model>
-		
-		<Model persist="true" id="6">
-			<Name>router_1</Name>
-			<HostReference hostID="0" />
+
+		<Model persist="true" id="processing_element_1" path="../models/processing_element_0">
+			<HostReference hostID="host_0" />
 			<Dependencies>
-				<ModelReference modelID="5" />
-				<ModelReference modelID="8" />
-				<ModelReference modelID="10" />
+				<ModelReference modelID="router_1" />
 			</Dependencies>
 		</Model>
-		
-		<Model persist="true" id="7">
-			<Name>router_2</Name>
-			<HostReference hostID="0" />
+
+		<Model persist="true" id="processing_element_2" path="../models/processing_element_0">
+			<HostReference hostID="host_0" />
 			<Dependencies>
-				<ModelReference modelID="5" />
-				<ModelReference modelID="8" />
-				<ModelReference modelID="11" />
+				<ModelReference modelID="router_2" />
 			</Dependencies>
 		</Model>
-		
-		<Model persist="true" id="8">
-			<Name>router_3</Name>
-			<HostReference hostID="0" />
+
+		<Model persist="true" id="processing_element_3" path="../models/processing_element_0">
+			<HostReference hostID="host_0" />
 			<Dependencies>
-				<ModelReference modelID="6" />
-				<ModelReference modelID="7" />
-				<ModelReference modelID="12" />
-			</Dependencies>
-		</Model>
-		
-		<Model persist="true" id="9">
-			<Name>processing_element_0</Name>
-			<HostReference hostID="0" />
-			<Dependencies>
-				<ModelReference modelID="5" />
-			</Dependencies>
-		</Model>
-		
-		<Model persist="true" id="10">
-			<Name>processing_element_1</Name>
-			<HostReference hostID="0" />
-			<Dependencies>
-				<ModelReference modelID="6" />
-			</Dependencies>
-		</Model>
-		
-		<Model persist="true" id="11">
-			<Name>processing_element_2</Name>
-			<HostReference hostID="0" />
-			<Dependencies>
-				<ModelReference modelID="7" />
-			</Dependencies>
-		</Model>
-		
-		<Model persist="true" id="12">
-			<Name>processing_element_3</Name>
-			<HostReference hostID="0" />
-			<Dependencies>
-				<ModelReference modelID="8" />
+				<ModelReference modelID="router_3" />
 			</Dependencies>
 		</Model>
 	</Models>

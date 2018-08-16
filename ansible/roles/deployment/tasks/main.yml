@@ -31,27 +31,25 @@
 
 - name: Copy model directory to the remote hosts
   copy:
-    src: ../models/{{ item }}
+    src: {{ item.path }}
     dest: "~/tmp_simulation/models"
-  loop: "{{ hostvars[inventory_hostname]['models'] }}"
-  when: item != "configuration_server"
+  loop: "{{ models }}"
+  when: item.name != "configuration_server"
 
 - name: Check if configuration folder exists
   file: path="~/tmp_simulation/configurations/{{ config_path }}" state=directory
 
 - name: Copy configuration file to remote hosts
   copy:
-    src: ../configurations/{{ config_path }}/{{ item }}.config
+    src: ../configurations/{{ config_path }}/{{ item.name }}.config
     dest: "~/tmp_simulation/configurations/{{ config_path }}/"
-  loop: "{{ hostvars[inventory_hostname]['models'] }}"
-  when: item != "configuration_server"
+  loop: "{{ models }}"
+  when: item.name != "configuration_server"
   
 - name: Copy resources to remote hosts
   copy:
     src: ../resources/idl
     dest: "~/tmp_simulation/resources"
-  loop: "{{ hostvars[inventory_hostname]['models'] }}"
-  when: item != "configuration_server"
 
 - name: Fix 'tmp-folder' permission
   file: path=~/tmp_simulation owner="{{ lookup('env', 'USER') }}" mode=0775 state=directory recurse=yes
