@@ -11,7 +11,10 @@
  * - 2018, Annika Ofenloch (DLR RY-AVS)
  */
 
+#include <vector>
+#include <cstdint>
 #include "ProcessingElement.h"
+#include "packet_generator.h"
 
 ProcessingElement::ProcessingElement(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
@@ -23,7 +26,7 @@ ProcessingElement::ProcessingElement(std::string name, std::string description) 
 }
 
 ProcessingElement::~ProcessingElement() {
-
+	// delete this->mPacketGenerator;
 }
 
 void ProcessingElement::init() {
@@ -86,6 +89,17 @@ void ProcessingElement::handleEvent() {
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
 	if (mEventName == "SimTimeChanged") {
+
+		PacketGenerator mPacketGenerator(0); //FIXME: Get router's address, this object should be loaded on model initialization
+
+		std::vector<uint32_t> packet;
+
+		mPacketGenerator.generate_packet(packet, 10, 1, GenerationModes::counter);
+
+		for (size_t i=0; i < packet.size(); i++) {
+			std::cout << "Sending ", packet.at(i);
+		}
+
 		// Receives current simulation time ...
 		// Do something for each time step
 
