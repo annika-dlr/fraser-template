@@ -23,13 +23,13 @@
   changed_when: False
   
 - name: Run models on the hosts
-  command: "~/tmp_simulation/models/{{ item }}/build/bin/{{ item }}"
+  command: "~/tmp_simulation/models/{{ item.path | dirname }}/build/bin/{{ item.path | dirname }}"
   async: 1000
   poll: 0
-  loop: "{{ hostvars[inventory_hostname]['models'] }}"
+  loop: "{{ models }}"
   when:
-    - item != "simulation_model"
-    - item != "configuration_server"
+    - 'not "simulation_model" in item.instances'
+    - 'not "configuration_server" in item.instances'
   changed_when: False
   
 - name: Run simulation model on the host

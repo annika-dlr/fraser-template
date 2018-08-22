@@ -7,10 +7,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 # Authors:
-# - 2017, Annika Ofenloch (DLR RY-AVS)
+# - 2018, Annika Ofenloch (DLR RY-AVS)
 
-PROG= model_1
-SRCS= main.cpp Model_1.cpp ../../fraser/src/communication/Subscriber.cpp ../../fraser/src/communication/Publisher.cpp \
+PROG = router
+SRCS= main.cpp ../../resources/src/Router.cpp Packets.cpp ../../fraser/src/communication/Subscriber.cpp ../../fraser/src/communication/Publisher.cpp \
 ../../fraser/src/communication/Dealer.cpp
 BINDIR = build/bin
 OBJDIR = build/obj

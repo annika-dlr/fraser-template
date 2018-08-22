@@ -1,8 +1,0 @@
-// Flit Data for Router Model -->
-namespace event;
-
-table Flit {
-  uint32:uint32 = 0;
-}
-
-root_type Flit;

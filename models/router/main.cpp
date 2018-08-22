@@ -8,23 +8,38 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  * Authors:
- * - 2017-2018, Annika Ofenloch (DLR RY-AVS)
+ * - 2018, Annika Ofenloch (DLR RY-AVS)
  */
 
-#include "ConfigurationServer.h"
+#include <boost/chrono.hpp>
+#include <boost/thread.hpp>
+#include <zmq.hpp>
+
+#include "Router.h"
+
 int main(int argc, char* argv[]) {
 	if (argc > 2) {
-		if (static_cast<std::string>(argv[1]) == "--config-file") {
-			ConfigurationServer configServerModel(argv[2]);
+		bool validArgs = true;
+		std::string routerName = "";
+		uint16_t routerAddress = 0;
+
+		if (static_cast<std::string>(argv[1]) == "-n") {
+			routerName = static_cast<std::string>(argv[2]);
+		} else {
+			validArgs = false;
+			std::cout << " Invalid argument/s: --help" << std::endl;
+		}
+
+		if (validArgs) {
+			Router router(routerName, "Bonfire Router Model");
+			router.setRouterAddr(routerAddress);
 			try {
-				configServerModel.run();
+				router.run();
 
 			} catch (zmq::error_t& e) {
-				std::cout << "ConfigurationServer: Interrupt received: Exit"
+				std::cout << routerName << ": Interrupt received: Exit"
 						<< std::endl;
 			}
-		} else {
-			std::cout << " Invalid argument/s: --help" << std::endl;
 		}
 	} else if (argc > 1) {
 		if (static_cast<std::string>(argv[1]) == "--help") {
@@ -40,3 +55,4 @@ int main(int argc, char* argv[]) {
 
 	return 0;
 }
+
