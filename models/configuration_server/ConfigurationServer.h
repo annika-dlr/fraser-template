@@ -59,6 +59,8 @@ public:
 	// Set IP addresses
 	void setModelIPAddresses();
 
+	void setModelParameters();
+
 private:
 	// IModel
 	std::string mName;

@@ -28,6 +28,7 @@ Router::~Router() {
 
 void Router::init() {
 	// Set or calculate other parameters ...
+	mCurrentAddr = std::stoi(mDealer.getModelParameter(mName, "address"));
 }
 
 bool Router::prepare() {

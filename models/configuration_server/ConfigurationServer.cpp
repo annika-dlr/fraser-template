@@ -18,7 +18,7 @@
 
 ConfigurationServer::ConfigurationServer(std::string modelsConfigFilePath) :
 		mModelsConfigFilePath(modelsConfigFilePath), mCtx(1), mFrontend(mCtx,
-		ZMQ_ROUTER) {
+				ZMQ_ROUTER) {
 	std::cout << "ConfigurationServer-Model Constructor" << std::endl;
 
 	registerInterruptSignal();
@@ -29,6 +29,7 @@ ConfigurationServer::ConfigurationServer(std::string modelsConfigFilePath) :
 		setMinAndMaxPort();
 		setModelPortNumbers();
 		setModelIPAddresses();
+		setModelParameters();
 
 		try {
 			mFrontend.bind("tcp://*:" + FRONTEND_PORT);
@@ -92,13 +93,12 @@ bool ConfigurationServer::setModelPortNumbers() {
 }
 
 void ConfigurationServer::setModelIPAddresses() {
+	std::string hostAddress = "";
 
 	for (auto name : mModelNames) {
 
-		std::string hostAddress = "";
 		// Search for the first matching entry with the given hint attribute
-		std::string specificModelSearch = ".//Models/Model[./Name='" + name
-				+ "']";
+		std::string specificModelSearch = ".//Models/Model[@id='" + name + "']";
 
 		pugi::xpath_node xpathSpecificModel = mRootNode.select_single_node(
 				specificModelSearch.c_str());
@@ -107,8 +107,10 @@ void ConfigurationServer::setModelIPAddresses() {
 			std::string hostID = xpathSpecificModel.node().child(
 					"HostReference").attribute("hostID").value();
 
-			std::string hostNameSearch = ".//Hosts/*[@id=" + hostID
-					+ "]/Address";
+			std::cout << "Host ID of " + name + ": " << hostID << std::endl;
+
+			std::string hostNameSearch = ".//Hosts/Host[@id='" + hostID
+					+ "']/Address";
 
 			pugi::xpath_node xpath_hostName = mRootNode.select_single_node(
 					hostNameSearch.c_str());
@@ -123,11 +125,50 @@ void ConfigurationServer::setModelIPAddresses() {
 
 }
 
+void ConfigurationServer::setModelParameters() {
+	std::string parameterValue = "";
+
+	for (auto name : mModelNames) {
+
+		// Search for the first matching entry with the given hint attribute
+		std::string specificModelSearch = ".//Models/Model[@id='" + name
+				+ "']";
+
+		pugi::xpath_node xpathModel = mRootNode.select_node(
+				specificModelSearch.c_str());
+
+		if (xpathModel) {
+
+			std::string parameterSearch = ".//Parameters/Parameter";
+			auto xpathAllParameter = mRootNode.select_nodes(
+					parameterSearch.c_str());
+
+			if (!xpathAllParameter.empty()) {
+				for (auto &parameter : xpathAllParameter) {
+
+					parameterValue = parameter.node().text().get();
+					mModelInformation[name
+							+ "_" + parameter.node().attribute("name").value()] =
+							parameterValue;
+
+					std::cout << name << "<< Parameter: "
+							<< parameter.node().attribute("name").value()
+							<< " = " << parameterValue << std::endl;
+				}
+			}
+		}
+
+	}
+
+}
+
 int ConfigurationServer::getNumberOfModels() {
 	std::string allModelsSearch = ".//Models/Model";
 	pugi::xpath_node_set xpathAllModels = mRootNode.select_nodes(
 			allModelsSearch.c_str());
 
+	std::cout << " Number of Custom models: " << xpathAllModels.size()
+			<< std::endl;
 	return xpathAllModels.size();
 }
 
@@ -143,7 +184,7 @@ int ConfigurationServer::getNumberOfPersistModels() {
 }
 
 std::vector<std::string> ConfigurationServer::getModelNames() {
-	std::vector<std::string> modelNames;
+	std::vector < std::string > modelNames;
 
 	std::string allModelsSearch = ".//Models/Model";
 
@@ -152,9 +193,9 @@ std::vector<std::string> ConfigurationServer::getModelNames() {
 
 	if (!xpathAllModels.empty()) {
 		for (auto &modelNode : xpathAllModels) {
-			modelNames.push_back(modelNode.node().child("Name").text().get());
+			modelNames.push_back(modelNode.node().attribute("id").value());
 			std::cout << "ModelName: "
-					<< modelNode.node().child("Name").text().get() << std::endl;
+					<< modelNode.node().attribute("id").value() << std::endl;
 		}
 	}
 	return modelNames;
@@ -162,16 +203,16 @@ std::vector<std::string> ConfigurationServer::getModelNames() {
 
 std::vector<std::string> ConfigurationServer::getModelDependencies(
 		std::string modelName) {
-	std::vector<std::string> modelDependencies;
+	std::vector < std::string > modelDependencies;
 
 	// Search for the first matching entry with the given hint attribute
-	std::string specificModelSearch = ".//Models/Model[./Name='" + modelName
+	std::string specificModelSearch = ".//Models/Model[@id='" + modelName
 			+ "']";
 
 	pugi::xpath_node xpathModel = mRootNode.select_node(
 			specificModelSearch.c_str());
 
-	//std::cout << modelName << " depends on: ";
+	std::cout << modelName << " depends on: ";
 	if (xpathModel) {
 		// Search for the first matching entry with the given hint attribute
 		std::string specificModelDependSearch = ".//Dependencies/ModelReference";
@@ -182,14 +223,8 @@ std::vector<std::string> ConfigurationServer::getModelDependencies(
 			std::string modelID =
 					modelDepend.node().attribute("modelID").value();
 
-			std::string modelNameSearch = ".//Models/*[@id=" + modelID
-					+ "]/Name";
-
-			pugi::xpath_node xpath_modelName = mRootNode.select_single_node(
-					modelNameSearch.c_str());
-
-			//std::cout<<xpath_modelName.node().text().get()<<", ";
-			modelDependencies.push_back(xpath_modelName.node().text().get());
+			std::cout << modelID << ", ";
+			modelDependencies.push_back(modelID);
 		}
 	}
 
@@ -200,9 +235,9 @@ void ConfigurationServer::run() {
 
 	while (mRun) {
 		std::string identity = s_recv(mFrontend);
-		//std::cout << "Identity: " << identity << std::endl;
+		std::cout << "Identity: " << identity << std::endl;
 		std::string msg = s_recv(mFrontend);
-		//std::cout << "Msg: " << msg << std::endl;
+		std::cout << "Msg: " << msg << std::endl;
 
 		if (msg == "End") {
 			// Stop the DNS server

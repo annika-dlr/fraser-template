@@ -17,30 +17,37 @@
   # Execute models locally to create default configuration files
   # -------------------------------------------------------------------
 - name: Check if folder for configuration files exists
-  file: path="../configurations/{{ config }}" state=directory
+  file: path="{{ config_path }}" state=directory
 
-- name: Run configuration server locally
-  shell: "../models/configuration_server/build/bin/configuration_server --config-file {{ hosts_config_filepath }}"
-  async: 1000
-  poll: 0
-  changed_when: False
-  
-- name: Run models locally
-  shell: "{{ item.path }}/build/bin/{{ item.path | dirname }}"
-  async: 1000
-  poll: 0
-  loop: "{{ models }}"
-  when:
-    - 'not "simulation_model" in item.instances'
-    - 'not "configuration_server" in item.instances'
+#- name: Run configuration server locally
+#  shell: "../models/configuration_server/build/bin/configuration_server --config-file {{ hosts_config_filepath }}"
+#  async: 1000
+#  poll: 0
+#  changed_when: False
+#  
+#- name: Run models locally
+#  shell: "{{ item.0.path }}/build/bin/{{ item.0.path | dirname }} -n {{ item.1 }}"
+#  async: 1000
+#  poll: 0
+#  with_subelements:
+#    - "{{ models }}"
+#    - instances
+#  when:
+#    - 'not "simulation_model" in item.1'
+#    - 'not "configuration_server" in item.1'
+#
+#  changed_when: False
+#  
+#- name: Run simulation model locally
+#  shell: "../models/simulation_model/build/bin/simulation_model --create-config-files {{ config_path }}/"
+#  register: sim_output
+#  changed_when: False
+#
+#- debug: var=sim_output.stdout_lines
+#  when: sim_output.stdout_lines is defined
 
-  changed_when: False
-  
-- name: Run simulation model locally
-  shell: "../models/simulation_model/build/bin/simulation_model --create-config-files ../configurations/{{ config }}/"
-  register: sim_output
+- name: Run bash script to run models locally and create default configuration files
+  shell: "sh ../createConfigurationFiles.sh"
   changed_when: False
 
-- debug: var=sim_output.stdout_lines
-  when: sim_output.stdout_lines is defined
   # -------------------------------------------------------------------

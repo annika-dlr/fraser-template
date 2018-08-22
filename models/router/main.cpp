@@ -15,18 +15,15 @@
 #include <boost/thread.hpp>
 #include <zmq.hpp>
 
-#include "resources/src/Router.h"
+#include "Router.h"
 
 int main(int argc, char* argv[]) {
-	if (argc > 4) {
+	if (argc > 2) {
 		bool validArgs = true;
 		std::string routerName = "";
 		uint16_t routerAddress = 0;
 
-		if (static_cast<std::string>(argv[1]) == "-a") {
-			routerAddress = atoi(argv[4]);
-
-		} else if (static_cast<std::string>(argv[1]) == "-n") {
+		if (static_cast<std::string>(argv[1]) == "-n") {
 			routerName = static_cast<std::string>(argv[2]);
 		} else {
 			validArgs = false;

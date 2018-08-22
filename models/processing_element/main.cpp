@@ -9,16 +9,42 @@
 #include <boost/thread.hpp>
 #include <zmq.hpp>
 
-#include "resources/src/ProcessingElement.h"
+#include "ProcessingElement.h"
 
-int main() {
-	ProcessingElement processingElement0("processing_element_0", "PE for Router 0: Packet Generator for Sending and Packet Sink for Receiving Flits");
+int main(int argc, char* argv[]) {
 
-	try {
-		processingElement0.run();
+	if (argc > 2) {
+		bool validArgs = true;
+		std::string peName = "";
 
-	} catch (zmq::error_t& e) {
-		std::cout << "PE 0: Interrupt received: Exit" << std::endl;
+		if (static_cast<std::string>(argv[1]) == "-n") {
+			peName = static_cast<std::string>(argv[2]);
+		} else {
+			validArgs = false;
+			std::cout << " Invalid argument/s: --help" << std::endl;
+		}
+
+		if (validArgs) {
+			ProcessingElement processingElement(peName,
+					"PE for Router: Packet Generator for Sending and Packet Sink for Receiving Flits");
+
+			try {
+				processingElement.run();
+
+			} catch (zmq::error_t& e) {
+				std::cout << peName<<" : Interrupt received: Exit" << std::endl;
+			}
+		}
+	} else if (argc > 1) {
+		if (static_cast<std::string>(argv[1]) == "--help") {
+			std::cout << "<< Help >>" << std::endl;
+			std::cout << "-n NAME >> "
+					<< "Set instance name of Processing Element" << std::endl;
+		} else {
+			std::cout << " Invalid argument/s: --help" << std::endl;
+		}
+	} else {
+		std::cout << " Invalid or missing argument/s: --help" << std::endl;
 	}
 
 	return 0;

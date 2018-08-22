@@ -8,8 +8,8 @@ all:
 	make init
 	make build-all
 	make default-configs
-	make deploy
-	make run-all
+#	make deploy
+#	make run-all
 
 help:
 	@echo "Please use \`make <target>\` where <target> is one of"
@@ -20,16 +20,16 @@ help:
 	@echo "  build-all                              to build the models"
 	@echo "  build model=<name>                     to build a specific model"
 	@echo "  default-configs                        to create default configuration files (saved in \`configurations/config_0\`)"
-	@echo "  deploy                                 to deploy the software to the hosts"
-	@echo "  run-all                                to run models on the hosts"
-	@echo "  run model=<name>                       to run a specific custom model"
+#	@echo "  deploy                                 to deploy the software to the hosts"
+#	@echo "  run-all                                to run models on the hosts"
+#	@echo "  run model=<name>                       to run a specific custom model"
 	@echo "  clean                                  to remove temporary data (\`build\` folder)"
 
 configure-local:
 	ansible-playbook $(ANSIBLE_DIR)/configure-local.yml --ask-become-pass --connection=local -e ansible_python_interpreter=/usr/bin/python -i ./ansible/inventory/hosts
 
 update:
-	ansible-playbook $(ANSIBLE_DIR)/update-inv.yml --connection=local --extra-vars hosts_config_file=$(config-file)
+	ansible-playbook $(ANSIBLE_DIR)/update-inv.yml --connection=local
 
 configure:
 	ansible-playbook $(ANSIBLE_DIR)/configure.yml --ask-become-pass -i ./ansible/inventory/hosts
