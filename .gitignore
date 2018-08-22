@@ -14,6 +14,5 @@ models/model_1/resources/idl/example_data_4.fbs
 models/model_2/resources/idl/example_data_4.fbs
 models/simulation_model/resources/idl/example_data_4.fbs
 models/router/build
-models/router/resources
 models/processing_element/resources
 models/processing_element/build
