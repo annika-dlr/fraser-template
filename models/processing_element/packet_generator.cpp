@@ -24,7 +24,7 @@
  * 	std::shared_ptr<Router> router - Pointer to the router (input port) instance
  * 					                 the packet generator is connected to
  */
-PacketGenerator::PacketGenerator(uint16_t address/*,std::shared_ptr<Router> router*/) {
+PacketGenerator::PacketGenerator(uint16_t address = 1/*,std::shared_ptr<Router> router*/) {
 	m_address = address;
 	m_packet_id = 0;
 	//m_router = router;
@@ -38,7 +38,7 @@ PacketGenerator::PacketGenerator(uint16_t address/*,std::shared_ptr<Router> rout
  * 	uint16_t packet_length                        - Length of the packet in flits
  * 	uint16_t destination                          - Destination address for the packet
  */
-uint16_t PacketGenerator::counter_based_generation(std::vector<uint32_t> packet,
+uint16_t PacketGenerator::counter_based_generation(std::vector<uint32_t>& packet,
 													uint16_t packet_length, uint16_t destination) {
 	boost::crc_ccitt_type result;
 
@@ -72,8 +72,8 @@ uint16_t PacketGenerator::counter_based_generation(std::vector<uint32_t> packet,
  * 	uint16_t destination   - Destination address of the packet
  * 	GenerationModes mode   - Mode to use for data generation
  */
-void PacketGenerator::generate_packet(std::vector<uint32_t> packet, uint16_t packet_length, uint16_t destination,
-										GenerationModes mode) {
+void PacketGenerator::generate_packet(std::vector<uint32_t>& packet, uint16_t packet_length, uint16_t destination,
+										GenerationModes mode, uint64_t time) {
 	std::stringstream log_stream;
 
 	// std::vector<uint32_t> packet;
@@ -106,7 +106,7 @@ void PacketGenerator::generate_packet(std::vector<uint32_t> packet, uint16_t pac
 		<< ", Dst: " << destination
 		<< ", Length: " << packet_length
 		<< ", CRC: 0x" << std::hex << checksum
-		<< std::dec << ", time: " << "N/A"  // TODO: Add time
+		<< std::dec << ", time: " << time
 		<< std::endl;
 
 	// TODO: Better logging than just printing on the screen??

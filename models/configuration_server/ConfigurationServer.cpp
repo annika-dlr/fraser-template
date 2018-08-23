@@ -140,7 +140,7 @@ void ConfigurationServer::setModelParameters() {
 		if (xpathModel) {
 
 			std::string parameterSearch = ".//Parameters/Parameter";
-			auto xpathAllParameter = mRootNode.select_nodes(
+			auto xpathAllParameter = xpathModel.node().select_nodes(
 					parameterSearch.c_str());
 
 			if (!xpathAllParameter.empty()) {
@@ -157,7 +157,6 @@ void ConfigurationServer::setModelParameters() {
 				}
 			}
 		}
-
 	}
 
 }

@@ -17,11 +17,15 @@ enum class GenerationModes {counter}; // TODO: Add other modes
 class PacketGenerator {
 public:
     PacketGenerator(uint16_t address/*, std::shared_ptr<Router> router*/);
-    void generate_packet(std::vector<uint32_t> packet, uint16_t packet_length, uint16_t destination,
-                         GenerationModes mode);
+    void generate_packet(std::vector<uint32_t>& packet, uint16_t packet_length, uint16_t destination,
+                         GenerationModes mode, uint64_t time);
+
+    void set_packet_address(uint16_t address) {
+    	m_address = address;
+    }
 
 private:
-    uint16_t counter_based_generation(std::shared_ptr<std::vector<uint32_t>> packet,
+    uint16_t counter_based_generation(std::vector<uint32_t>& packet,
                                       uint16_t packet_length, uint16_t destination);
 
     uint16_t m_address;

@@ -2,6 +2,7 @@
 .cproject
 .settings
 ansible/init.retry
+ansible/build.retry
 .pydevproject
 .project
 /bin/

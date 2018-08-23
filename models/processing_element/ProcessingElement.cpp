@@ -14,12 +14,12 @@
 #include <vector>
 #include <cstdint>
 #include "ProcessingElement.h"
-#include "packet_generator.h"
+#include <bitset>
 
 ProcessingElement::ProcessingElement(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
 				mCtx), mDealer(mCtx, mName), mReceivedEvent(NULL), mCurrentSimTime(
-				0) {
+				0), mPacketGenerator(0) {
 
 	mRun = this->prepare();
 	this->init();
@@ -52,6 +52,11 @@ bool ProcessingElement::prepare() {
 				mDealer.getPortNumFrom(depModel))) {
 			return false;
 		}
+
+		// Set router address
+		std::cout << "---> Router Address: "
+				<< mDealer.getModelParameter(depModel, "address") << std::endl;
+		mPacketGenerator.set_packet_address(static_cast<uint16_t>(std::bitset<16>(mDealer.getModelParameter(depModel, "address")).to_ulong()));
 	}
 
 	mSubscriber.subscribeTo("SimTimeChanged");
@@ -84,21 +89,26 @@ void ProcessingElement::handleEvent() {
 	mReceivedEvent = event::GetEvent(mSubscriber.getEventBuffer());
 	mEventName = mReceivedEvent->name()->str();
 	mCurrentSimTime = mReceivedEvent->timestamp();
-	mData = mReceivedEvent->data_as_String()->str();
+
+	if (mReceivedEvent->data_type() == event::EventData_String) {
+		mConfigPath = mReceivedEvent->data_as_String()->str();
+	}
 
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
 	if (mEventName == "SimTimeChanged") {
 
-		PacketGenerator mPacketGenerator(0); //FIXME: Get router's address, this object should be loaded on model initialization
-
 		std::vector<uint32_t> packet;
 
-		mPacketGenerator.generate_packet(packet, 10, 1, GenerationModes::counter);
+		mPacketGenerator.generate_packet(packet, 10, 1,
+				GenerationModes::counter, mCurrentSimTime);
 
-		for (size_t i=0; i < packet.size(); i++) {
-			std::cout << "Sending ", packet.at(i);
+		std::cout << "----> Packet Size: " << packet.size() << std::endl;
+		std::cout << "----> START " << std::endl;
+		for (size_t i = 0; i < packet.size(); i++) {
+			std::cout << "----> Sending " << packet.at(i) << std::endl;
 		}
+		std::cout << "----> END " << std::endl;
 
 		// Receives current simulation time ...
 		// Do something for each time step
@@ -119,12 +129,14 @@ void ProcessingElement::handleEvent() {
 
 	else if (mEventName == "SaveState") {
 		this->saveState(
-				std::string(mData.begin(), mData.end()) + mName + ".config");
+				std::string(mConfigPath.begin(), mConfigPath.end()) + mName
+						+ ".config");
 	}
 
 	else if (mEventName == "LoadState") {
 		this->loadState(
-				std::string(mData.begin(), mData.end()) + mName + ".config");
+				std::string(mConfigPath.begin(), mConfigPath.end()) + mName
+						+ ".config");
 	}
 
 	else if (mEventName == "End") {

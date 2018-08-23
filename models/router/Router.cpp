@@ -12,6 +12,8 @@
  */
 
 #include "Router.h"
+#include <bitset>
+
 
 Router::Router(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
@@ -28,7 +30,8 @@ Router::~Router() {
 
 void Router::init() {
 	// Set or calculate other parameters ...
-	mCurrentAddr = std::stoi(mDealer.getModelParameter(mName, "address"));
+
+	mCurrentAddr = static_cast<uint16_t>(std::bitset<16>(mDealer.getModelParameter(mName, "address")).to_ulong());
 }
 
 bool Router::prepare() {

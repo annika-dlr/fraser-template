@@ -31,6 +31,7 @@
 #include "data-types/Field.h"
 
 #include "resources/idl/event_generated.h"
+#include "packet_generator.h"
 
 class ProcessingElement: public virtual IModel, public virtual IPersist {
 public:
@@ -73,7 +74,9 @@ private:
 	const event::Event* mReceivedEvent;
 	std::string mEventName;
 	int mCurrentSimTime;
-	std::string mData;
+	std::string mConfigPath;
+
+	PacketGenerator mPacketGenerator;
 
 	friend class boost::serialization::access;
 	template<typename Archive>
