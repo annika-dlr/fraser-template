@@ -20,7 +20,7 @@ public:
     void generate_packet(std::vector<uint32_t>& packet, uint16_t packet_length, uint16_t destination,
                          GenerationModes mode, uint64_t time);
 
-    void set_packet_address(uint16_t address) {
+    void set_local_address(uint16_t address) {
     	m_address = address;
     }
 

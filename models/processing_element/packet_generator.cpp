@@ -72,8 +72,9 @@ uint16_t PacketGenerator::counter_based_generation(std::vector<uint32_t>& packet
  * 	uint16_t destination   - Destination address of the packet
  * 	GenerationModes mode   - Mode to use for data generation
  */
-void PacketGenerator::generate_packet(std::vector<uint32_t>& packet, uint16_t packet_length, uint16_t destination,
-										GenerationModes mode, uint64_t time) {
+void PacketGenerator::generate_packet(std::vector<uint32_t>& packet,
+																			uint16_t packet_length, uint16_t destination,
+																			GenerationModes mode, uint64_t time) {
 	std::stringstream log_stream;
 
 	// std::vector<uint32_t> packet;

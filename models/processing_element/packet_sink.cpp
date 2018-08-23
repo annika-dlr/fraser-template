@@ -28,11 +28,11 @@ PacketSink::PacketSink(uint16_t address) {
  * erroneous state and log the flit as erroneous. This will also cause the FSM in
  * PacketSink::send_flit_to_local to drop all flits until a next header has arrived
  */
-void PacketSink::fsm_error() {
+void PacketSink::fsm_error(uint64_t time) {
     if (!m_recv_error) {
          m_recv_error = true;
          m_next_state = PacketStates::wait_header;
-         log_packet(true);
+         log_packet(true, time);
     }
 }
 
@@ -72,7 +72,7 @@ uint16_t PacketSink::extract_crc() {
  * Parameters:
  *  bool faulty - True if the packet is marked as faulty
  */
-void PacketSink::log_packet(bool faulty) {
+void PacketSink::log_packet(bool faulty, uint64_t time) {
     std::stringstream log_stream;
 
     if (faulty){
@@ -90,10 +90,12 @@ void PacketSink::log_packet(bool faulty) {
             << ", Counted length: " << m_recvd_packet.packet.size()
             << ", Encoded CRC: 0x" << std::hex << extracted_crc
             << ", Calculated CRC: 0x" << std::hex << calculated_crc
-            << std::dec << ", time: " << "N/A"  // TODO: Add time
+            << std::dec << ", time: " << time
             << std::endl;
 
         std::cout << log_stream.str();
+
+        m_recvd_packet.packet.clear();
     }
 }
 
@@ -105,7 +107,7 @@ void PacketSink::log_packet(bool faulty) {
  *  uint32_t flit - flit to receive
  */
 
-void PacketSink::send_flit_to_local(uint32_t flit) {
+void PacketSink::send_flit_to_local(uint32_t flit, uint64_t time) {
 
     uint8_t parity; // TODO not actually checked, but needed for receiving the flits
     auto flit_type = get_flit_type(&flit);
@@ -121,7 +123,7 @@ void PacketSink::send_flit_to_local(uint32_t flit) {
                 m_next_state = PacketStates::wait_first_body;
 
             } else {
-                fsm_error();
+                fsm_error(time);
             }
 
             break;
@@ -135,7 +137,7 @@ void PacketSink::send_flit_to_local(uint32_t flit) {
                 m_next_state = PacketStates::wait_tail;
 
             } else {
-                fsm_error();
+                fsm_error(time);
             }
 
             break;
@@ -157,10 +159,10 @@ void PacketSink::send_flit_to_local(uint32_t flit) {
                 m_recvd_packet.packet.push_back(flit);
                 m_next_state = PacketStates::wait_header;
 
-                log_packet();
+                log_packet(false, time);
 
             } else {
-                fsm_error();
+                fsm_error(time);
             }
 
             break;

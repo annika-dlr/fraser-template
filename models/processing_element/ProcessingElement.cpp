@@ -19,7 +19,7 @@
 ProcessingElement::ProcessingElement(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
 				mCtx), mDealer(mCtx, mName), mReceivedEvent(NULL), mCurrentSimTime(
-				0), mPacketGenerator(0) {
+				0), mPacketGenerator(0), mPacketSink(0) {
 
 	mRun = this->prepare();
 	this->init();
@@ -56,7 +56,8 @@ bool ProcessingElement::prepare() {
 		// Set router address
 		std::cout << "---> Router Address: "
 				<< mDealer.getModelParameter(depModel, "address") << std::endl;
-		mPacketGenerator.set_packet_address(static_cast<uint16_t>(std::bitset<16>(mDealer.getModelParameter(depModel, "address")).to_ulong()));
+		mPacketGenerator.set_local_address(static_cast<uint16_t>(std::bitset<16>(mDealer.getModelParameter(depModel, "address")).to_ulong()));
+		mPacketSink.set_local_address(static_cast<uint16_t>(std::bitset<16>(mDealer.getModelParameter(depModel, "address")).to_ulong()));
 	}
 
 	mSubscriber.subscribeTo("SimTimeChanged");
@@ -103,12 +104,15 @@ void ProcessingElement::handleEvent() {
 		mPacketGenerator.generate_packet(packet, 10, 1,
 				GenerationModes::counter, mCurrentSimTime);
 
-		std::cout << "----> Packet Size: " << packet.size() << std::endl;
-		std::cout << "----> START " << std::endl;
+		// std::cout << "----> Packet Size: " << packet.size() << std::endl;
+		// std::cout << "----> START " << std::endl;
+
 		for (size_t i = 0; i < packet.size(); i++) {
-			std::cout << "----> Sending " << packet.at(i) << std::endl;
+			auto flit = packet.at(i);
+			// std::cout << "----> Sending " << flit << std::endl;
+			mPacketSink.send_flit_to_local(flit, mCurrentSimTime);
 		}
-		std::cout << "----> END " << std::endl;
+		// std::cout << "----> END " << std::endl;
 
 		// Receives current simulation time ...
 		// Do something for each time step

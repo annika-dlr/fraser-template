@@ -32,6 +32,7 @@
 
 #include "resources/idl/event_generated.h"
 #include "packet_generator.h"
+#include "packet_sink.h"
 
 class ProcessingElement: public virtual IModel, public virtual IPersist {
 public:
@@ -77,6 +78,7 @@ private:
 	std::string mConfigPath;
 
 	PacketGenerator mPacketGenerator;
+	PacketSink mPacketSink;
 
 	friend class boost::serialization::access;
 	template<typename Archive>

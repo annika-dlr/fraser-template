@@ -2,9 +2,9 @@ config-file?=config0.xml
 ANSIBLE_DIR := ansible
 
 all:
-	make configure-local
+	# make configure-local
 	make update
-	make configure
+	# make configure
 	make init
 	make build-all
 	make default-configs
@@ -39,7 +39,7 @@ init:
 
 build-all:
 	ansible-playbook $(ANSIBLE_DIR)/build.yml --connection=local -i ./ansible/inventory/hosts
-	
+
 build:
 	ansible-playbook $(ANSIBLE_DIR)/build.yml --connection=local -i ./ansible/inventory/hosts --extra-vars 'models=[{"name":"$(model)"}]'
 
@@ -51,7 +51,7 @@ deploy:
 
 run-all:
 	ansible-playbook $(ANSIBLE_DIR)/run.yml -i ./ansible/inventory/hosts
-	
+
 run:
 	models/$(model)/build/bin/$(model)
 
