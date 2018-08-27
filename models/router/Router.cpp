@@ -12,16 +12,14 @@
  */
 
 #include "Router.h"
-#include <bitset>
-
+#include "../processing_element/flit_utils.h"
 
 Router::Router(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
-				mCtx), mDealer(mCtx, mName), mReceivedEvent(NULL), mCurrentSimTime(
-				0), mFlitData(0), mFlitType(0) {
+				mCtx), mDealer(mCtx, mName), mCurrentSimTime(0) {
 
 	mRun = this->prepare();
-	this->init();
+	//this->init();
 }
 
 Router::~Router() {
@@ -30,8 +28,11 @@ Router::~Router() {
 
 void Router::init() {
 	// Set or calculate other parameters ...
+	mCurrentAddr = static_cast<uint16_t>(std::bitset<16>(
+			mDealer.getModelParameter(mName, "address")).to_ulong());
 
-	mCurrentAddr = static_cast<uint16_t>(std::bitset<16>(mDealer.getModelParameter(mName, "address")).to_ulong());
+	mRoutingBits = std::bitset<16>(
+			mDealer.getModelParameter(mName, "routingBits"));
 }
 
 bool Router::prepare() {
@@ -53,23 +54,33 @@ bool Router::prepare() {
 		}
 	}
 
+	mConnectivityBits = std::bitset<16>(
+			mDealer.getModelParameter(mName, "connectivityBits"));
+
 	mSubscriber.subscribeTo("LoadState");
 	mSubscriber.subscribeTo("SaveState");
 	mSubscriber.subscribeTo("End");
+	mSubscriber.subscribeTo("Local");
+	mSubscriber.subscribeTo("SimTimeChanged");
 
-	mSubscriber.subscribeTo("North_Req");
-	mSubscriber.subscribeTo("West_Req");
-	mSubscriber.subscribeTo("South_Req");
-	mSubscriber.subscribeTo("East_Req");
-	// FIXME: Connected to the PE
-	//mSubscriber.subscribeTo("Local_Req");
+	if (mConnectivityBits[0]) {
+		mSubscriber.subscribeTo("North");
+		mSubscriber.subscribeTo("Credit_in_S++");
 
-	mSubscriber.subscribeTo("Credit_in_N");
-	mSubscriber.subscribeTo("Credit_in_W");
-	mSubscriber.subscribeTo("Credit_in_S");
-	mSubscriber.subscribeTo("Credit_in_E");
-	// FIXME: Connected to the PE
-	//mSubscriber.subscribeTo("Credit_in_L");
+	}
+	if (mConnectivityBits[1]) {
+		mSubscriber.subscribeTo("East");
+		mSubscriber.subscribeTo("Credit_in_W++");
+
+	}
+	if (mConnectivityBits[2]) {
+		mSubscriber.subscribeTo("West");
+		mSubscriber.subscribeTo("Credit_in_E++");
+	}
+	if (mConnectivityBits[3]) {
+		mSubscriber.subscribeTo("South");
+		mSubscriber.subscribeTo("Credit_in_N++");
+	}
 
 	// Synchronization
 	if (!mSubscriber.prepareSubSynchronization(
@@ -86,266 +97,368 @@ bool Router::prepare() {
 }
 
 void Router::run() {
+
 	while (mRun) {
-		mSubscriber.receiveEvent();
-		this->handleEvent();
+		if (mSubscriber.receiveEvent()) {
+			this->handleEvent();
+		}
 	}
 }
 
 void Router::handleEvent() {
-	mReceivedEvent = event::GetEvent(mSubscriber.getEventBuffer());
-	mEventName = mReceivedEvent->name()->str();
-	mCurrentSimTime = mReceivedEvent->timestamp();
+	auto eventBuffer = mSubscriber.getEventBuffer();
 
-	if (mReceivedEvent->data_type() == event::EventData_Flit) {
-		mFlitData = mReceivedEvent->data_as_Flit()->uint32();
-
-	} else if (mReceivedEvent->data_type() == event::EventData_String) {
-		mConfigPath = mReceivedEvent->data_as_String()->str();
-	}
-
+	auto receivedEvent = event::GetEvent(eventBuffer);
+	std::string eventName = receivedEvent->name()->str();
+	mCurrentSimTime = receivedEvent->timestamp();
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
-	if (mEventName == "Local_Req") {
-		mCurrentState = LOCAL_REQ;
+	if (receivedEvent->data_type() == event::EventData_Flit) {
+		auto flitData = receivedEvent->data_as_Flit()->uint32();
 
-		if (mFlits_RX_L.size() < 3) {
-			mFlits_RX_L.push(mFlitData);
-		} else {
-			mNextFlit = mFlits_RX_L.front();
-			mFlits_RX_L.pop();
-			this->generateRequests(mReq_L_LBDR, mFlits_RX_L.empty());
+		if (eventName == "Local") {
+//			if (mFlits_RX_L.empty()) {
+//				mFlits_RX_L.push(flitData);
+//			} else if (mFlits_RX_L.size() < 3) {
+			mFlits_RX_L.push(flitData);
+//			} else {
+//				std::cout
+//						<< "\033[1;31m!!!!!!!!!!!! LOST EVENT !!!!!!!!!!!!!!!\033[0m"
+//						<< std::endl;
+//			}
+		}
 
-			if (mCredit_Cnt_L > 0 && !mReq_L_LBDR.empty()) {
-				this->sendFlit(
-						this->getRequestWithHighestPriority(mReq_L_LBDR));
-				mCredit_Cnt_L--;
-				this->updateCreditCounter("Credit_in_L");
-			}
+		else if (eventName == "North") {
+//			if (mFlits_RX_N.empty()) {
+//				mFlits_RX_N.push(flitData);
+//			} else if (mFlits_RX_N.size() < 3) {
+			mFlits_RX_N.push(flitData);
+//			} else {
+//				std::cout
+//						<< "\033[1;31m!!!!!!!!!!!! LOST EVENT !!!!!!!!!!!!!!!\033[0m"
+//						<< std::endl;
+//			}
+		}
+
+		else if (eventName == "East") {
+//			if (mFlits_RX_E.empty()) {
+//				mFlits_RX_E.push(flitData);
+//			} else if (mFlits_RX_E.size() < 3) {
+			mFlits_RX_E.push(flitData);
+//			} else {
+//				std::cout
+//						<< "\033[1;31m!!!!!!!!!!!! LOST EVENT !!!!!!!!!!!!!!!\033[0m"
+//						<< std::endl;
+//			}
+		}
+
+		else if (eventName == "South") {
+//			if (mFlits_RX_S.empty()) {
+//				mFlits_RX_S.push(flitData);
+//			} else if (mFlits_RX_S.size() < 3) {
+			mFlits_RX_S.push(flitData);
+//			} else {
+//				std::cout
+//						<< "\033[1;31m!!!!!!!!!!!! LOST EVENT !!!!!!!!!!!!!!!\033[0m"
+//						<< std::endl;
+//			}
+		}
+
+		else if (eventName == "West") {
+//			if (mFlits_RX_W.empty()) {
+//				mFlits_RX_W.push(flitData);
+//			} else if (mFlits_RX_W.size() < 3) {
+			mFlits_RX_W.push(flitData);
+//			} else {
+//				std::cout
+//						<< "\033[1;31m!!!!!!!!!!!! LOST EVENT !!!!!!!!!!!!!!!\033[0m"
+//						<< std::endl;
+//			}
+		}
+
+	} else if (receivedEvent->data_type() == event::EventData_String) {
+		std::string configPath = receivedEvent->data_as_String()->str();
+
+		if (eventName == "SaveState") {
+			this->saveState(
+					std::string(configPath.begin(), configPath.end()) + mName
+							+ ".config");
+		}
+
+		else if (eventName == "LoadState") {
+			this->loadState(
+					std::string(configPath.begin(), configPath.end()) + mName
+							+ ".config");
 		}
 	}
 
-	else if (mEventName == "North_Req") {
-		mCurrentState = NORTH_REQ;
+	else if (eventName == "SimTimeChanged") {
+		sendFlitWithRoundRobinPrioritization();
+	}
 
-		if (mFlits_RX_N.size() < 3) {
-			mFlits_RX_N.push(mFlitData);
-		} else {
-			mNextFlit = mFlits_RX_N.front();
-			mFlits_RX_N.pop();
-			this->generateRequests(mReq_N_LBDR, mFlits_RX_N.empty());
-
-			if (mCredit_Cnt_N > 0 && !mReq_N_LBDR.empty()) {
-				this->sendFlit(
-						this->getRequestWithHighestPriority(mReq_N_LBDR));
-				mCredit_Cnt_N--;
-				this->updateCreditCounter("Credit_in_N");
-			}
+	// Increase Credit Counter
+	else if (eventName == "Credit_in_N++") {
+		if (mCredit_Cnt_N < 3) {
+			mCredit_Cnt_N++;
 		}
+//		std::cout << mName << " mCredit_Cnt_N++: " << mCredit_Cnt_N
+//				<< std::endl;
 	}
 
-	else if (mEventName == "East_Req") {
-		mCurrentState = EAST_REQ;
-
-		if (mFlits_RX_E.size() < 3) {
-			mFlits_RX_E.push(mFlitData);
-		} else {
-			mNextFlit = mFlits_RX_E.front();
-			mFlits_RX_E.pop();
-			this->generateRequests(mReq_E_LBDR, mFlits_RX_E.empty());
-
-			if (mCredit_Cnt_E > 0 && !mReq_E_LBDR.empty()) {
-				this->sendFlit(
-						this->getRequestWithHighestPriority(mReq_E_LBDR));
-				mCredit_Cnt_E--;
-				this->updateCreditCounter("Credit_in_E");
-			}
+	else if (eventName == "Credit_in_W++") {
+		if (mCredit_Cnt_W < 3) {
+			mCredit_Cnt_W++;
 		}
+//		std::cout << mName << " mCredit_Cnt_W++: " << mCredit_Cnt_W
+//				<< std::endl;
 	}
 
-	else if (mEventName == "South_Req") {
-		mCurrentState = SOUTH_REQ;
-
-		if (mFlits_RX_S.size() < 3) {
-			mFlits_RX_S.push(mFlitData);
-		} else {
-			mNextFlit = mFlits_RX_S.front();
-			mFlits_RX_S.pop();
-			this->generateRequests(mReq_S_LBDR, mFlits_RX_S.empty());
-
-			if (mCredit_Cnt_S > 0 && !mReq_S_LBDR.empty()) {
-				this->sendFlit(
-						this->getRequestWithHighestPriority(mReq_S_LBDR));
-				mCredit_Cnt_S--;
-				this->updateCreditCounter("Credit_in_S");
-			}
+	else if (eventName == "Credit_in_E++") {
+		if (mCredit_Cnt_E < 3) {
+			mCredit_Cnt_E++;
 		}
+//		std::cout << mName << " mCredit_Cnt_E++: " << mCredit_Cnt_E
+//				<< std::endl;
 	}
 
-	else if (mEventName == "West_Req") {
-		mCurrentState = WEST_REQ;
-
-		if (mFlits_RX_W.size() < 3) {
-			mFlits_RX_W.push(mFlitData);
-		} else {
-			mNextFlit = mFlits_RX_W.front();
-			mFlits_RX_W.pop();
-			this->generateRequests(mReq_W_LBDR, mFlits_RX_W.empty());
-
-			if (mCredit_Cnt_W > 0 && !mReq_W_LBDR.empty()) {
-				this->sendFlit(
-						this->getRequestWithHighestPriority(mReq_W_LBDR));
-				this->updateCreditCounter("Credit_in_W");
-			}
+	else if (eventName == "Credit_in_S++") {
+		if (mCredit_Cnt_S < 3) {
+			mCredit_Cnt_S++;
 		}
+//		std::cout << mName << " mCredit_Cnt_S++: " << mCredit_Cnt_S
+//				<< std::endl;
 	}
 
-	else if (mEventName == "Credit_in_N") {
-		mCredit_Cnt_N++;
-	}
-
-	else if (mEventName == "Credit_in_W") {
-		mCredit_Cnt_W++;
-	}
-
-	else if (mEventName == "Credit_in_E") {
-		mCredit_Cnt_E++;
-	}
-
-	else if (mEventName == "Credit_in_L") {
-		mCredit_Cnt_L++;
-	}
-
-	else if (mEventName == "Credit_in_S") {
-		mCredit_Cnt_S++;
-	}
-
-	else if (mEventName == "SaveState") {
-		this->saveState(
-				std::string(mConfigPath.begin(), mConfigPath.end()) + mName
-						+ ".config");
-	}
-
-	else if (mEventName == "LoadState") {
-		this->loadState(
-				std::string(mConfigPath.begin(), mConfigPath.end()) + mName
-						+ ".config");
-	}
-
-	else if (mEventName == "End") {
+	else if (eventName == "End") {
 		mRun = false;
 	}
-}
-
-void Router::generateRequests(std::list<uint8_t> reqs, bool emptyFIFO) {
-	mFlitType = get_flit_type(mNextFlit);
-	if (mFlitType == FLIT_TYPE_HEADER && (!emptyFIFO)) {
-		std::cout<<"Flit type = HEADER"<<std::endl;
-		int srcAddr = 0;
-		int dstAddr = 0;
-		bool n1, e1, w1, s1 = 0;
-		header_decode(mNextFlit, &srcAddr, &dstAddr, NOC_SIZE);
-
-		int tmp_des_addr_ns = (dstAddr & PROPERTY_1_MASK) >> 2;
-		int tmp_cur_addr_ns = (mCurrentAddr & PROPERTY_1_MASK) >> 2;
-		int tmp_des_addr_ew = (dstAddr & PROPERTY_2_MASK);
-		int tmp_cur_addr_ew = (mCurrentAddr & PROPERTY_2_MASK);
-
-		if (tmp_des_addr_ns < tmp_cur_addr_ns) {
-			n1 = 1;
-		}
-		if (tmp_cur_addr_ew < tmp_des_addr_ew) {
-			e1 = 1;
-		}
-		if (tmp_des_addr_ew < tmp_cur_addr_ew) {
-			w1 = 1;
-		}
-		if (tmp_cur_addr_ns < tmp_des_addr_ns) {
-			s1 = 1;
-		}
-
-		// Generate Request
-		if (n1 && !e1 && !w1) {
-			// Req_N
-			reqs.push_back(NORTH_REQ);
-		} else if ((e1 && !n1 && !s1) || (e1 && n1) || (e1 && s1)) {
-			// Req_E
-			reqs.push_back(EAST_REQ);
-		} else if ((w1 && !n1 && !s1) || (w1 && n1) || (w1 && s1)) {
-			// Req_W
-			reqs.push_back(WEST_REQ);
-		} else if (s1 && !e1 && !w1) {
-			// Req_S
-			reqs.push_back(SOUTH_REQ);
-		} else /*if (!n1 && !e1 && !w1 && !s1)*/{
-			// Req_L
-			reqs.push_back(LOCAL_REQ);
-		}
-	}
-
-	else if (mFlitType == FLIT_TYPE_TAIL) {
-		std::cout<<"Flit type = TAIL"<<std::endl;
-		reqs.clear();
-	}
 
 }
 
-uint8_t Router::getRequestWithHighestPriority(std::list<uint8_t> reqs) {
-	uint8_t prioritizedReq = 0;
-
-	if (reqs.size() > 1) {
-		for (auto req : reqs) {
-			if (mCurrentState == req) {
-				prioritizedReq = req;
-			} else if ((mCurrentState << 1) == req) {
-				prioritizedReq = req;
+void Router::sendFlitWithRoundRobinPrioritization() {
+// N->E->W->S->L (circular) prioritization the requests from inputs (from LBDR modules) are checked
+	if (!sendFlitAfterRequestCheck(mReq_N_LBDR, mFlits_RX_N, "Credit_in_N++")) {
+//		std::cout<<mName<<": Get Flit from North FIFO"<<std::endl;
+		if (!sendFlitAfterRequestCheck(mReq_E_LBDR, mFlits_RX_E,
+				"Credit_in_E++")) {
+//			std::cout<<mName<<": Get Flit from East FIFO"<<std::endl;
+			if (!sendFlitAfterRequestCheck(mReq_W_LBDR, mFlits_RX_W,
+					"Credit_in_W++")) {
+//				std::cout<<mName<<": Get Flit from West FIFO"<<std::endl;
+				if (!sendFlitAfterRequestCheck(mReq_S_LBDR, mFlits_RX_S,
+						"Credit_in_S++")) {
+//					std::cout<<mName<<": Get Flit from Local FIFO"<<std::endl;
+					sendFlitAfterRequestCheck(mReq_L_LBDR, mFlits_RX_L,
+							"Credit_in_L++");
+				}
 			}
 		}
-	} else {
-		prioritizedReq = reqs.front();
 	}
-
-	return prioritizedReq;
 }
 
-void Router::sendFlit(uint8_t req) {
-	std::string reqString = "";
+bool Router::sendFlitAfterRequestCheck(uint8_t& request,
+		std::queue<uint32_t>& flitFIFO, std::string creditString) {
 
-	if (req == NORTH_REQ) {
-		reqString = "North_Req";
-	} else if (req == LOCAL_REQ) {
-		reqString = "Local_Req";
-	} else if (req == EAST_REQ) {
-		reqString = "East_Req";
-	} else if (req == WEST_REQ) {
-		reqString = "West_Req";
-	} else if (req == SOUTH_REQ) {
-		reqString = "South_Req";
+	bool sentFlit = true;
+
+	if (!flitFIFO.empty()) {
+		uint32_t flit = flitFIFO.front();
+		uint32_t flitType = get_flit_type(flit);
+
+		if (flitType == HEADER_FLIT) {
+			generateRequest(flit, request);
+		}
+
+		if (request != IDLE) {
+			std::string reqString;
+
+			// NORTH
+			if ((request == NORTH_REQ) && (mCredit_Cnt_S > 0)) {
+				reqString = "South";
+				mCredit_Cnt_S--;
+			}
+			// EAST
+			else if ((request == EAST_REQ) && (mCredit_Cnt_W > 0)) {
+				reqString = "West";
+				mCredit_Cnt_W--;
+			}
+			// WEST
+			else if ((request == WEST_REQ) && (mCredit_Cnt_E > 0)) {
+				reqString = "East";
+				mCredit_Cnt_E--;
+			}
+			// SOUTH
+			else if ((request == SOUTH_REQ) && (mCredit_Cnt_N > 0)) {
+				reqString = "North";
+				mCredit_Cnt_N--;
+			}
+			// LOCAL
+			else if ((request == LOCAL_REQ)) {
+				reqString = "Local_Packet_Sink";
+			} else {
+				sentFlit = false;
+			}
+
+			if (sentFlit) {
+				this->sendFlit(flit, reqString);
+
+				// Tail Flit
+				if (flitType == TAIL_FLIT) {
+//					std::cout << "**Complete** Packet was completed send by "
+//							<< mName << std::endl;
+//
+//					std::cout << "<< RESET grants >>" << std::endl;
+					if (request == NORTH_REQ) {
+						north_grant = false;
+					} else if (request == EAST_REQ) {
+						east_grant = false;
+					} else if (request == WEST_REQ) {
+						west_grant = false;
+					} else if (request == SOUTH_REQ) {
+						south_grant = false;
+					} else if (request == LOCAL_REQ) {
+						local_grant = false;
+					}
+
+					request = IDLE;
+				}
+
+				flitFIFO.pop();
+				this->updateCreditCounter(creditString);
+			}
+		} else {
+			sentFlit = false;
+		}
+	}
+// IDLE
+	else {
+		// No request (Router is IDLE)
+		sentFlit = false;
 	}
 
-	mEventOffset = event::CreateEvent(mFbb, mFbb.CreateString(reqString),
+	return sentFlit;
+}
+
+void Router::generateRequest(uint32_t flit, uint8_t& request) {
+//	std::cout << "[FLIT TYPE] --> " << flitType << std::endl;
+//		std::cout << "GENERATE REQUEST: " << flit << std::endl;
+
+	uint8_t parity = 0; // TODO not actually checked, but needed for receiving the flits
+	uint16_t srcAddr = 0;
+	uint16_t dstAddr = 0;
+	bool n1 = false, e1 = false, w1 = false, s1 = false;
+	parse_header_flit(flit, &dstAddr, &srcAddr, &parity);
+
+//		std::cout << "*** " << mName << " Recv_" << mCurrentAddr << " - "
+//				<< ", Src: " << srcAddr << ", Dst: " << dstAddr << std::dec
+//				<< ", time: " << mCurrentSimTime << std::endl;
+
+//		uint16_t des_addr_y = (dstAddr & PROPERTY_1_MASK) >> NOC_SIZE;
+//		uint16_t cur_addr_y = (mCurrentAddr & PROPERTY_1_MASK) >> NOC_SIZE;
+//		uint16_t des_addr_x = (dstAddr & PROPERTY_2_MASK);
+//		uint16_t cur_addr_x = (mCurrentAddr & PROPERTY_2_MASK);
+
+	uint16_t des_addr_x = dstAddr % NOC_SIZE;
+	uint16_t cur_addr_x = mCurrentAddr % NOC_SIZE;
+	uint16_t des_addr_y = dstAddr / NOC_SIZE;
+	uint16_t cur_addr_y = mCurrentAddr / NOC_SIZE;
+
+//		uint16_t des_addr_y = dstAddr % NOC_SIZE;
+//		uint16_t cur_addr_y = mCurrentAddr % NOC_SIZE;
+//		uint16_t des_addr_x = dstAddr / NOC_SIZE;
+//		uint16_t cur_addr_x = mCurrentAddr / NOC_SIZE;
+
+//		std::cout << mName << ": tmp_des_addr_x: " << des_addr_x << std::endl;
+//		std::cout << mName << ": tmp_cur_addr_x: " << cur_addr_x << std::endl;
+//
+//		std::cout << mName << ": tmp_des_addr_y: " << des_addr_y << std::endl;
+//		std::cout << mName << ": tmp_cur_addr_y: " << cur_addr_y << std::endl;
+
+	if (des_addr_y < cur_addr_y) {
+		n1 = true;
+	}
+	if (cur_addr_x < des_addr_x) {
+		e1 = true;
+	}
+	if (des_addr_x < cur_addr_x) {
+		w1 = true;
+	}
+	if (cur_addr_y < des_addr_y) {
+		s1 = true;
+	}
+
+//		std::cout << mName << ": n1: " << std::boolalpha << n1 << std::endl;
+//		std::cout << mName << ": e1: " << std::boolalpha << e1 << std::endl;
+//
+//		std::cout << mName << ": w1: " << std::boolalpha << w1 << std::endl;
+//		std::cout << mName << ": s1: " << std::boolalpha << s1 << std::endl;
+
+	// Generate Request
+	if (((n1 && !e1 && !w1) || (n1 && e1 && mRoutingBits[0])
+			|| (n1 && w1 && mRoutingBits[1])) && mConnectivityBits[0]
+			&& (!north_grant)) {
+		// Req_N
+		request = NORTH_REQ;
+		north_grant = true;
+	} else if (((e1 && !n1 && !s1) || (e1 && n1 && mRoutingBits[2])
+			|| (e1 && s1 && mRoutingBits[3])) && mConnectivityBits[1]
+			&& (!east_grant)) {
+		// Req_E
+		request = EAST_REQ;
+		east_grant = true;
+	} else if (((w1 && !n1 && !s1) || (w1 && n1 && mRoutingBits[4])
+			|| (w1 && s1 && mRoutingBits[5])) && mConnectivityBits[2]
+			&& (!west_grant)) {
+		// Req_W
+		request = WEST_REQ;
+		west_grant = true;
+	} else if (((s1 && !e1 && !w1) || (s1 && e1 && mRoutingBits[6])
+			|| (s1 && w1 && mRoutingBits[7])) && mConnectivityBits[3]
+			&& (!south_grant)) {
+		// Req_S
+		request = SOUTH_REQ;
+		south_grant = true;
+	} else if ((!n1 && !e1 && !w1 && !s1) && (!local_grant)) {
+		// Req_L
+		request = LOCAL_REQ;
+		local_grant = true;
+	} else {
+		request = IDLE;
+	}
+}
+
+void Router::sendFlit(uint32_t flit, std::string reqString) {
+	std::cout << mName << " sends " << flit << " to " << reqString
+			<< " output of the next router" << std::endl;
+
+	// Event Serialiazation
+	flatbuffers::FlatBufferBuilder fbb;
+	flatbuffers::Offset<event::Event> eventOffset;
+
+	eventOffset = event::CreateEvent(fbb, fbb.CreateString(reqString),
 			mCurrentSimTime, event::Priority_NORMAL_PRIORITY, 0, 0,
-			event::EventData_Flit, event::CreateFlit(mFbb, mNextFlit).Union());
+			event::EventData_Flit, event::CreateFlit(fbb, flit).Union());
 
-	mFbb.Finish(mEventOffset);
+	fbb.Finish(eventOffset);
 
-	this->mPublisher.publishEvent(reqString, mFbb.GetBufferPointer(),
-			mFbb.GetSize());
+	this->mPublisher.publishEvent(reqString, fbb.GetBufferPointer(),
+			fbb.GetSize());
 }
 
 void Router::updateCreditCounter(std::string eventName) {
-	mEventOffset = event::CreateEvent(mFbb, mFbb.CreateString(eventName),
-			mCurrentSimTime, event::Priority_NORMAL_PRIORITY, 0, 0,
-			event::EventData_Flit, event::CreateFlit(mFbb, mNextFlit).Union());
+	flatbuffers::FlatBufferBuilder fbb;
+	flatbuffers::Offset<event::Event> eventOffset;
 
-	mFbb.Finish(mEventOffset);
+	eventOffset = event::CreateEvent(fbb, fbb.CreateString(eventName),
+			mCurrentSimTime);
+	fbb.Finish(eventOffset);
 
-	this->mPublisher.publishEvent(eventName, mFbb.GetBufferPointer(),
-			mFbb.GetSize());
+	this->mPublisher.publishEvent(eventName, fbb.GetBufferPointer(),
+			fbb.GetSize());
 }
 
 void Router::saveState(std::string filePath) {
-	// Store states
+// Store states
 	std::ofstream ofs(filePath);
 	boost::archive::xml_oarchive oa(ofs, boost::archive::no_header);
 	try {
@@ -361,7 +474,7 @@ void Router::saveState(std::string filePath) {
 }
 
 void Router::loadState(std::string filePath) {
-	// Restore states
+// Restore states
 	std::ifstream ifs(filePath);
 	boost::archive::xml_iarchive ia(ifs, boost::archive::no_header);
 	try {

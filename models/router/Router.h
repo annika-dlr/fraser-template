@@ -23,8 +23,9 @@
 #include <boost/archive/xml_iarchive.hpp>
 #include <zmq.hpp>
 #include <stdint.h>
+#include <bitset>
 
-#include "Packets.h"
+//#include "Packets.h"
 #include "resources/idl/event_generated.h"
 #include "communication/zhelpers.hpp"
 #include "communication/Subscriber.h"
@@ -34,14 +35,16 @@
 #include "interfaces/IPersist.h"
 #include "data-types/Field.h"
 
-#define NOC_SIZE 4
+#define NOC_SIZE 2
 #define PROPERTY_1_MASK 	0b00000000001100
 #define PROPERTY_2_MASK 	0b00000000000011
-#define NORTH_REQ 			0b10000
-#define EAST_REQ			0b01000
-#define WEST_REQ			0b00100
-#define SOUTH_REQ			0b00010
-#define LOCAL_REQ			0b00001
+#define NORTH_REQ 			0b0001
+#define EAST_REQ			0b0010
+#define WEST_REQ			0b0100
+#define SOUTH_REQ			0b1000
+#define LOCAL_REQ			0b1111
+#define IDLE				0b0000
+
 
 class Router: public virtual IModel, public virtual IPersist {
 public:
@@ -65,11 +68,6 @@ public:
 	virtual void saveState(std::string filename) override;
 	virtual void loadState(std::string filename) override;
 
-	// Getter & Setter
-	void setRouterAddr(uint16_t currentAddr) {
-		mCurrentAddr = currentAddr;
-	}
-
 private:
 	// IModel
 	std::string mName;
@@ -77,22 +75,14 @@ private:
 
 	// Subscriber
 	void handleEvent();
+
 	zmq::context_t mCtx;
 	Subscriber mSubscriber;
 	Publisher mPublisher;
 	Dealer mDealer;
 
 	bool mRun;
-	const event::Event* mReceivedEvent;
-	std::string mEventName;
 	int mCurrentSimTime;
-	std::string mConfigPath;
-	uint32_t mFlitData;
-	uint32_t mFlitType;
-
-	// Event Serialiazation
-	flatbuffers::FlatBufferBuilder mFbb;
-	flatbuffers::Offset<event::Event> mEventOffset;
 
 	friend class boost::serialization::access;
 	template<typename Archive>
@@ -101,12 +91,11 @@ private:
 
 	uint64_t mCycles = 0;
 	bool mLastReveived = false;
-	uint32_t mNextFlit = 0;
 	uint16_t mCurrentAddr = 0;
-	uint8_t mCurrentState = 0b00000; // IDLE
+	std::bitset<16> mConnectivityBits = 0;
+	std::bitset<16> mRoutingBits = 0;
 
 	// Credit based flow
-	uint16_t mCredit_Cnt_L = 3;
 	uint16_t mCredit_Cnt_W = 3;
 	uint16_t mCredit_Cnt_N = 3;
 	uint16_t mCredit_Cnt_S = 3;
@@ -119,15 +108,27 @@ private:
 	std::queue<uint32_t> mFlits_RX_W; // W FIFO
 
 	// Generated requests from LDBRs
-	std::list<uint8_t> mReq_N_LBDR;
-	std::list<uint8_t> mReq_E_LBDR;
-	std::list<uint8_t> mReq_W_LBDR;
-	std::list<uint8_t> mReq_S_LBDR;
-	std::list<uint8_t> mReq_L_LBDR;
+	uint8_t mReq_N_LBDR = 0;
+	uint8_t mReq_E_LBDR = 0;
+	uint8_t mReq_W_LBDR = 0;
+	uint8_t mReq_S_LBDR = 0;
+	uint8_t mReq_L_LBDR = 0;
 
-	void generateRequests(std::list<uint8_t> reqs, bool emptyFIFO);
-	uint8_t getRequestWithHighestPriority(std::list<uint8_t> reqs);
-	void sendFlit(uint8_t req);
+	// Generated requests from LDBRs
+	bool north_grant = false;
+	bool east_grant = false;
+	bool west_grant = false;
+	bool south_grant = false;
+	bool local_grant = false;
+
+//	bool lastFlit = false;
+
+
+	bool sendFlitAfterRequestCheck(uint8_t& request, std::queue<uint32_t>& flitFIFO, std::string creditString);
+	void sendFlitWithRoundRobinPrioritization();
+	// returns the request (Local, North, East, South or West)
+	void generateRequest(uint32_t flit, uint8_t& request);
+	void sendFlit(uint32_t, std::string reqString);
 	void updateCreditCounter(std::string eventName);
 };
 

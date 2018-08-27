@@ -8,7 +8,7 @@
 
 #include <cstdint>
 #include <memory>
-#include <vector>
+#include <queue>
 
 //#include "router.hpp"
 
@@ -17,7 +17,7 @@ enum class GenerationModes {counter}; // TODO: Add other modes
 class PacketGenerator {
 public:
     PacketGenerator(uint16_t address/*, std::shared_ptr<Router> router*/);
-    void generate_packet(std::vector<uint32_t>& packet, uint16_t packet_length, uint16_t destination,
+    void generate_packet(std::queue<uint32_t>& packet, uint16_t packet_length, uint16_t destination,
                          GenerationModes mode, uint64_t time);
 
     void set_local_address(uint16_t address) {
@@ -25,12 +25,11 @@ public:
     }
 
 private:
-    uint16_t counter_based_generation(std::vector<uint32_t>& packet,
+    uint16_t counter_based_generation(std::queue<uint32_t>& packet,
                                       uint16_t packet_length, uint16_t destination);
 
     uint16_t m_address;
     uint16_t m_packet_id;
-    //std::shared_ptr<Router> m_router;
 };
 
 

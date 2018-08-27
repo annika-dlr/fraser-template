@@ -60,7 +60,7 @@ bool SimulationModel::prepare() {
 }
 
 void SimulationModel::run() {
-	uint64_t currentSimTime = mCurrentSimTime.getValue();
+	uint64_t currentSimTime = getCurrentSimTime();
 	if (mRun) {
 		while (currentSimTime <= mSimTime.getValue()) {
 			if (!mPause) {
