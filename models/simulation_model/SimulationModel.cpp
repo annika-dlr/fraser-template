@@ -17,7 +17,7 @@
 
 SimulationModel::SimulationModel(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mPublisher(mCtx), mDealer(
-				mCtx, mName), mSimTime("SimTime", 1000), mSimTimeStep(
+				mCtx, mName), mSimTime("SimTime", 5000), mSimTimeStep(
 				"SimTimeStep", 100), mCurrentSimTime("CurrentSimTime", 0), mCycleTime(
 				"CylceTime", 0), mSpeedFactor("SpeedFactor", 1.0) {
 
