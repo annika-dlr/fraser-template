@@ -10,13 +10,11 @@
 #include <memory>
 #include <queue>
 
-//#include "router.hpp"
-
 enum class GenerationModes {counter}; // TODO: Add other modes
 
 class PacketGenerator {
 public:
-    PacketGenerator(uint16_t address/*, std::shared_ptr<Router> router*/);
+    PacketGenerator(uint16_t address);
     void generate_packet(std::queue<uint32_t>& packet, uint16_t packet_length, uint16_t destination,
                          GenerationModes mode, uint64_t time);
 

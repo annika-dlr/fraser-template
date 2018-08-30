@@ -23,8 +23,8 @@ SimulationModel::SimulationModel(std::string name, std::string description) :
 
 	registerInterruptSignal();
 
-	mRun = this->prepare();
-	this->init();
+	mRun = prepare();
+	init();
 }
 
 SimulationModel::~SimulationModel() {
@@ -51,6 +51,9 @@ bool SimulationModel::prepare() {
 	}
 
 	// (mTotalNumOfModels - 2), because the simulation and configuration models should not be included
+	std::cout
+			<< "Synchronize simulation model with the other models (after configuration phase)."
+			<< std::endl;
 	if (!mPublisher.synchronizePub(mTotalNumOfModels - 2,
 			mCurrentSimTime.getValue())) {
 		return false;
@@ -76,7 +79,7 @@ void SimulationModel::run() {
 					}
 				}
 
-				std::cout << "[SIMTIME] --> " << currentSimTime << std::endl;
+				//std::cout << "[SIMTIME] --> " << currentSimTime << std::endl;
 				mEventOffset = event::CreateEvent(mFbb,
 						mFbb.CreateString("SimTimeChanged"), currentSimTime);
 				mFbb.Finish(mEventOffset);
@@ -118,7 +121,8 @@ void SimulationModel::loadState(std::string filePath) {
 		ia >> boost::serialization::make_nvp("FieldSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << mName<<": Archive Exception during deserializing: " << std::endl;
+		std::cout << mName << ": Archive Exception during deserializing: "
+				<< std::endl;
 		std::cout << ex.what() << std::endl;
 	}
 
@@ -132,11 +136,13 @@ void SimulationModel::loadState(std::string filePath) {
 	// Synchronization is necessary, because the simulation
 	// has to wait until the other models finished their Restore-method
 	// (mNumOfPersistModels - 1), because the simulation model itself should not be included
+	std::cout
+			<< "Synchronize simulation model with the other models (after initialization phase)."
+			<< std::endl;
 	mRun = mPublisher.synchronizePub(mNumOfPersistModels - 1,
 			mCurrentSimTime.getValue());
 
 	this->init();
-
 	this->continueSim();
 }
 
@@ -170,7 +176,7 @@ void SimulationModel::saveState(std::string filePath) {
 			mCurrentSimTime.getValue());
 
 	if (mConfigMode) {
-		std::cout<<"Default configuration files were created"<<std::endl;
+		std::cout << "Default configuration files were created" << std::endl;
 		this->stopSim();
 	} else {
 		this->continueSim();

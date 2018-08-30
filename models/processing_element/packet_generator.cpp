@@ -20,8 +20,6 @@
  *
  * Parameters:
  * 	uint16_t address               - Address of the current packet generator
- * 	std::shared_ptr<Router> router - Pointer to the router (input port) instance
- * 					                 the packet generator is connected to
  */
 PacketGenerator::PacketGenerator(
 		uint16_t address = 1) :

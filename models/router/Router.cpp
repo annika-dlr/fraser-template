@@ -16,7 +16,7 @@
 
 Router::Router(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
-				mCtx), mDealer(mCtx, mName), mCurrentSimTime(0) {
+				mCtx), mDealer(mCtx, mName) {
 
 	mRun = this->prepare();
 	//this->init();
@@ -57,28 +57,29 @@ bool Router::prepare() {
 	mConnectivityBits = std::bitset<16>(
 			mDealer.getModelParameter(mName, "connectivityBits"));
 
+	// Subscriptions to events
 	mSubscriber.subscribeTo("LoadState");
 	mSubscriber.subscribeTo("SaveState");
 	mSubscriber.subscribeTo("End");
-	mSubscriber.subscribeTo("Local");
+	mSubscriber.subscribeTo("PacketGenerator");
 	mSubscriber.subscribeTo("SimTimeChanged");
 
 	if (mConnectivityBits[0]) {
-		mSubscriber.subscribeTo("North");
+		mSubscriber.subscribeTo("South");
 		mSubscriber.subscribeTo("Credit_in_S++");
 
 	}
 	if (mConnectivityBits[1]) {
-		mSubscriber.subscribeTo("East");
+		mSubscriber.subscribeTo("West");
 		mSubscriber.subscribeTo("Credit_in_W++");
 
 	}
 	if (mConnectivityBits[2]) {
-		mSubscriber.subscribeTo("West");
+		mSubscriber.subscribeTo("East");
 		mSubscriber.subscribeTo("Credit_in_E++");
 	}
 	if (mConnectivityBits[3]) {
-		mSubscriber.subscribeTo("South");
+		mSubscriber.subscribeTo("North");
 		mSubscriber.subscribeTo("Credit_in_N++");
 	}
 
@@ -116,64 +117,54 @@ void Router::handleEvent() {
 	if (receivedEvent->data_type() == event::EventData_Flit) {
 		auto flitData = receivedEvent->data_as_Flit()->uint32();
 
-		if (eventName == "Local") {
-//			if (mFlits_RX_L.empty()) {
-//				mFlits_RX_L.push(flitData);
-//			} else if (mFlits_RX_L.size() < 3) {
-			mFlits_RX_L.push(flitData);
-//			} else {
-//				std::cout
-//						<< "\033[1;31m!!!!!!!!!!!! LOST EVENT !!!!!!!!!!!!!!!\033[0m"
-//						<< std::endl;
-//			}
+		if (eventName == "PacketGenerator") {
+			if (mFlits_RX_L.empty() || (mFlits_RX_L.size() < 3)) {
+				mFlits_RX_L.push(flitData);
+			} else {
+				std::cout
+						<< "\033[1;31mWarning: Local FIFO is full --> Event will be discarded.\033[0m"
+						<< std::endl;
+			}
 		}
-
-		else if (eventName == "North") {
-//			if (mFlits_RX_N.empty()) {
-//				mFlits_RX_N.push(flitData);
-//			} else if (mFlits_RX_N.size() < 3) {
-			mFlits_RX_N.push(flitData);
-//			} else {
-//				std::cout
-//						<< "\033[1;31m!!!!!!!!!!!! LOST EVENT !!!!!!!!!!!!!!!\033[0m"
-//						<< std::endl;
-//			}
-		}
-
-		else if (eventName == "East") {
-//			if (mFlits_RX_E.empty()) {
-//				mFlits_RX_E.push(flitData);
-//			} else if (mFlits_RX_E.size() < 3) {
-			mFlits_RX_E.push(flitData);
-//			} else {
-//				std::cout
-//						<< "\033[1;31m!!!!!!!!!!!! LOST EVENT !!!!!!!!!!!!!!!\033[0m"
-//						<< std::endl;
-//			}
-		}
-
+		// Flit comes from the South output of the previous router
 		else if (eventName == "South") {
-//			if (mFlits_RX_S.empty()) {
-//				mFlits_RX_S.push(flitData);
-//			} else if (mFlits_RX_S.size() < 3) {
-			mFlits_RX_S.push(flitData);
-//			} else {
-//				std::cout
-//						<< "\033[1;31m!!!!!!!!!!!! LOST EVENT !!!!!!!!!!!!!!!\033[0m"
-//						<< std::endl;
-//			}
+			if (mFlits_RX_N.empty() || (mFlits_RX_N.size() < 3)) {
+				mFlits_RX_N.push(flitData);
+			} else {
+				std::cout
+						<< "\033[1;31mWarning: North FIFO is full --> Event will be discarded.\033[0m"
+						<< std::endl;
+			}
 		}
-
+		// Flit comes from the West output of the previous router
 		else if (eventName == "West") {
-//			if (mFlits_RX_W.empty()) {
-//				mFlits_RX_W.push(flitData);
-//			} else if (mFlits_RX_W.size() < 3) {
-			mFlits_RX_W.push(flitData);
-//			} else {
-//				std::cout
-//						<< "\033[1;31m!!!!!!!!!!!! LOST EVENT !!!!!!!!!!!!!!!\033[0m"
-//						<< std::endl;
-//			}
+			if (mFlits_RX_E.empty() || (mFlits_RX_E.size() < 3)) {
+				mFlits_RX_E.push(flitData);
+			} else {
+				std::cout
+						<< "\033[1;31mWarning: East FIFO is full --> Event will be discarded.\033[0m"
+						<< std::endl;
+			}
+		}
+		// Flit comes from the North output of the previous router
+		else if (eventName == "North") {
+			if (mFlits_RX_S.empty() || (mFlits_RX_S.size() < 3)) {
+				mFlits_RX_S.push(flitData);
+			} else {
+				std::cout
+						<< "\033[1;31mWarning: South FIFO is full --> Event will be discarded.\033[0m"
+						<< std::endl;
+			}
+		}
+		// Flit comes from the East output of the previous router
+		else if (eventName == "East") {
+			if (mFlits_RX_W.empty() || (mFlits_RX_W.size() < 3)) {
+				mFlits_RX_W.push(flitData);
+			} else {
+				std::cout
+						<< "\033[1;31mWarning: West FIFO is full --> Event will be discarded.\033[0m"
+						<< std::endl;
+			}
 		}
 
 	} else if (receivedEvent->data_type() == event::EventData_String) {
@@ -193,6 +184,7 @@ void Router::handleEvent() {
 	}
 
 	else if (eventName == "SimTimeChanged") {
+		// Send new Flit every clock cycle
 		sendFlitWithRoundRobinPrioritization();
 	}
 
@@ -201,32 +193,24 @@ void Router::handleEvent() {
 		if (mCredit_Cnt_N < 3) {
 			mCredit_Cnt_N++;
 		}
-//		std::cout << mName << " mCredit_Cnt_N++: " << mCredit_Cnt_N
-//				<< std::endl;
 	}
 
 	else if (eventName == "Credit_in_W++") {
 		if (mCredit_Cnt_W < 3) {
 			mCredit_Cnt_W++;
 		}
-//		std::cout << mName << " mCredit_Cnt_W++: " << mCredit_Cnt_W
-//				<< std::endl;
 	}
 
 	else if (eventName == "Credit_in_E++") {
 		if (mCredit_Cnt_E < 3) {
 			mCredit_Cnt_E++;
 		}
-//		std::cout << mName << " mCredit_Cnt_E++: " << mCredit_Cnt_E
-//				<< std::endl;
 	}
 
 	else if (eventName == "Credit_in_S++") {
 		if (mCredit_Cnt_S < 3) {
 			mCredit_Cnt_S++;
 		}
-//		std::cout << mName << " mCredit_Cnt_S++: " << mCredit_Cnt_S
-//				<< std::endl;
 	}
 
 	else if (eventName == "End") {
@@ -236,18 +220,14 @@ void Router::handleEvent() {
 }
 
 void Router::sendFlitWithRoundRobinPrioritization() {
-// N->E->W->S->L (circular) prioritization the requests from inputs (from LBDR modules) are checked
+	// N->E->W->S->L (circular) prioritization the requests from inputs (from LBDR modules) are checked
 	if (!sendFlitAfterRequestCheck(mReq_N_LBDR, mFlits_RX_N, "Credit_in_N++")) {
-//		std::cout<<mName<<": Get Flit from North FIFO"<<std::endl;
 		if (!sendFlitAfterRequestCheck(mReq_E_LBDR, mFlits_RX_E,
 				"Credit_in_E++")) {
-//			std::cout<<mName<<": Get Flit from East FIFO"<<std::endl;
 			if (!sendFlitAfterRequestCheck(mReq_W_LBDR, mFlits_RX_W,
 					"Credit_in_W++")) {
-//				std::cout<<mName<<": Get Flit from West FIFO"<<std::endl;
 				if (!sendFlitAfterRequestCheck(mReq_S_LBDR, mFlits_RX_S,
 						"Credit_in_S++")) {
-//					std::cout<<mName<<": Get Flit from Local FIFO"<<std::endl;
 					sendFlitAfterRequestCheck(mReq_L_LBDR, mFlits_RX_L,
 							"Credit_in_L++");
 				}
@@ -256,7 +236,7 @@ void Router::sendFlitWithRoundRobinPrioritization() {
 	}
 }
 
-bool Router::sendFlitAfterRequestCheck(uint8_t& request,
+bool Router::sendFlitAfterRequestCheck(Request& request,
 		std::queue<uint32_t>& flitFIFO, std::string creditString) {
 
 	bool sentFlit = true;
@@ -269,32 +249,32 @@ bool Router::sendFlitAfterRequestCheck(uint8_t& request,
 			generateRequest(flit, request);
 		}
 
-		if (request != IDLE) {
+		if (request != Request::idle) {
 			std::string reqString;
 
 			// NORTH
-			if ((request == NORTH_REQ) && (mCredit_Cnt_S > 0)) {
-				reqString = "South";
+			if ((request == Request::north) && (mCredit_Cnt_S > 0)) {
+				reqString = "North";
 				mCredit_Cnt_S--;
 			}
 			// EAST
-			else if ((request == EAST_REQ) && (mCredit_Cnt_W > 0)) {
-				reqString = "West";
+			else if ((request == Request::east) && (mCredit_Cnt_W > 0)) {
+				reqString = "East";
 				mCredit_Cnt_W--;
 			}
 			// WEST
-			else if ((request == WEST_REQ) && (mCredit_Cnt_E > 0)) {
-				reqString = "East";
+			else if ((request == Request::west) && (mCredit_Cnt_E > 0)) {
+				reqString = "West";
 				mCredit_Cnt_E--;
 			}
 			// SOUTH
-			else if ((request == SOUTH_REQ) && (mCredit_Cnt_N > 0)) {
-				reqString = "North";
+			else if ((request == Request::south) && (mCredit_Cnt_N > 0)) {
+				reqString = "South";
 				mCredit_Cnt_N--;
 			}
 			// LOCAL
-			else if ((request == LOCAL_REQ)) {
-				reqString = "Local_Packet_Sink";
+			else if ((request == Request::local)) {
+				reqString = "Local";
 			} else {
 				sentFlit = false;
 			}
@@ -304,23 +284,19 @@ bool Router::sendFlitAfterRequestCheck(uint8_t& request,
 
 				// Tail Flit
 				if (flitType == TAIL_FLIT) {
-//					std::cout << "**Complete** Packet was completed send by "
-//							<< mName << std::endl;
-//
-//					std::cout << "<< RESET grants >>" << std::endl;
-					if (request == NORTH_REQ) {
+					if (request == Request::north) {
 						north_grant = false;
-					} else if (request == EAST_REQ) {
+					} else if (request == Request::east) {
 						east_grant = false;
-					} else if (request == WEST_REQ) {
+					} else if (request == Request::west) {
 						west_grant = false;
-					} else if (request == SOUTH_REQ) {
+					} else if (request == Request::south) {
 						south_grant = false;
-					} else if (request == LOCAL_REQ) {
+					} else if (request == Request::local) {
 						local_grant = false;
 					}
 
-					request = IDLE;
+					request = Request::idle;
 				}
 
 				flitFIFO.pop();
@@ -330,18 +306,15 @@ bool Router::sendFlitAfterRequestCheck(uint8_t& request,
 			sentFlit = false;
 		}
 	}
-// IDLE
+	// Router is IDLE, because other routers block the outputs
 	else {
-		// No request (Router is IDLE)
 		sentFlit = false;
 	}
 
 	return sentFlit;
 }
 
-void Router::generateRequest(uint32_t flit, uint8_t& request) {
-//	std::cout << "[FLIT TYPE] --> " << flitType << std::endl;
-//		std::cout << "GENERATE REQUEST: " << flit << std::endl;
+void Router::generateRequest(uint32_t flit, Request& request) {
 
 	uint8_t parity = 0; // TODO not actually checked, but needed for receiving the flits
 	uint16_t srcAddr = 0;
@@ -349,30 +322,10 @@ void Router::generateRequest(uint32_t flit, uint8_t& request) {
 	bool n1 = false, e1 = false, w1 = false, s1 = false;
 	parse_header_flit(flit, &dstAddr, &srcAddr, &parity);
 
-//		std::cout << "*** " << mName << " Recv_" << mCurrentAddr << " - "
-//				<< ", Src: " << srcAddr << ", Dst: " << dstAddr << std::dec
-//				<< ", time: " << mCurrentSimTime << std::endl;
-
-//		uint16_t des_addr_y = (dstAddr & PROPERTY_1_MASK) >> NOC_SIZE;
-//		uint16_t cur_addr_y = (mCurrentAddr & PROPERTY_1_MASK) >> NOC_SIZE;
-//		uint16_t des_addr_x = (dstAddr & PROPERTY_2_MASK);
-//		uint16_t cur_addr_x = (mCurrentAddr & PROPERTY_2_MASK);
-
 	uint16_t des_addr_x = dstAddr % NOC_SIZE;
 	uint16_t cur_addr_x = mCurrentAddr % NOC_SIZE;
 	uint16_t des_addr_y = dstAddr / NOC_SIZE;
 	uint16_t cur_addr_y = mCurrentAddr / NOC_SIZE;
-
-//		uint16_t des_addr_y = dstAddr % NOC_SIZE;
-//		uint16_t cur_addr_y = mCurrentAddr % NOC_SIZE;
-//		uint16_t des_addr_x = dstAddr / NOC_SIZE;
-//		uint16_t cur_addr_x = mCurrentAddr / NOC_SIZE;
-
-//		std::cout << mName << ": tmp_des_addr_x: " << des_addr_x << std::endl;
-//		std::cout << mName << ": tmp_cur_addr_x: " << cur_addr_x << std::endl;
-//
-//		std::cout << mName << ": tmp_des_addr_y: " << des_addr_y << std::endl;
-//		std::cout << mName << ": tmp_cur_addr_y: " << cur_addr_y << std::endl;
 
 	if (des_addr_y < cur_addr_y) {
 		n1 = true;
@@ -387,49 +340,43 @@ void Router::generateRequest(uint32_t flit, uint8_t& request) {
 		s1 = true;
 	}
 
-//		std::cout << mName << ": n1: " << std::boolalpha << n1 << std::endl;
-//		std::cout << mName << ": e1: " << std::boolalpha << e1 << std::endl;
-//
-//		std::cout << mName << ": w1: " << std::boolalpha << w1 << std::endl;
-//		std::cout << mName << ": s1: " << std::boolalpha << s1 << std::endl;
-
-	// Generate Request
+	// Check if output is already used. If the output is not blocked (grant set to 1), a request is generated.
 	if (((n1 && !e1 && !w1) || (n1 && e1 && mRoutingBits[0])
 			|| (n1 && w1 && mRoutingBits[1])) && mConnectivityBits[0]
 			&& (!north_grant)) {
 		// Req_N
-		request = NORTH_REQ;
+		request = Request::north;
 		north_grant = true;
 	} else if (((e1 && !n1 && !s1) || (e1 && n1 && mRoutingBits[2])
 			|| (e1 && s1 && mRoutingBits[3])) && mConnectivityBits[1]
 			&& (!east_grant)) {
 		// Req_E
-		request = EAST_REQ;
+		request = Request::east;
 		east_grant = true;
 	} else if (((w1 && !n1 && !s1) || (w1 && n1 && mRoutingBits[4])
 			|| (w1 && s1 && mRoutingBits[5])) && mConnectivityBits[2]
 			&& (!west_grant)) {
 		// Req_W
-		request = WEST_REQ;
+		request = Request::west;
 		west_grant = true;
 	} else if (((s1 && !e1 && !w1) || (s1 && e1 && mRoutingBits[6])
 			|| (s1 && w1 && mRoutingBits[7])) && mConnectivityBits[3]
 			&& (!south_grant)) {
 		// Req_S
-		request = SOUTH_REQ;
+		request = Request::south;
 		south_grant = true;
 	} else if ((!n1 && !e1 && !w1 && !s1) && (!local_grant)) {
 		// Req_L
-		request = LOCAL_REQ;
+		request = Request::local;
 		local_grant = true;
 	} else {
-		request = IDLE;
+		request = Request::idle;
 	}
 }
 
 void Router::sendFlit(uint32_t flit, std::string reqString) {
 	std::cout << mName << " sends " << flit << " to " << reqString
-			<< " output of the next router" << std::endl;
+			<< " output" << std::endl;
 
 	// Event Serialiazation
 	flatbuffers::FlatBufferBuilder fbb;
@@ -441,7 +388,7 @@ void Router::sendFlit(uint32_t flit, std::string reqString) {
 
 	fbb.Finish(eventOffset);
 
-	this->mPublisher.publishEvent(reqString, fbb.GetBufferPointer(),
+	mPublisher.publishEvent(reqString, fbb.GetBufferPointer(),
 			fbb.GetSize());
 }
 
@@ -453,7 +400,7 @@ void Router::updateCreditCounter(std::string eventName) {
 			mCurrentSimTime);
 	fbb.Finish(eventOffset);
 
-	this->mPublisher.publishEvent(eventName, fbb.GetBufferPointer(),
+	mPublisher.publishEvent(eventName, fbb.GetBufferPointer(),
 			fbb.GetSize());
 }
 
@@ -488,5 +435,6 @@ void Router::loadState(std::string filePath) {
 
 	mRun = mSubscriber.synchronizeSub();
 
-	this->init();
+	// Optional calculate parameters from the loaded initial state
+	init();
 }

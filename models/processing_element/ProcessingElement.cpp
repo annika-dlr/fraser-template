@@ -22,10 +22,10 @@ ProcessingElement::ProcessingElement(std::string name, std::string description) 
 				0), mPacketSink(0), mPacketNumber("PacketNumber", 10) {
 
 	mRun = this->prepare();
+	//init();
 }
 
 ProcessingElement::~ProcessingElement() {
-	// delete this->mPacketGenerator;
 }
 
 void ProcessingElement::init() {
@@ -66,10 +66,9 @@ bool ProcessingElement::prepare() {
 
 		mPacketGenerator.generate_packet(mPacket, mPacketNumber.getValue(),
 				destinationAddress, GenerationModes::counter, mCurrentSimTime);
-		std::cout << "[PACKET SIZE] --> " << mPacket.size() << std::endl;
 	}
 
-	mSubscriber.subscribeTo("Local_Packet_Sink");
+	mSubscriber.subscribeTo("Local");
 	mSubscriber.subscribeTo("Credit_in_L++");
 
 	mSubscriber.subscribeTo("SimTimeChanged");
@@ -106,35 +105,32 @@ void ProcessingElement::run() {
 
 void ProcessingElement::handleEvent() {
 	auto eventBuffer = mSubscriber.getEventBuffer();
-
-	// Event Serialization
-	flatbuffers::FlatBufferBuilder fbb;
-	flatbuffers::Offset<event::Event> eventOffset;
-
 	auto receivedEvent = event::GetEvent(eventBuffer);
-
 	std::string eventName = receivedEvent->name()->str();
 	mCurrentSimTime = receivedEvent->timestamp();
+
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
 	if (eventName == "SimTimeChanged") {
-
-//		std::cout << mName << ": PACKET SIZE: " << mPacket.size() << std::endl;
 		if (!mPacket.empty() && (mCredit_Cnt_L > 0)) {
 			auto flit = mPacket.front();
 
-			// Example for Sending (Publishing) a flit and using Flatbuffers to serialize the data (flit):
-			std::string reqString = "Local";
-			eventOffset = event::CreateEvent(fbb, fbb.CreateString(reqString),
-					mCurrentSimTime, event::Priority_NORMAL_PRIORITY, 0, 0,
+			// Event Serialization
+			flatbuffers::FlatBufferBuilder fbb;
+			flatbuffers::Offset<event::Event> eventOffset;
+
+			// Sending (Publishing) a flit and using Flatbuffers to serialize the data (flit):
+			std::string eventName = "PacketGenerator";
+			eventOffset = event::CreateEvent(fbb,
+					fbb.CreateString(eventName), mCurrentSimTime,
+					event::Priority_NORMAL_PRIORITY, 0, 0,
 					event::EventData_Flit,
 					event::CreateFlit(fbb, flit).Union());
 			fbb.Finish(eventOffset);
 
-			std::cout << mName << " sends " << flit << " to " << reqString
-					<< std::endl;
+			std::cout << mName << " sends " << flit << std::endl;
 
-			mPublisher.publishEvent(reqString, fbb.GetBufferPointer(),
+			mPublisher.publishEvent(eventName, fbb.GetBufferPointer(),
 					fbb.GetSize());
 
 			mPacket.pop();
@@ -146,13 +142,12 @@ void ProcessingElement::handleEvent() {
 		if (mCredit_Cnt_L < 3) {
 			mCredit_Cnt_L++;
 		}
-		std::cout << mName << " Credit_in_L++: " << mCredit_Cnt_L << std::endl;
 	}
 
 	else if (receivedEvent->data_type() == event::EventData_Flit) {
 		auto flitData = receivedEvent->data_as_Flit()->uint32();
 
-		if (eventName == "Local_Packet_Sink") {
+		if (eventName == "Local") {
 			mPacketSink.send_flit_to_local(flitData, mCurrentSimTime);
 		}
 	}
@@ -177,7 +172,7 @@ void ProcessingElement::handleEvent() {
 }
 
 void ProcessingElement::saveState(std::string filePath) {
-// Store states
+	// Store states
 	std::ofstream ofs(filePath);
 	boost::archive::xml_oarchive oa(ofs, boost::archive::no_header);
 	try {
@@ -193,7 +188,7 @@ void ProcessingElement::saveState(std::string filePath) {
 }
 
 void ProcessingElement::loadState(std::string filePath) {
-// Restore states
+	// Restore states
 	std::ifstream ifs(filePath);
 	boost::archive::xml_iarchive ia(ifs, boost::archive::no_header);
 	try {
@@ -205,7 +200,8 @@ void ProcessingElement::loadState(std::string filePath) {
 		std::cout << ex.what() << std::endl;
 	}
 
-	mRun = mSubscriber.synchronizeSub();
-
+	// Optional calculate parameters from the loaded initial state
 	this->init();
+
+	mRun = mSubscriber.synchronizeSub();
 }

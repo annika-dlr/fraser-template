@@ -25,7 +25,6 @@
 #include <stdint.h>
 #include <bitset>
 
-//#include "Packets.h"
 #include "resources/idl/event_generated.h"
 #include "communication/zhelpers.hpp"
 #include "communication/Subscriber.h"
@@ -36,21 +35,21 @@
 #include "data-types/Field.h"
 
 #define NOC_SIZE 2
-#define PROPERTY_1_MASK 	0b00000000001100
-#define PROPERTY_2_MASK 	0b00000000000011
-#define NORTH_REQ 			0b0001
-#define EAST_REQ			0b0010
-#define WEST_REQ			0b0100
-#define SOUTH_REQ			0b1000
-#define LOCAL_REQ			0b1111
-#define IDLE				0b0000
-
 
 class Router: public virtual IModel, public virtual IPersist {
 public:
 
 	Router(std::string name, std::string description);
 	virtual ~Router();
+
+	enum Request : uint8_t {
+		idle = 0,
+		local = 1,
+		north = 2,
+		east = 3,
+		south = 4,
+		west = 5
+	};
 
 	// IModel
 	virtual void init() override;
@@ -82,7 +81,7 @@ private:
 	Dealer mDealer;
 
 	bool mRun;
-	int mCurrentSimTime;
+	uint32_t mCurrentSimTime = 0;
 
 	friend class boost::serialization::access;
 	template<typename Archive>
@@ -90,7 +89,6 @@ private:
 	}
 
 	uint64_t mCycles = 0;
-	bool mLastReveived = false;
 	uint16_t mCurrentAddr = 0;
 	std::bitset<16> mConnectivityBits = 0;
 	std::bitset<16> mRoutingBits = 0;
@@ -108,11 +106,11 @@ private:
 	std::queue<uint32_t> mFlits_RX_W; // W FIFO
 
 	// Generated requests from LDBRs
-	uint8_t mReq_N_LBDR = 0;
-	uint8_t mReq_E_LBDR = 0;
-	uint8_t mReq_W_LBDR = 0;
-	uint8_t mReq_S_LBDR = 0;
-	uint8_t mReq_L_LBDR = 0;
+	Request mReq_N_LBDR = idle;
+	Request mReq_E_LBDR = idle;
+	Request mReq_W_LBDR = idle;
+	Request mReq_S_LBDR = idle;
+	Request mReq_L_LBDR = idle;
 
 	// Generated requests from LDBRs
 	bool north_grant = false;
@@ -121,13 +119,10 @@ private:
 	bool south_grant = false;
 	bool local_grant = false;
 
-//	bool lastFlit = false;
-
-
-	bool sendFlitAfterRequestCheck(uint8_t& request, std::queue<uint32_t>& flitFIFO, std::string creditString);
+	bool sendFlitAfterRequestCheck(Request& request, std::queue<uint32_t>& flitFIFO, std::string creditString);
 	void sendFlitWithRoundRobinPrioritization();
 	// returns the request (Local, North, East, South or West)
-	void generateRequest(uint32_t flit, uint8_t& request);
+	void generateRequest(uint32_t flit, Request& request);
 	void sendFlit(uint32_t, std::string reqString);
 	void updateCreditCounter(std::string eventName);
 };
