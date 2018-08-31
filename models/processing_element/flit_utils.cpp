@@ -62,9 +62,9 @@ void set_parity_bit(uint32_t *f)
 //////                                     ////////
 ///////////////////////////////////////////////////
 
-int get_flit_type(uint32_t *flit)
+int get_flit_type(uint32_t flit)
 {
-    int flit_type = get_bit_range(*flit, FLIT_TYPE_OFFSET, FLIT_TYPE_WIDTH);
+    int flit_type = get_bit_range(flit, FLIT_TYPE_OFFSET, FLIT_TYPE_WIDTH);
 
     return flit_type;      //return the flit time
 }

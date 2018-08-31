@@ -21,7 +21,6 @@ int main(int argc, char* argv[]) {
 	if (argc > 2) {
 		bool validArgs = true;
 		std::string routerName = "";
-		uint16_t routerAddress = 0;
 
 		if (static_cast<std::string>(argv[1]) == "-n") {
 			routerName = static_cast<std::string>(argv[2]);
@@ -32,7 +31,6 @@ int main(int argc, char* argv[]) {
 
 		if (validArgs) {
 			Router router(routerName, "Bonfire Router Model");
-			router.setRouterAddr(routerAddress);
 			try {
 				router.run();
 

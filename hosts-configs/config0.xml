@@ -41,7 +41,9 @@
 			</Dependencies>
 			<!-- Add commandline arguments, e.g., to set or initialize model parameters -->
 			<Parameters>
-				<Parameter name="address">0b00111111110101</Parameter>
+				<Parameter name="address">0000</Parameter>
+				<Parameter name="connectivityBits">1010</Parameter>
+				<Parameter name="routingBits">00111100</Parameter>
 			</Parameters>
 		</Model>
 
@@ -53,7 +55,9 @@
 				<ModelReference modelID="processing_element_1" />
 			</Dependencies>
 			<Parameters>
-				<Parameter name="address">0b00111111100011</Parameter>
+				<Parameter name="address">0001</Parameter>
+				<Parameter name="connectivityBits">1100</Parameter>
+				<Parameter name="routingBits">00111100</Parameter>
 			</Parameters>
 		</Model>
 
@@ -65,7 +69,9 @@
 				<ModelReference modelID="processing_element_2" />
 			</Dependencies>
 			<Parameters>
-				<Parameter name="address">0b00110111111100</Parameter>
+				<Parameter name="address">0010</Parameter>
+				<Parameter name="connectivityBits">0011</Parameter>
+				<Parameter name="routingBits">00111100</Parameter>
 			</Parameters>
 		</Model>
 
@@ -77,7 +83,9 @@
 				<ModelReference modelID="processing_element_3" />
 			</Dependencies>
 			<Parameters>
-				<Parameter name="address">0b00111111111010</Parameter>
+				<Parameter name="address">0011</Parameter>
+				<Parameter name="connectivityBits">0101</Parameter>
+				<Parameter name="routingBits">00111100</Parameter>
 			</Parameters>
 		</Model>
 

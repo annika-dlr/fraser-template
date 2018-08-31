@@ -31,6 +31,8 @@
 #include "data-types/Field.h"
 
 #include "resources/idl/event_generated.h"
+#include "packet_generator.h"
+#include "packet_sink.h"
 
 class ProcessingElement: public virtual IModel, public virtual IPersist {
 public:
@@ -65,20 +67,21 @@ private:
 	Publisher mPublisher;
 	Dealer mDealer;
 
-	// Event Serialization
-	flatbuffers::FlatBufferBuilder mFbb;
-	flatbuffers::Offset<event::Event> mEventOffset;
+	uint16_t mCredit_Cnt_L = 3;
 
 	bool mRun;
-	const event::Event* mReceivedEvent;
-	std::string mEventName;
 	int mCurrentSimTime;
-	std::string mData;
+	PacketGenerator mPacketGenerator;
+	PacketSink mPacketSink;
+	std::queue<uint32_t> mPacket;
+
+	// Fields
+	Field<uint16_t> mPacketNumber;
 
 	friend class boost::serialization::access;
 	template<typename Archive>
 	void serialize(Archive& archive, const unsigned int) {
-
+		archive & boost::serialization::make_nvp("IntField", mPacketNumber);
 	}
 };
 

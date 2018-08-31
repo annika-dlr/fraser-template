@@ -28,11 +28,15 @@ class PacketSink {
 
 public:
     PacketSink(uint16_t address);
-    void send_flit_to_local(uint32_t flit);
+    void send_flit_to_local(uint32_t flit, uint64_t time);
+
+    void set_local_address(uint16_t address) {
+      m_address = address;
+    }
 
 private:
-    void fsm_error();
-    void log_packet(bool faulty=false);
+    void fsm_error(uint64_t time);
+    void log_packet(bool faulty, uint64_t time);
     uint16_t extract_crc();
     uint16_t calculate_crc();
 

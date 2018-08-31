@@ -11,19 +11,21 @@
  * - 2018, Annika Ofenloch (DLR RY-AVS)
  */
 
+#include <vector>
+#include <cstdint>
 #include "ProcessingElement.h"
+#include <bitset>
 
 ProcessingElement::ProcessingElement(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
-				mCtx), mDealer(mCtx, mName), mReceivedEvent(NULL), mCurrentSimTime(
-				0) {
+				mCtx), mDealer(mCtx, mName), mCurrentSimTime(0), mPacketGenerator(
+				0), mPacketSink(0), mPacketNumber("PacketNumber", 10) {
 
 	mRun = this->prepare();
-	this->init();
+	//init();
 }
 
 ProcessingElement::~ProcessingElement() {
-
 }
 
 void ProcessingElement::init() {
@@ -49,7 +51,25 @@ bool ProcessingElement::prepare() {
 				mDealer.getPortNumFrom(depModel))) {
 			return false;
 		}
+
+		// Set router address
+		uint16_t address = static_cast<uint16_t>(std::bitset<16>(
+				mDealer.getModelParameter(depModel, "address")).to_ulong());
+
+		mPacketGenerator.set_local_address(address);
+		mPacketSink.set_local_address(address);
+
+		uint16_t destinationAddress = 1;
+		if (destinationAddress == address) {
+			destinationAddress = 2;
+		}
+
+		mPacketGenerator.generate_packet(mPacket, mPacketNumber.getValue(),
+				destinationAddress, GenerationModes::counter, mCurrentSimTime);
 	}
+
+	mSubscriber.subscribeTo("Local");
+	mSubscriber.subscribeTo("Credit_in_L++");
 
 	mSubscriber.subscribeTo("SimTimeChanged");
 	mSubscriber.subscribeTo("LoadState");
@@ -72,51 +92,83 @@ bool ProcessingElement::prepare() {
 
 void ProcessingElement::run() {
 	while (mRun) {
-		mSubscriber.receiveEvent();
-		this->handleEvent();
+		/*if (mPacket.empty()) {
+		 mPacketGenerator.generate_packet(mPacket, mPacketNumber.getValue(),
+		 1, GenerationModes::counter, mCurrentSimTime);
+		 } else*/
+
+		if (mSubscriber.receiveEvent()) {
+			this->handleEvent();
+		}
 	}
 }
 
 void ProcessingElement::handleEvent() {
-	mReceivedEvent = event::GetEvent(mSubscriber.getEventBuffer());
-	mEventName = mReceivedEvent->name()->str();
-	mCurrentSimTime = mReceivedEvent->timestamp();
-	mData = mReceivedEvent->data_as_String()->str();
+	auto eventBuffer = mSubscriber.getEventBuffer();
+	auto receivedEvent = event::GetEvent(eventBuffer);
+	std::string eventName = receivedEvent->name()->str();
+	mCurrentSimTime = receivedEvent->timestamp();
 
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
-	if (mEventName == "SimTimeChanged") {
-		// Receives current simulation time ...
-		// Do something for each time step
+	if (eventName == "SimTimeChanged") {
+		if (!mPacket.empty() && (mCredit_Cnt_L > 0)) {
+			auto flit = mPacket.front();
 
-		// Example for Sending (Publishing) a flit and using Flatbuffers to serialize the data (flit):
-//		uint32_t flit;
-//		std::string reqString = "North_Req";
-//		mEventOffset = event::CreateEvent(mFbb, mFbb.CreateString(reqString),
-//				mCurrentSimTime, event::Priority_NORMAL_PRIORITY, 0, 0,
-//				event::EventData_Flit,
-//				event::CreateFlit(mFbb, flit).Union());
-//
-//		mFbb.Finish(mEventOffset);
-//
-//		this->mPublisher.publishEvent(reqString, mFbb.GetBufferPointer(),
-//				mFbb.GetSize());
+			// Event Serialization
+			flatbuffers::FlatBufferBuilder fbb;
+			flatbuffers::Offset<event::Event> eventOffset;
+
+			// Sending (Publishing) a flit and using Flatbuffers to serialize the data (flit):
+			std::string eventName = "PacketGenerator";
+			eventOffset = event::CreateEvent(fbb,
+					fbb.CreateString(eventName), mCurrentSimTime,
+					event::Priority_NORMAL_PRIORITY, 0, 0,
+					event::EventData_Flit,
+					event::CreateFlit(fbb, flit).Union());
+			fbb.Finish(eventOffset);
+
+			std::cout << mName << " sends " << flit << std::endl;
+
+			mPublisher.publishEvent(eventName, fbb.GetBufferPointer(),
+					fbb.GetSize());
+
+			mPacket.pop();
+			mCredit_Cnt_L--;
+		}
 	}
 
-	else if (mEventName == "SaveState") {
-		this->saveState(
-				std::string(mData.begin(), mData.end()) + mName + ".config");
+	else if (eventName == "Credit_in_L++") {
+		if (mCredit_Cnt_L < 3) {
+			mCredit_Cnt_L++;
+		}
 	}
 
-	else if (mEventName == "LoadState") {
-		this->loadState(
-				std::string(mData.begin(), mData.end()) + mName + ".config");
+	else if (receivedEvent->data_type() == event::EventData_Flit) {
+		auto flitData = receivedEvent->data_as_Flit()->uint32();
+
+		if (eventName == "Local") {
+			mPacketSink.send_flit_to_local(flitData, mCurrentSimTime);
+		}
 	}
 
-	else if (mEventName == "End") {
+	else if (receivedEvent->data_type() == event::EventData_String) {
+		std::string configPath = receivedEvent->data_as_String()->str();
+
+		if (eventName == "SaveState") {
+			saveState(
+					std::string(configPath.begin(), configPath.end()) + mName
+							+ ".config");
+		}
+
+		else if (eventName == "LoadState") {
+			loadState(
+					std::string(configPath.begin(), configPath.end()) + mName
+							+ ".config");
+		}
+	} else if (eventName == "End") {
 		mRun = false;
 	}
-
 }
 
 void ProcessingElement::saveState(std::string filePath) {
@@ -148,7 +200,8 @@ void ProcessingElement::loadState(std::string filePath) {
 		std::cout << ex.what() << std::endl;
 	}
 
-	mRun = mSubscriber.synchronizeSub();
-
+	// Optional calculate parameters from the loaded initial state
 	this->init();
+
+	mRun = mSubscriber.synchronizeSub();
 }

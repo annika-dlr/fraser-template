@@ -10,7 +10,7 @@
 # - 2018, Annika Ofenloch (DLR RY-AVS)
 
 PROG = router
-SRCS= main.cpp ../../resources/src/Router.cpp Packets.cpp ../../fraser/src/communication/Subscriber.cpp ../../fraser/src/communication/Publisher.cpp \
+SRCS= main.cpp ../../resources/src/Router.cpp ../processing_element/flit_utils.cpp ../../fraser/src/communication/Subscriber.cpp ../../fraser/src/communication/Publisher.cpp \
 ../../fraser/src/communication/Dealer.cpp
 BINDIR = build/bin
 OBJDIR = build/obj

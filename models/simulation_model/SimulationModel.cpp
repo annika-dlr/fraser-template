@@ -17,14 +17,14 @@
 
 SimulationModel::SimulationModel(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mPublisher(mCtx), mDealer(
-				mCtx, mName), mSimTime("SimTime", 1000), mSimTimeStep(
+				mCtx, mName), mSimTime("SimTime", 5000), mSimTimeStep(
 				"SimTimeStep", 100), mCurrentSimTime("CurrentSimTime", 0), mCycleTime(
 				"CylceTime", 0), mSpeedFactor("SpeedFactor", 1.0) {
 
 	registerInterruptSignal();
 
-	mRun = this->prepare();
-	this->init();
+	mRun = prepare();
+	init();
 }
 
 SimulationModel::~SimulationModel() {
@@ -51,6 +51,9 @@ bool SimulationModel::prepare() {
 	}
 
 	// (mTotalNumOfModels - 2), because the simulation and configuration models should not be included
+	std::cout
+			<< "Synchronize simulation model with the other models (after configuration phase)."
+			<< std::endl;
 	if (!mPublisher.synchronizePub(mTotalNumOfModels - 2,
 			mCurrentSimTime.getValue())) {
 		return false;
@@ -60,7 +63,7 @@ bool SimulationModel::prepare() {
 }
 
 void SimulationModel::run() {
-	uint64_t currentSimTime = mCurrentSimTime.getValue();
+	uint64_t currentSimTime = getCurrentSimTime();
 	if (mRun) {
 		while (currentSimTime <= mSimTime.getValue()) {
 			if (!mPause) {
@@ -76,7 +79,7 @@ void SimulationModel::run() {
 					}
 				}
 
-				std::cout << "[SIMTIME] --> " << currentSimTime << std::endl;
+				//std::cout << "[SIMTIME] --> " << currentSimTime << std::endl;
 				mEventOffset = event::CreateEvent(mFbb,
 						mFbb.CreateString("SimTimeChanged"), currentSimTime);
 				mFbb.Finish(mEventOffset);
@@ -118,7 +121,8 @@ void SimulationModel::loadState(std::string filePath) {
 		ia >> boost::serialization::make_nvp("FieldSet", *this);
 
 	} catch (boost::archive::archive_exception& ex) {
-		std::cout << mName<<": Archive Exception during deserializing: " << std::endl;
+		std::cout << mName << ": Archive Exception during deserializing: "
+				<< std::endl;
 		std::cout << ex.what() << std::endl;
 	}
 
@@ -132,11 +136,13 @@ void SimulationModel::loadState(std::string filePath) {
 	// Synchronization is necessary, because the simulation
 	// has to wait until the other models finished their Restore-method
 	// (mNumOfPersistModels - 1), because the simulation model itself should not be included
+	std::cout
+			<< "Synchronize simulation model with the other models (after initialization phase)."
+			<< std::endl;
 	mRun = mPublisher.synchronizePub(mNumOfPersistModels - 1,
 			mCurrentSimTime.getValue());
 
 	this->init();
-
 	this->continueSim();
 }
 
@@ -170,7 +176,7 @@ void SimulationModel::saveState(std::string filePath) {
 			mCurrentSimTime.getValue());
 
 	if (mConfigMode) {
-		std::cout<<"Default configuration files were created"<<std::endl;
+		std::cout << "Default configuration files were created" << std::endl;
 		this->stopSim();
 	} else {
 		this->continueSim();
