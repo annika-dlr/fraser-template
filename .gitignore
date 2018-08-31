@@ -5,6 +5,7 @@ ansible/init.retry
 ansible/build.retry
 .pydevproject
 .project
+.vscode
 /bin/
 /obj/
 models/event_queue_1/resources/idl/example_data_3.fbs
