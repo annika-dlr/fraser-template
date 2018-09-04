@@ -18,8 +18,9 @@
 
 ProcessingElement::ProcessingElement(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
-				mCtx), mDealer(mCtx, mName), mCurrentSimTime(0), mPacketGenerator(
-				0), mPacketSink(0), mPacketNumber("PacketNumber", 10) {
+				mCtx), mDealer(mCtx, mName), mCurrentSimTime(0), mPacketGenerator(), 
+				mPacketSink(), mPacketNumber("PacketNumber", 10), 
+				mPacketFrameLength("PacketFrameLength", 10) {
 
 	mRun = this->prepare();
 	//init();

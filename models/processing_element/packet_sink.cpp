@@ -17,11 +17,8 @@
  * Constructor
  *
  * Parameters:
- *  uint16_t address - Address of the current packet sink
  */
-PacketSink::PacketSink(uint16_t address) {
-	m_address = address;
-}
+PacketSink::PacketSink() {}
 
 /*
  * Called if a flit with an unexpected type is received. It will put the system into a

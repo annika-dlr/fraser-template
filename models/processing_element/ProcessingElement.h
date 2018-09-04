@@ -78,11 +78,13 @@ private:
 
 	// Fields
 	Field<uint16_t> mPacketNumber;
+	Field<uint16_t> mPacketFrameLength;
 
 	friend class boost::serialization::access;
 	template<typename Archive>
 	void serialize(Archive& archive, const unsigned int) {
 		archive & boost::serialization::make_nvp("IntField", mPacketNumber);
+		archive & boost::serialization::make_nvp("IntField", mPacketFrameLength);
 	}
 };
 

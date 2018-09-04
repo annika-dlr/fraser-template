@@ -21,9 +21,7 @@
  * Parameters:
  * 	uint16_t address               - Address of the current packet generator
  */
-PacketGenerator::PacketGenerator(
-		uint16_t address = 1) :
-		m_address(address), m_packet_id(0) {
+PacketGenerator::PacketGenerator() : m_packet_id(0) {
 }
 
 /*

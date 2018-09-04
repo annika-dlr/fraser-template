@@ -27,7 +27,7 @@ struct Packet {
 class PacketSink {
 
 public:
-    PacketSink(uint16_t address);
+    PacketSink();
     void send_flit_to_local(uint32_t flit, uint64_t time);
 
     void set_local_address(uint16_t address) {
