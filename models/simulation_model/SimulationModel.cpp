@@ -24,7 +24,7 @@ SimulationModel::SimulationModel(std::string name, std::string description) :
 	registerInterruptSignal();
 
 	mRun = prepare();
-	init();
+	//init();
 }
 
 SimulationModel::~SimulationModel() {

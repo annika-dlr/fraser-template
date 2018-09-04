@@ -30,6 +30,16 @@ ProcessingElement::~ProcessingElement() {
 
 void ProcessingElement::init() {
 	// Set or calculate other parameters ...
+	mPacketGenerator.set_local_address(mAddress);
+	mPacketSink.set_local_address(mAddress);
+
+	uint16_t destinationAddress = 1;
+	if (destinationAddress == mAddress) {
+		destinationAddress = 2;
+	}
+
+	mPacketGenerator.generate_packet(mPacket, mPacketNumber.getValue(),
+			destinationAddress, GenerationModes::counter, mCurrentSimTime);
 }
 
 bool ProcessingElement::prepare() {
@@ -52,20 +62,9 @@ bool ProcessingElement::prepare() {
 			return false;
 		}
 
-		// Set router address
-		uint16_t address = static_cast<uint16_t>(std::bitset<16>(
+		// Set processing element address (router address)
+		mAddress = static_cast<uint16_t>(std::bitset<16>(
 				mDealer.getModelParameter(depModel, "address")).to_ulong());
-
-		mPacketGenerator.set_local_address(address);
-		mPacketSink.set_local_address(address);
-
-		uint16_t destinationAddress = 1;
-		if (destinationAddress == address) {
-			destinationAddress = 2;
-		}
-
-		mPacketGenerator.generate_packet(mPacket, mPacketNumber.getValue(),
-				destinationAddress, GenerationModes::counter, mCurrentSimTime);
 	}
 
 	mSubscriber.subscribeTo("Local");
@@ -121,9 +120,8 @@ void ProcessingElement::handleEvent() {
 
 			// Sending (Publishing) a flit and using Flatbuffers to serialize the data (flit):
 			std::string eventName = "PacketGenerator";
-			eventOffset = event::CreateEvent(fbb,
-					fbb.CreateString(eventName), mCurrentSimTime,
-					event::Priority_NORMAL_PRIORITY, 0, 0,
+			eventOffset = event::CreateEvent(fbb, fbb.CreateString(eventName),
+					mCurrentSimTime, event::Priority_NORMAL_PRIORITY, 0, 0,
 					event::EventData_Flit,
 					event::CreateFlit(fbb, flit).Union());
 			fbb.Finish(eventOffset);

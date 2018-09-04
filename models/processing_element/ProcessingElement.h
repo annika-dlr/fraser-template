@@ -11,8 +11,8 @@
  * - 2018, Annika Ofenloch (DLR RY-AVS)
  */
 
-#ifndef FRASER_TEMPLATE_RESOURCES_SRC_PROCESSINGELEMENT_H_
-#define FRASER_TEMPLATE_RESOURCES_SRC_PROCESSINGELEMENT_H_
+#ifndef FRASER_TEMPLATE_MODELS_PROCESSINGELEMENT_H_
+#define FRASER_TEMPLATE_MODELS_PROCESSINGELEMENT_H_
 
 #include <fstream>
 #include <boost/serialization/serialization.hpp>
@@ -67,6 +67,7 @@ private:
 	Publisher mPublisher;
 	Dealer mDealer;
 
+	uint16_t mAddress = 0;
 	uint16_t mCredit_Cnt_L = 3;
 
 	bool mRun;
