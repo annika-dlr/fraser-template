@@ -74,18 +74,18 @@ void PacketSink::log_packet(bool faulty, uint64_t time) {
 	std::stringstream log_stream;
 
 	if (faulty) {
-		std::cout << "Recv_" << m_address << ": Wrong flit order detected"
+		std::cout << "Recv_" << mAddress << ": Wrong flit order detected"
 				<< std::endl;
 	} else {
 
 		auto extracted_crc = extract_crc();
 		auto calculated_crc = calculate_crc();
 
-		log_stream << "[PACKET] Recv_" << m_address << " - " << "ID: "
+		log_stream << "[PACKET] Recv_" << mAddress << " - " << "ID: "
 				<< m_recvd_packet.packet_id << ", Src: "
 				<< m_recvd_packet.src_addr << ", Dst: "
 				<< m_recvd_packet.dst_addr << ", Encoded length: "
-				<< m_recvd_packet.packet_length << ", Counted length: "
+				<< m_recvd_packet.packetLength << ", Counted length: "
 				<< m_recvd_packet.packet.size() << ", Encoded CRC: 0x"
 				<< std::hex << extracted_crc << ", Calculated CRC: 0x"
 				<< std::hex << calculated_crc << std::dec << ", time: " << time
@@ -135,7 +135,7 @@ void PacketSink::send_flit_to_local(uint32_t flit, uint64_t time) {
 
 		if (flit_type == BODY_FLIT) {
 			m_recv_error = false;
-			parse_first_body_flit(flit, &m_recvd_packet.packet_length,
+			parse_first_body_flit(flit, &m_recvd_packet.packetLength,
 					&m_recvd_packet.packet_id, &parity);
 			m_recvd_packet.packet.push_back(flit);
 			m_next_state = PacketStates::wait_tail;

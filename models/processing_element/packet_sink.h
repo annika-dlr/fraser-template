@@ -17,7 +17,7 @@ struct Packet {
     uint16_t address;
     uint16_t src_addr;
     uint16_t dst_addr;
-    uint16_t packet_length;
+    uint16_t packetLength;
     uint16_t packet_id;
     uint16_t crc;
 
@@ -30,8 +30,8 @@ public:
     PacketSink();
     void send_flit_to_local(uint32_t flit, uint64_t time);
 
-    void set_local_address(uint16_t address) {
-      m_address = address;
+    void setLocalAddress(uint16_t address) {
+      mAddress = address;
     }
 
 private:
@@ -40,7 +40,7 @@ private:
     uint16_t extract_crc();
     uint16_t calculate_crc();
 
-    uint16_t m_address;
+    uint16_t mAddress;
     Packet m_recvd_packet;
     PacketStates m_next_state = PacketStates::wait_header;
     bool m_recv_error = false;

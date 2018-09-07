@@ -16,12 +16,13 @@
 #include "ProcessingElement.h"
 #include <bitset>
 
+#define NOC_NODE_COUNT 4
+
 ProcessingElement::ProcessingElement(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
 				mCtx), mDealer(mCtx, mName), mCurrentSimTime(0), mPacketGenerator(), 
-				mPacketSink(), mPacketNumber("PacketNumber", 10), 
-				mPacketFrameLength("PacketFrameLength", 10) {
-
+				mPacketSink(), mPacketNumber("PacketNumber", 10), mMinPacketLength("minPacketLength", 3), 
+				mMaxPacketLength("maxPacketLength", 10), mPir("PIR", 0.01) {
 	mRun = this->prepare();
 	//init();
 }
@@ -31,16 +32,15 @@ ProcessingElement::~ProcessingElement() {
 
 void ProcessingElement::init() {
 	// Set or calculate other parameters ...
-	mPacketGenerator.set_local_address(mAddress);
-	mPacketSink.set_local_address(mAddress);
+	mPacketGenerator.init(mAddress, NOC_NODE_COUNT, GenerationModes::counter, mPir.getValue(), 
+							mMinPacketLength.getValue(), mMaxPacketLength.getValue());
 
 	uint16_t destinationAddress = 1;
 	if (destinationAddress == mAddress) {
 		destinationAddress = 2;
 	}
 
-	mPacketGenerator.generate_packet(mPacket, mPacketNumber.getValue(),
-			destinationAddress, GenerationModes::counter, mCurrentSimTime);
+	// mPacketGenerator.getFlit(mCurrentSimTime);
 }
 
 bool ProcessingElement::prepare() {
@@ -93,7 +93,7 @@ bool ProcessingElement::prepare() {
 void ProcessingElement::run() {
 	while (mRun) {
 		/*if (mPacket.empty()) {
-		 mPacketGenerator.generate_packet(mPacket, mPacketNumber.getValue(),
+		 mPacketGenerator.generatePacket(mPacket, mPacketNumber.getValue(),
 		 1, GenerationModes::counter, mCurrentSimTime);
 		 } else*/
 
@@ -112,8 +112,9 @@ void ProcessingElement::handleEvent() {
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
 	if (eventName == "SimTimeChanged") {
-		if (!mPacket.empty() && (mCredit_Cnt_L > 0)) {
-			auto flit = mPacket.front();
+		auto flit = mPacketGenerator.getFlit(mCurrentSimTime);
+
+		if ((flit != 0) && (mCredit_Cnt_L > 0)) {
 
 			// Event Serialization
 			flatbuffers::FlatBufferBuilder fbb;
@@ -132,9 +133,31 @@ void ProcessingElement::handleEvent() {
 			mPublisher.publishEvent(eventName, fbb.GetBufferPointer(),
 					fbb.GetSize());
 
-			mPacket.pop();
 			mCredit_Cnt_L--;
 		}
+		// if (!mPacket.empty() && (mCredit_Cnt_L > 0)) {
+		// 	auto flit = mPacket.front();
+
+		// 	// Event Serialization
+		// 	flatbuffers::FlatBufferBuilder fbb;
+		// 	flatbuffers::Offset<event::Event> eventOffset;
+
+		// 	// Sending (Publishing) a flit and using Flatbuffers to serialize the data (flit):
+		// 	std::string eventName = "PacketGenerator";
+		// 	eventOffset = event::CreateEvent(fbb, fbb.CreateString(eventName),
+		// 			mCurrentSimTime, event::Priority_NORMAL_PRIORITY, 0, 0,
+		// 			event::EventData_Flit,
+		// 			event::CreateFlit(fbb, flit).Union());
+		// 	fbb.Finish(eventOffset);
+
+		// 	std::cout << mName << " sends " << flit << std::endl;
+
+		// 	mPublisher.publishEvent(eventName, fbb.GetBufferPointer(),
+		// 			fbb.GetSize());
+
+		// 	mPacket.pop();
+		// 	mCredit_Cnt_L--;
+		// }
 	}
 
 	else if (eventName == "Credit_in_L++") {

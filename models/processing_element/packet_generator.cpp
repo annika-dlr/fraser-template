@@ -16,83 +16,206 @@
 #include "flit_utils.h"
 
 /*
- * Constructor
- *
+ * Initializes the packet generator
+ * 
  * Parameters:
- * 	uint16_t address               - Address of the current packet generator
+ * 	uint16_t address 				- address of the current node
+ * 	uint8_t nocSize					- Number of node in the NoC
+ * 	GenerationModes generationMode	- packet generation mode
+ * 	double pir						- Packet Injection Rate (a value between 0 and 1), packets per (clock)cycle
+ * 	uint16_t minPacketLength		- Minimum packet length (Should be >= 3)
+ * 	uint16_t maxPacketLength		- Maximum packet length (Should be <= 1/pir)
  */
-PacketGenerator::PacketGenerator() : m_packet_id(0) {
-}
+void PacketGenerator::init(uint16_t address, uint8_t nocSize, GenerationModes generationMode, 
+							double pir, uint16_t minPacketLength, uint16_t maxPacketLength){
+	mAddress = address;
+	mGenerationMode = generationMode;
 
-/*
- * Generates a packet by increasing the value stored in each flit by 1, starting from 0.
- *
- * Parameters:
- * 	std::shared_ptr<std::vector<uint32_t>> packet - A vector used for storing the packet flit-by-flit
- * 	uint16_t packet_length                        - Length of the packet in flits
- * 	uint16_t destination                          - Destination address for the packet
- */
-uint16_t PacketGenerator::counter_based_generation(std::queue<uint32_t>& packet,
-		uint16_t packet_length, uint16_t destination) {
-	boost::crc_ccitt_type result;
-
-	/* Build headers */
-	packet.push(make_header_flit(destination, m_address));
-	packet.push(make_first_body_flit(packet_length, m_packet_id));
-
-	/* Make data flits */
-	for (size_t i = 2; i < packet_length - 1; i++) {
-		packet.push(make_body_flit(i));
+	if ((pir < 0 || pir > 1)) {
+		std::cout << "WARNING: PIR value (" << pir \
+		<< ") is not between 0 and 1... auto-assuming PIR = 0.01" << std::endl;
+		mFrameLength = 1/0.01;
+		
+	} else if (pir == 0) {
+		std::cout << "WARNING: PIR = 0, no traffic will be generated" << std::endl;
+		mFrameLength = 0;
+	    
+	} else {
+		mFrameLength = 1/pir;
 	}
-	/* Calculate result of the packet (ignoring the tail flit) */
-	result.process_bytes(&packet.front(), packet.size()); // TODO: include tail flit
 
-	auto checksum = result.checksum();
+	if (minPacketLength > maxPacketLength) {
+		std::cout << "WARNING: minPacketLength (" << minPacketLength \
+		<< ") is larger than maxPacketLength (" << maxPacketLength \
+		<< ")... swapping the MIN and MAX values";
 
-	/* Store checksum in the tail */
-	packet.push(make_tail_flit(checksum));
+		mMinPacketLength = maxPacketLength;
+		mMaxPacketLength = minPacketLength;
 
-	return checksum;
+	} else {
+		mMaxPacketLength = maxPacketLength;
+		mMinPacketLength = minPacketLength;
+	}
+
+	if (mMinPacketLength < 3) {
+		std::cout << "WARNING: minPacketLength is too small (" << mMinPacketLength \
+		<< ")... auto-assuming minPacketLength = 3" << std::endl;
+
+		mMinPacketLength = 3;
+	}
+
+	if (mMaxPacketLength > mFrameLength) {
+		std::cout << "WARNING: maxPacketLength (" << mMaxPacketLength \
+		<< ") is larger than the frame length (" << mFrameLength \
+		<< ")... auto-assuming maxPacketLength = frameLength" << std::endl;
+
+		mMaxPacketLength = mFrameLength;
+	}
+
+	std::cout << "Node_" << address << ": Generating with PIR " << pir \
+		<< " (Frame Length " << mFrameLength << "), packet length between " \
+		<< minPacketLength << " and " << maxPacketLength << std::endl;
+
+	mCounter = 0;
+	mFlitType = FlitType::header;
+	mWaiting = true;
 }
 
 /*
- * A simple packet generator. Currently it only implements counter-based data
- * generation, no random data support.
+ * Implements a flit generation with different generation modes.
  *
  * Parameters:
- * 	uint16_t packet_length - Length of the data to be generated
- * 							 (in packets, including headers and tail)
- * 	uint16_t destination   - Destination address of the packet
- * 	GenerationModes mode   - Mode to use for data generation
+ * 	uint64_t time - current simulation time
+ * 
+ * Returns:
+ * 	uint32_t Generated payload, 0 when generation failed
  */
-void PacketGenerator::generate_packet(std::queue<uint32_t>& packet,
-		uint16_t packet_length, uint16_t destination, GenerationModes mode,
-		uint64_t time) {
-	std::stringstream log_stream;
-	uint16_t checksum;
+uint32_t PacketGenerator::generatePayload(uint64_t time) {
+
+	uint32_t payload;
 
 	/* Packet generation */
 	// TODO: Add more modes (like random)
-	switch (mode) {
-	case GenerationModes::counter:
-		checksum = counter_based_generation(packet, packet_length, destination);
-		break;
+	switch (mGenerationMode) {
+		case GenerationModes::counter:
+			payload = mCounter + 1;
+			break;
 
-	default:
-		std::cerr << "Unknown data generation mode!" << std::endl;
-		return;
+		default:
+			std::cerr << "Unknown generation mode!" << std::endl;
+			return 0;
+		}
+
+	return payload;
+
+}
+
+/*
+ * Gets a flit from packet generator.
+ * 
+ * Parameters:
+ * 	uint64_t time - current simulation time
+ * 
+ * Returns:
+ * 	uint32_t flit: The generated flit. If no flit is generated, 0 is returned.
+ */
+
+uint32_t PacketGenerator::getFlit(uint64_t time){
+
+	std::stringstream log_stream;
+	std::string log_line;
+	uint32_t flit;
+	uint32_t returnValue;
+
+	if (mWaiting) {
+		if(mCounter == 0) { // Start of a new frame
+			mStartupDelay = 0; // TODO: Temporary placeholder. Should be replaced with a random value
+			mPacketLength = mMaxPacketLength; // TODO: Implement random packet length
+		}
+
+		if (mStartupDelay == mCounter) {
+			mWaiting = false;
+		}
 	}
 
-	/* Packet ID will increase after every sent packet */
-	m_packet_id++;
+	if (!mWaiting) {
+		switch (mFlitType) {
+			case FlitType::header:
+				{
+					mDestination = 1; // TODO: Implement random destination generation
+					if (mDestination == mAddress) {
+						mDestination++;
+					}
 
-	/* Logging */
-	log_stream << "[PACKET] Sent_" << m_address << " - " << "ID: " << m_packet_id
-			<< ", Dst: " << destination << ", Length: " << packet_length
-			<< ", CRC: 0x" << std::hex << checksum << std::dec << ", time: "
-			<< time << std::endl;
+					flit = make_header_flit(mDestination, mAddress);
+					mFlitType = FlitType::firstBody;
+				}
+				break;
+			
+			case FlitType::firstBody:
+				{
+					// result.process_bytes(&packet.front(), packet.size());
+					flit = make_first_body_flit(mPacketLength, mPacketId);
+					mFlitType = FlitType::body;
+				}
+				break;
 
-	// TODO: Better logging than just printing on the screen??
-	std::string log_line = log_stream.str();
-	std::cout << log_line;
+			case FlitType::body:
+				{
+					flit = make_body_flit(mCounter);
+
+					if (mCounter - mStartupDelay > mPacketLength - 1) {
+						mFlitType = FlitType::body;
+					} else {
+						mFlitType = FlitType::tail;
+					}
+				}
+				break;
+
+			case FlitType::tail:
+				{
+					// auto checksum = result.checksum();
+					auto checksum = 42; // FIXME: CRC calculation is currently broken
+					flit = make_tail_flit(checksum);
+
+					mFlitType = FlitType::header;
+
+					/* When we find the tail, let's log the sent packet */
+					log_stream << "[PACKET] Sent_" << mAddress << " - " << "ID: " << mPacketId
+								<< ", Dst: " << mDestination << ", Length: " << mPacketLength
+								// << ", CRC: 0x" << std::hex << checksum << std::dec << ", time: "
+								<< time << std::endl;
+
+					// TODO: Better logging than just printing on the screen??
+					log_line = log_stream.str();
+					std::cout << log_line;
+				}
+				break;
+
+			default:
+				std::cerr << "Unknown Flit type!" << std::endl;
+				return 0;
+		}
+	}
+
+	if (mCounter == mFrameLength - 1) { // End of the frame
+		mCounter = 0;
+		mPacketId++;
+
+	} else {
+		mCounter++;
+	}
+
+	if (!mWaiting && mFlitType == FlitType::header) { // We had a tail flit
+		returnValue = flit;
+		mWaiting = true;
+
+	} else if (mWaiting) {
+		returnValue = 0;
+
+	} else {
+		returnValue = flit;
+	}
+	
+	return returnValue;
 }

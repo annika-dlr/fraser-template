@@ -3,32 +3,49 @@
  * fixed traffic (counter, no random data).
  */
 
-#ifndef __PACKET_GENERATOR_HPP__
-#define __PACKET_GENERATOR_HPP__
+#ifndef __PACKET_GENERATOR_H__
+#define __PACKET_GENERATOR_H__
 
 #include <cstdint>
-#include <memory>
 #include <queue>
 
 enum class GenerationModes {counter}; // TODO: Add other modes
+enum class FlitType {header, firstBody, body, tail};
 
 class PacketGenerator {
 public:
-    PacketGenerator();
-    void generate_packet(std::queue<uint32_t>& packet, uint16_t packet_length, uint16_t destination,
-                         GenerationModes mode, uint64_t time);
-
-    void set_local_address(uint16_t address) {
-    	m_address = address;
+    PacketGenerator() {
+        mPacketId = 0;
     }
+    
+    void init(uint16_t address, uint8_t nocSize, GenerationModes generationMode, 
+			    double pir, uint16_t minPacketLength, uint16_t maxPacketLength);
+
+    uint32_t getFlit(uint64_t time);
 
 private:
-    uint16_t counter_based_generation(std::queue<uint32_t>& packet,
-                                      uint16_t packet_length, uint16_t destination);
+    uint32_t counterBasedGeneration(uint64_t time);
 
-    uint16_t m_address;
-    uint16_t m_packet_id;
+    uint32_t generatePayload(uint64_t time);
+
+    uint16_t mAddress;
+	uint16_t mNocSize;
+
+    /* Data storage for flit generation */
+    uint16_t mPacketId;
+    uint16_t mPacketLength;
+    uint16_t mCounter;
+    FlitType mFlitType;
+    bool mWaiting;
+    uint16_t mStartupDelay;
+    uint16_t mDestination;
+
+    /* User-definable constants, which need to be easily configurable by user */
+    uint16_t mFrameLength;
+    GenerationModes mGenerationMode;
+    uint16_t mMinPacketLength;
+	uint16_t mMaxPacketLength;
 };
 
 
-#endif //__PACKET_GENERATOR_HPP__
+#endif //__PACKET_GENERATOR_H__
