@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, German Aerospace Center (DLR)
+ * Copyright (c) 2018, German Aerospace Center (DLR)
  *
  * This file is part of the development version of FRASER.
  *
@@ -8,87 +8,73 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  * Authors:
- * - 2018, Annika Ofenloch (DLR RY-AVS)
+ *  2018, Annika Ofenloch (DLR RYAVS)
  */
 
-#ifndef FRASER_TEMPLATE_MODELS_ROUTER_1_ROUTER_H_
-#define FRASER_TEMPLATE_MODELS_ROUTER_1_ROUTER_H_
+#ifndef FRASER_TEMPLATE_MODELS_ROUTER_ROUTER_H_
+#define FRASER_TEMPLATE_MODELS_ROUTER_ROUTER_H_
 
 #include <fstream>
 #include <queue>
-#include <list>
 #include <string>
-#include <boost/serialization/serialization.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <zmq.hpp>
 #include <stdint.h>
 #include <bitset>
+#include <iostream>
 
-#include "resources/idl/event_generated.h"
-#include "communication/zhelpers.hpp"
-#include "communication/Subscriber.h"
-#include "communication/Publisher.h"
-#include "communication/Dealer.h"
-#include "interfaces/IModel.h"
-#include "interfaces/IPersist.h"
-#include "data-types/Field.h"
+#include "models/processing_element/flit_utils.h"
 
 #define NOC_SIZE 2
 
-class Router: public virtual IModel, public virtual IPersist {
+class Router {
 public:
 
-	Router(std::string name, std::string description);
-	virtual ~Router();
+	Router();
 
-	enum Request : uint8_t {
-		idle = 0,
-		local = 1,
-		north = 2,
-		east = 3,
-		south = 4,
-		west = 5
+	enum Request
+		: uint8_t {
+			idle = 0, local = 1, north = 2, east = 3, south = 4, west = 5
 	};
 
-	// IModel
-	virtual void init() override;
-	virtual bool prepare() override;
-	virtual void run() override;
+	bool arbitrateWithRoundRobinPrioritization();
 
-	virtual std::string getName() const override {
-		return mName;
-	}
-	virtual std::string getDescription() const override {
-		return mDescription;
+	bool pushToLocalFIFO(uint32_t flit);
+	bool pushToWestFIFO(uint32_t flit);
+	bool pushToEastFIFO(uint32_t flit);
+	bool pushToSouthFIFO(uint32_t flit);
+	bool pushToNorthFIFO(uint32_t flit);
+
+	void increaseCreditCntNorth();
+	void increaseCreditCntWest();
+	void increaseCreditCntEast();
+	void increaseCreditCntSouth();
+
+	// Getter & Setter
+	void setAddress(uint16_t address) {
+		mCurrentAddr = address;
 	}
 
-	// IPersist
-	virtual void saveState(std::string filename) override;
-	virtual void loadState(std::string filename) override;
+	void setRoutingBits(std::bitset<16> rountingBits) {
+		mRoutingBits = rountingBits;
+	}
+
+	void setConnectivityBits(std::bitset<16> connectivityBits) {
+		mConnectivityBits = connectivityBits;
+	}
+
+	uint32_t getNextFlit() {
+		return mNextFlit;
+	}
+
+	std::string getChosenOutputPort() {
+		return mChosenOutputPort;
+	}
+
+	std::string getCreditCntSignal() {
+		return mCreditCntSignal;
+	}
 
 private:
-	// IModel
-	std::string mName;
-	std::string mDescription;
-
-	// Subscriber
-	void handleEvent();
-
-	zmq::context_t mCtx;
-	Subscriber mSubscriber;
-	Publisher mPublisher;
-	Dealer mDealer;
-
-	bool mRun;
-	uint32_t mCurrentSimTime = 0;
-
-	friend class boost::serialization::access;
-	template<typename Archive>
-	void serialize(Archive& archive, const unsigned int) {
-	}
-
-	uint64_t mCycles = 0;
+	uint64_t mCycles = 0; // TODO: Forward Flit after 3 Cycles
 	uint16_t mCurrentAddr = 0;
 	std::bitset<16> mConnectivityBits = 0;
 	std::bitset<16> mRoutingBits = 0;
@@ -119,12 +105,15 @@ private:
 	bool south_grant = false;
 	bool local_grant = false;
 
-	bool sendFlitAfterRequestCheck(Request& request, std::queue<uint32_t>& flitFIFO, std::string creditString);
-	void sendFlitWithRoundRobinPrioritization();
+	uint32_t mNextFlit = 0;
+	std::string mChosenOutputPort;
+	std::string mCreditCntSignal;
+
+	bool validGrantSignal(Request& request, std::queue<uint32_t>& flitFIFO,
+			std::string creditString);
+
 	// returns the request (Local, North, East, South or West)
 	void generateRequest(uint32_t flit, Request& request);
-	void sendFlit(uint32_t, std::string reqString);
-	void updateCreditCounter(std::string eventName);
 };
 
-#endif /* FRASER_TEMPLATE_MODELS_ROUTER_1_ROUTER_H_ */
+#endif /* FRASER_TEMPLATE_MODELS_ROUTER_ROUTER_H_ */

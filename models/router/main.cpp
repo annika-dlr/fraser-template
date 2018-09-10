@@ -15,7 +15,7 @@
 #include <boost/thread.hpp>
 #include <zmq.hpp>
 
-#include "Router.h"
+#include "RouterAdapter.h"
 
 int main(int argc, char* argv[]) {
 	if (argc > 2) {
@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
 		}
 
 		if (validArgs) {
-			Router router(routerName, "Bonfire Router Model");
+			RouterAdapter router(routerName, "Bonfire Router Model");
 			try {
 				router.run();
 
