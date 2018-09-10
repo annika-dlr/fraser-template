@@ -14,22 +14,57 @@
 #include "flit_utils.h"
 
 /*
- * Constructor
- *
- * Parameters:
+ * Initializes the packet sink.
+ * 
+ * Paramters:
+ * 	uint16_t address: Address of the current node
  */
-PacketSink::PacketSink() {}
+void PacketSink::init(uint16_t address) {
+	mAddress = address;
+}
+
+/*
+ * Prints debug information about received flits.
+ * 
+ * Parameters:
+ * 	uint32_t flit:     Received flit
+ *  uint64_t time:     Current simulation time
+ *  uint8_t flitType:  Type of the received flit
+ */
+void PacketSink::printFlit(uint32_t flit, uint64_t time, uint8_t flitType) {
+
+	std::string flitTypeStr;
+	std::string strColor;
+
+
+	if (flitType == HEADER_FLIT) {
+		flitTypeStr = "HEADER";
+		strColor = "\033[1;33m";
+
+	} else if (flitType == BODY_FLIT) {
+		flitTypeStr = "BODY";
+		strColor = "\033[1;34m";
+
+	} else if (flitType == TAIL_FLIT) {
+		flitTypeStr = "TAIL";
+		strColor = "\033[1;31m";
+	}
+	std::cout << "\e[1mT=" << time << ": " << "\033[1;31m[R] \033[0m" <<  strColor << "PE_" << mAddress 
+				<< " [Received] " << flitTypeStr << " Flit \033[0m" << flit 
+				<<" ["<<std::bitset<32>(flit).to_string() << "]" << " from "
+				<< mRecvdPacket.srcAddr << " to " << mRecvdPacket.dstAddr << std::endl;
+}
 
 /*
  * Called if a flit with an unexpected type is received. It will put the system into a
  * erroneous state and log the flit as erroneous. This will also cause the FSM in
  * PacketSink::send_flit_to_local to drop all flits until a next header has arrived
  */
-void PacketSink::fsm_error(uint64_t time) {
-	if (!m_recv_error) {
-		m_recv_error = true;
-		m_next_state = PacketStates::wait_header;
-		log_packet(true, time);
+void PacketSink::fsmError(uint64_t time) {
+	if (!mRecvError) {
+		mRecvError = true;
+		mNextState = PacketStates::waitHeader;
+		logPacket(true, time);
 	}
 }
 
@@ -39,13 +74,13 @@ void PacketSink::fsm_error(uint64_t time) {
  * Returns:
  *  CRC-CCITT-16 checksum
  */
-uint16_t PacketSink::calculate_crc() {
+uint16_t PacketSink::calculateCrc() {
 	boost::crc_ccitt_type result;
 
 	/* Calculate CRC of the packet (ignoring the tail flit) */
 	// TODO: Add tail flit error checking
-	result.process_bytes(&m_recvd_packet.packet[0],
-			m_recvd_packet.packet.size() - 1);
+	result.process_bytes(&mRecvdPacket.packet[0],
+			mRecvdPacket.packet.size() - 1);
 
 	return result.checksum();
 }
@@ -56,8 +91,8 @@ uint16_t PacketSink::calculate_crc() {
  * Returns:
  *  The CRC extracted from the tail flit
  */
-uint16_t PacketSink::extract_crc() {
-	auto *tail_flit = &m_recvd_packet.packet[m_recvd_packet.packet.size() - 1];
+uint16_t PacketSink::extractCrc() {
+	auto *tail_flit = &mRecvdPacket.packet[mRecvdPacket.packet.size() - 1];
 	auto tail_payload = get_bit_range(*tail_flit, 1, 28);
 	uint16_t recvd_crc = tail_payload | 0xFFFF0000;
 
@@ -70,30 +105,30 @@ uint16_t PacketSink::extract_crc() {
  * Parameters:
  *  bool faulty - True if the packet is marked as faulty
  */
-void PacketSink::log_packet(bool faulty, uint64_t time) {
-	std::stringstream log_stream;
+void PacketSink::logPacket(bool faulty, uint64_t time) {
+	std::stringstream logStream;
 
 	if (faulty) {
 		std::cout << "Recv_" << mAddress << ": Wrong flit order detected"
 				<< std::endl;
 	} else {
 
-		auto extracted_crc = extract_crc();
-		auto calculated_crc = calculate_crc();
+		auto extractedCrc = extractCrc();
+		auto calculatedCrc = calculateCrc();
 
-		log_stream << "[PACKET] Recv_" << mAddress << " - " << "ID: "
-				<< m_recvd_packet.packet_id << ", Src: "
-				<< m_recvd_packet.src_addr << ", Dst: "
-				<< m_recvd_packet.dst_addr << ", Encoded length: "
-				<< m_recvd_packet.packetLength << ", Counted length: "
-				<< m_recvd_packet.packet.size() << ", Encoded CRC: 0x"
-				<< std::hex << extracted_crc << ", Calculated CRC: 0x"
-				<< std::hex << calculated_crc << std::dec << ", time: " << time
+		logStream <<"\e[32m\e[1m[PACKET]\e[0m\e[39m Recv_" << mAddress << " - " << "ID: "
+				<< mRecvdPacket.packetId << ", Src: "
+				<< mRecvdPacket.srcAddr << ", Dst: "
+				<< mRecvdPacket.dstAddr << ", Encoded length: "
+				<< mRecvdPacket.packetLength << ", Counted length: "
+				<< mRecvdPacket.packet.size() << ", Encoded CRC: 0x"
+				<< std::hex << extractedCrc << ", Calculated CRC: 0x"
+				<< std::hex << calculatedCrc << std::dec << ", time: " << time
 				<< std::endl;
 
-		std::cout << log_stream.str();
+		std::cout << logStream.str();
 
-		m_recvd_packet.packet.clear();
+		mRecvdPacket.packet.clear();
 	}
 }
 
@@ -105,47 +140,39 @@ void PacketSink::log_packet(bool faulty, uint64_t time) {
  *  uint32_t flit - flit to receive
  */
 
-void PacketSink::send_flit_to_local(uint32_t flit, uint64_t time) {
+void PacketSink::putFlit(uint32_t flit, uint64_t time) {
 
 	uint8_t parity; // TODO not actually checked, but needed for receiving the flits
 	auto flit_type = get_flit_type(flit);
 
 	/* FSM for receiving the packet */
-	switch (m_next_state) {
-	case PacketStates::wait_header:
+	switch (mNextState) {
+	case PacketStates::waitHeader:
 
 		if (flit_type == HEADER_FLIT) {
-			m_recv_error = false;
-			parse_header_flit(flit, &m_recvd_packet.dst_addr,
-					&m_recvd_packet.src_addr, &parity);
-			m_recvd_packet.packet.push_back(flit);
-			m_next_state = PacketStates::wait_first_body;
-
-			std::cout << "\033[1;33mSent HEADER Flit \033[0m" << flit <<" ["<<std::bitset<32>(flit).to_string()<<"]"<< " from "
-					<< m_recvd_packet.src_addr << " to "
-					<< m_recvd_packet.dst_addr << std::endl;
+			mRecvError = false;
+			parse_header_flit(flit, &mRecvdPacket.dstAddr,
+					&mRecvdPacket.srcAddr, &parity);
+			mRecvdPacket.packet.push_back(flit);
+			mNextState = PacketStates::waitFirstBody;
 
 		} else {
-			fsm_error(time);
+			fsmError(time);
 		}
 
 		break;
 
-	case PacketStates::wait_first_body:
+	case PacketStates::waitFirstBody:
 
 		if (flit_type == BODY_FLIT) {
-			m_recv_error = false;
-			parse_first_body_flit(flit, &m_recvd_packet.packetLength,
-					&m_recvd_packet.packet_id, &parity);
-			m_recvd_packet.packet.push_back(flit);
-			m_next_state = PacketStates::wait_tail;
-
-			std::cout << "\033[1;34mSent BODY Flit \033[0m" << flit<<" ["<<std::bitset<32>(flit).to_string()<<"]" << " from "
-								<< m_recvd_packet.src_addr << " to "
-								<< m_recvd_packet.dst_addr << std::endl;
+			mRecvError = false;
+			parse_first_body_flit(flit, &mRecvdPacket.packetLength,
+					&mRecvdPacket.packetId, &parity);
+			mRecvdPacket.packet.push_back(flit);
+			mNextState = PacketStates::waitTail;
 
 		} else {
-			fsm_error(time);
+			fsmError(time);
 		}
 
 		break;
@@ -154,32 +181,23 @@ void PacketSink::send_flit_to_local(uint32_t flit, uint64_t time) {
 		 * In case of normal body / header, the actual payload is not interesting to us,
 		 * the CRC will take care of it.
 		 */
-	case PacketStates::wait_tail:
+	case PacketStates::waitTail:
 
 		if (flit_type == BODY_FLIT) {
-			m_recv_error = false;
-			m_recvd_packet.packet.push_back(flit);
-			m_next_state = PacketStates::wait_tail;
-
-			std::cout << "\033[1;34mSent BODY Flit \033[0m" << flit<<" ["<<std::bitset<32>(flit).to_string()<<"]" << " from "
-					<< m_recvd_packet.src_addr << " to "
-					<< m_recvd_packet.dst_addr << std::endl;
-
+			mRecvError = false;
+			mRecvdPacket.packet.push_back(flit);
+			mNextState = PacketStates::waitTail;
 		}
 
 		else if (flit_type == TAIL_FLIT) {
-			m_recv_error = false;
-			m_recvd_packet.packet.push_back(flit);
-			m_next_state = PacketStates::wait_header;
+			mRecvError = false;
+			mRecvdPacket.packet.push_back(flit);
+			mNextState = PacketStates::waitHeader;
 
-			std::cout <<"\033[1;31mSent TAIL Flit \033[0m" << flit<<" ["<<std::bitset<32>(flit).to_string()<<"]" << " from "
-					<< m_recvd_packet.src_addr << " to "
-					<< m_recvd_packet.dst_addr << std::endl;
-
-			log_packet(false, time);
+			logPacket(false, time);
 
 		} else {
-			fsm_error(time);
+			fsmError(time);
 		}
 
 		break;
@@ -188,5 +206,8 @@ void PacketSink::send_flit_to_local(uint32_t flit, uint64_t time) {
 		std::cerr << "Unknown PacketState!" << std::endl;
 		return;
 	}
+
+	printFlit(flit, time, flit_type);
+
 
 }

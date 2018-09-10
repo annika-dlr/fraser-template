@@ -11,6 +11,7 @@
 
 enum class GenerationModes {counter}; // TODO: Add other modes
 enum class FlitType {header, firstBody, body, tail};
+enum class GenerationStates {startupDelay, sendFlit, waitFrameEnd};
 
 class PacketGenerator {
 public:
@@ -25,8 +26,9 @@ public:
 
 private:
     uint32_t counterBasedGeneration(uint64_t time);
-
     uint32_t generatePayload(uint64_t time);
+    void printFlit(uint32_t flit, uint64_t time, uint8_t flitType, uint16_t dest);
+
 
     uint16_t mAddress;
 	uint16_t mNocSize;
@@ -39,6 +41,7 @@ private:
     bool mWaiting;
     uint16_t mStartupDelay;
     uint16_t mDestination;
+    GenerationStates mGenerationState;
 
     /* User-definable constants, which need to be easily configurable by user */
     uint16_t mFrameLength;

@@ -22,7 +22,7 @@ ProcessingElement::ProcessingElement(std::string name, std::string description) 
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
 				mCtx), mDealer(mCtx, mName), mCurrentSimTime(0), mPacketGenerator(), 
 				mPacketSink(), mPacketNumber("PacketNumber", 10), mMinPacketLength("minPacketLength", 3), 
-				mMaxPacketLength("maxPacketLength", 10), mPir("PIR", 0.01) {
+				mMaxPacketLength("maxPacketLength", 10), mPir("PIR", 0.05) {
 	mRun = this->prepare();
 	//init();
 }
@@ -34,6 +34,8 @@ void ProcessingElement::init() {
 	// Set or calculate other parameters ...
 	mPacketGenerator.init(mAddress, NOC_NODE_COUNT, GenerationModes::counter, mPir.getValue(), 
 							mMinPacketLength.getValue(), mMaxPacketLength.getValue());
+
+	mPacketSink.init(mAddress);
 
 	uint16_t destinationAddress = 1;
 	if (destinationAddress == mAddress) {
@@ -128,7 +130,7 @@ void ProcessingElement::handleEvent() {
 					event::CreateFlit(fbb, flit).Union());
 			fbb.Finish(eventOffset);
 
-			std::cout << mName << " sends " << flit << std::endl;
+			std::cout << "\e[1mT=" << mCurrentSimTime << ": \e[0m" << mName << " sends " << flit << std::endl;
 
 			mPublisher.publishEvent(eventName, fbb.GetBufferPointer(),
 					fbb.GetSize());
@@ -170,7 +172,7 @@ void ProcessingElement::handleEvent() {
 		auto flitData = receivedEvent->data_as_Flit()->uint32();
 
 		if (eventName == "Local") {
-			mPacketSink.send_flit_to_local(flitData, mCurrentSimTime);
+			mPacketSink.putFlit(flitData, mCurrentSimTime);
 		}
 	}
 

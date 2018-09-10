@@ -32,7 +32,7 @@ void PacketGenerator::init(uint16_t address, uint8_t nocSize, GenerationModes ge
 	mGenerationMode = generationMode;
 
 	if ((pir < 0 || pir > 1)) {
-		std::cout << "WARNING: PIR value (" << pir \
+		std::cout << "WARNING: PIR value (" << pir
 		<< ") is not between 0 and 1... auto-assuming PIR = 0.01" << std::endl;
 		mFrameLength = 1/0.01;
 		
@@ -45,8 +45,8 @@ void PacketGenerator::init(uint16_t address, uint8_t nocSize, GenerationModes ge
 	}
 
 	if (minPacketLength > maxPacketLength) {
-		std::cout << "WARNING: minPacketLength (" << minPacketLength \
-		<< ") is larger than maxPacketLength (" << maxPacketLength \
+		std::cout << "WARNING: minPacketLength (" << minPacketLength
+		<< ") is larger than maxPacketLength (" << maxPacketLength
 		<< ")... swapping the MIN and MAX values";
 
 		mMinPacketLength = maxPacketLength;
@@ -58,27 +58,63 @@ void PacketGenerator::init(uint16_t address, uint8_t nocSize, GenerationModes ge
 	}
 
 	if (mMinPacketLength < 3) {
-		std::cout << "WARNING: minPacketLength is too small (" << mMinPacketLength \
+		std::cout << "WARNING: minPacketLength is too small (" << mMinPacketLength
 		<< ")... auto-assuming minPacketLength = 3" << std::endl;
 
 		mMinPacketLength = 3;
 	}
 
 	if (mMaxPacketLength > mFrameLength) {
-		std::cout << "WARNING: maxPacketLength (" << mMaxPacketLength \
-		<< ") is larger than the frame length (" << mFrameLength \
+		std::cout << "WARNING: maxPacketLength (" << mMaxPacketLength
+		<< ") is larger than the frame length (" << mFrameLength
 		<< ")... auto-assuming maxPacketLength = frameLength" << std::endl;
 
 		mMaxPacketLength = mFrameLength;
 	}
 
-	std::cout << "Node_" << address << ": Generating with PIR " << pir \
-		<< " (Frame Length " << mFrameLength << "), packet length between " \
+	std::cout << "Node_" << address << ": Generating with PIR " << pir
+		<< " (Frame Length " << mFrameLength << "), packet length between "
 		<< minPacketLength << " and " << maxPacketLength << std::endl;
 
 	mCounter = 0;
 	mFlitType = FlitType::header;
 	mWaiting = true;
+	mGenerationState = GenerationStates::startupDelay;
+	mStartupDelay = 3; // TODO: Replace with random
+	mPacketLength = 10; // TODO: Replace with random
+}
+
+/*
+ * Prints debug information about sent flits.
+ * 
+ * Parameters:
+ * 	uint32_t flit:     Sent flit
+ *  uint64_t time:     Current simulation time
+ *  uint8_t flitType:  Type of the sent flit
+ *  uint16_t dest:     Destination of the flit
+ */
+void PacketGenerator::printFlit(uint32_t flit, uint64_t time, uint8_t flitType, uint16_t dest) {
+
+	std::string flitTypeStr;
+	std::string strColor;
+
+
+	if (flitType == HEADER_FLIT) {
+		flitTypeStr = "HEADER";
+		strColor = "\033[1;33m";
+
+	} else if (flitType == BODY_FLIT) {
+		flitTypeStr = "BODY";
+		strColor = "\033[1;34m";
+
+	} else if (flitType == TAIL_FLIT) {
+		flitTypeStr = "TAIL";
+		strColor = "\033[1;31m";
+	}
+	std::cout << "\e[1mT=" << time << ": " << "\033[1;32m[S] \033[0m" << strColor 
+				<< "PE_" << mAddress << " [Sent] " << flitTypeStr << " Flit \033[0m" 
+				<< flit <<" ["<<std::bitset<32>(flit).to_string() << "]" 
+				<< " to " << dest << std::endl;
 }
 
 /*
@@ -121,101 +157,311 @@ uint32_t PacketGenerator::generatePayload(uint64_t time) {
  */
 
 uint32_t PacketGenerator::getFlit(uint64_t time){
-
 	std::stringstream log_stream;
+	auto flitNum = mCounter - mStartupDelay;
 	std::string log_line;
 	uint32_t flit;
-	uint32_t returnValue;
 
-	if (mWaiting) {
-		if(mCounter == 0) { // Start of a new frame
-			mStartupDelay = 0; // TODO: Temporary placeholder. Should be replaced with a random value
-			mPacketLength = mMaxPacketLength; // TODO: Implement random packet length
-		}
+	mCounter++;
 
-		if (mStartupDelay == mCounter) {
-			mWaiting = false;
-		}
-	}
+	switch (mGenerationState) {
+		case GenerationStates::startupDelay:
 
-	if (!mWaiting) {
-		switch (mFlitType) {
-			case FlitType::header:
-				{
-					mDestination = 1; // TODO: Implement random destination generation
-					if (mDestination == mAddress) {
-						mDestination++;
+			if (mCounter == mStartupDelay) {
+				mGenerationState = GenerationStates::sendFlit;
+			}
+			break;
+		
+		case GenerationStates::sendFlit:
+
+			switch (mFlitType) {
+				case FlitType::header:
+					{
+						mDestination = 1; // TODO: Implement random destination generation
+						if (mDestination == mAddress) {
+							mDestination = 2;
+						}
+
+						flit = make_header_flit(mDestination, mAddress);
+						mFlitType = FlitType::firstBody;
 					}
-
-					flit = make_header_flit(mDestination, mAddress);
-					mFlitType = FlitType::firstBody;
-				}
-				break;
-			
-			case FlitType::firstBody:
-				{
-					// result.process_bytes(&packet.front(), packet.size());
-					flit = make_first_body_flit(mPacketLength, mPacketId);
-					mFlitType = FlitType::body;
-				}
-				break;
-
-			case FlitType::body:
-				{
-					flit = make_body_flit(mCounter);
-
-					if (mCounter - mStartupDelay > mPacketLength - 1) {
+					break;
+				
+				case FlitType::firstBody:
+					{
+						// result.process_bytes(&packet.front(), packet.size());
+						flit = make_first_body_flit(mPacketLength, mPacketId);
 						mFlitType = FlitType::body;
-					} else {
-						mFlitType = FlitType::tail;
 					}
-				}
-				break;
+					break;
 
-			case FlitType::tail:
-				{
-					// auto checksum = result.checksum();
-					auto checksum = 42; // FIXME: CRC calculation is currently broken
-					flit = make_tail_flit(checksum);
+				case FlitType::body:
+					{
+						flit = make_body_flit(mCounter);
 
-					mFlitType = FlitType::header;
+						if (flitNum == mPacketLength - 1) {
+							mFlitType = FlitType::tail;
+						} else {
+							mFlitType = FlitType::body;
+						}
+					}
+					break;
 
-					/* When we find the tail, let's log the sent packet */
-					log_stream << "[PACKET] Sent_" << mAddress << " - " << "ID: " << mPacketId
-								<< ", Dst: " << mDestination << ", Length: " << mPacketLength
-								// << ", CRC: 0x" << std::hex << checksum << std::dec << ", time: "
-								<< time << std::endl;
+				case FlitType::tail:
+					{
+						// auto checksum = result.checksum();
+						auto checksum = 42; // FIXME: CRC calculation is currently broken
+						flit = make_tail_flit(checksum);
 
-					// TODO: Better logging than just printing on the screen??
-					log_line = log_stream.str();
-					std::cout << log_line;
-				}
-				break;
+						mFlitType = FlitType::header;
 
-			default:
-				std::cerr << "Unknown Flit type!" << std::endl;
-				return 0;
-		}
+						/* When we find the tail, let's log the sent packet */
+						log_stream << "\e[1mT=" << time << ": \e[0m" << "[PACKET] Sent_" << mAddress << " - " << "ID: " << mPacketId
+									<< ", Dst: " << mDestination << ", Length: " << mPacketLength
+									// << ", CRC: 0x" << std::hex << checksum << std::dec << ", time: "
+									<< std::endl;
+
+						// TODO: Better logging than just printing on the screen??
+						log_line = log_stream.str();
+						std::cout << log_line;
+					}
+					break;
+
+				default:
+					std::cerr << "Unknown Flit type!" << std::endl;
+					return 0;
+			}
+
+			if (flitNum == mPacketLength) {
+				mGenerationState = GenerationStates::waitFrameEnd;
+			}
+
+			printFlit(flit, time, get_flit_type(flit), mDestination);
+			
+			break;
+
+
+		case GenerationStates::waitFrameEnd:
+			if (mCounter == mFrameLength) {
+				mStartupDelay = 2; // TODO: replace with random
+				mPacketLength = 10; // TODO: Replace with random
+				mCounter = 0;
+				mGenerationState = GenerationStates::startupDelay;
+			}
+			break;
+
+		default:
+			std::cerr << "Unknown Flit type!" << std::endl;
+			return 0;
 	}
 
-	if (mCounter == mFrameLength - 1) { // End of the frame
-		mCounter = 0;
-		mPacketId++;
 
-	} else {
-		mCounter++;
-	}
-
-	if (!mWaiting && mFlitType == FlitType::header) { // We had a tail flit
-		returnValue = flit;
-		mWaiting = true;
-
-	} else if (mWaiting) {
-		returnValue = 0;
-
-	} else {
-		returnValue = flit;
-	}
-	
-	return returnValue;
+	return flit;
 }
+// 	std::stringstream log_stream;
+// 	std::string log_line;
+// 	uint32_t flit;
+// 	uint32_t returnValue;
+
+// 	if (mWaiting) {
+// 		if(mCounter == 0) { // Start of a new frame
+// 			mStartupDelay = 0; // TODO: Temporary placeholder. Should be replaced with a random value
+// 			mPacketLength = mMaxPacketLength; // TODO: Implement random packet length
+// 		}
+
+// 		if (mStartupDelay == mCounter) {
+// 			mWaiting = false;
+// 		}
+// 	}
+
+// 	if (!mWaiting) {
+// 		switch (mFlitType) {
+// 			case FlitType::header:
+// 				{
+// 					mDestination = 1; // TODO: Implement random destination generation
+// 					if (mDestination == mAddress) {
+// 						mDestination++;
+// 					}
+
+// 					flit = make_header_flit(mDestination, mAddress);
+// 					mFlitType = FlitType::firstBody;
+// 				}
+// 				break;
+			
+// 			case FlitType::firstBody:
+// 				{
+// 					// result.process_bytes(&packet.front(), packet.size());
+// 					flit = make_first_body_flit(mPacketLength, mPacketId);
+// 					mFlitType = FlitType::body;
+// 				}
+// 				break;
+
+// 			case FlitType::body:
+// 				{
+// 					flit = make_body_flit(mCounter);
+
+// 					if (mCounter - mStartupDelay > mPacketLength - 1) {
+// 						mFlitType = FlitType::body;
+// 					} else {
+// 						mFlitType = FlitType::tail;
+// 					}
+// 				}
+// 				break;
+
+// 			case FlitType::tail:
+// 				{
+// 					// auto checksum = result.checksum();
+// 					auto checksum = 42; // FIXME: CRC calculation is currently broken
+// 					flit = make_tail_flit(checksum);
+
+// 					mFlitType = FlitType::header;
+
+// 					/* When we find the tail, let's log the sent packet */
+// 					log_stream << "[PACKET] Sent_" << mAddress << " - " << "ID: " << mPacketId
+// 								<< ", Dst: " << mDestination << ", Length: " << mPacketLength
+// 								// << ", CRC: 0x" << std::hex << checksum << std::dec << ", time: "
+// 								<< time << std::endl;
+
+// 					// TODO: Better logging than just printing on the screen??
+// 					log_line = log_stream.str();
+// 					std::cout << log_line;
+// 				}
+// 				break;
+
+// 			default:
+// 				std::cerr << "Unknown Flit type!" << std::endl;
+// 				return 0;
+// 		}
+// 	}
+
+// 	if (mCounter == mFrameLength - 1) { // End of the frame
+// 		mCounter = 0;
+// 		mPacketId++;
+
+// 	} else {
+// 		mCounter++;
+// 	}
+
+// 	if (!mWaiting && mFlitType == FlitType::header) { // We had a tail flit
+// 		returnValue = flit;
+// 		mWaiting = true;
+
+// 	} else if (mWaiting) {
+// 		returnValue = 0;
+
+// 	} else {
+// 		returnValue = flit;
+// 	}
+	
+// 	return returnValue;
+// }
+
+// /*
+//  * Gets a flit from packet generator.
+//  * 
+//  * Parameters:
+//  * 	uint64_t time - current simulation time
+//  * 
+//  * Returns:
+//  * 	uint32_t flit: The generated flit. If no flit is generated, 0 is returned.
+//  */
+
+// uint32_t PacketGenerator::getFlit(uint64_t time){
+
+// 	std::stringstream log_stream;
+// 	std::string log_line;
+// 	uint32_t flit;
+// 	uint32_t returnValue;
+
+// 	if (mWaiting) {
+// 		if(mCounter == 0) { // Start of a new frame
+// 			mStartupDelay = 0; // TODO: Temporary placeholder. Should be replaced with a random value
+// 			mPacketLength = mMaxPacketLength; // TODO: Implement random packet length
+// 		}
+
+// 		if (mStartupDelay == mCounter) {
+// 			mWaiting = false;
+// 		}
+// 	}
+
+// 	if (!mWaiting) {
+// 		switch (mFlitType) {
+// 			case FlitType::header:
+// 				{
+// 					mDestination = 1; // TODO: Implement random destination generation
+// 					if (mDestination == mAddress) {
+// 						mDestination++;
+// 					}
+
+// 					flit = make_header_flit(mDestination, mAddress);
+// 					mFlitType = FlitType::firstBody;
+// 				}
+// 				break;
+			
+// 			case FlitType::firstBody:
+// 				{
+// 					// result.process_bytes(&packet.front(), packet.size());
+// 					flit = make_first_body_flit(mPacketLength, mPacketId);
+// 					mFlitType = FlitType::body;
+// 				}
+// 				break;
+
+// 			case FlitType::body:
+// 				{
+// 					flit = make_body_flit(mCounter);
+
+// 					if (mCounter - mStartupDelay > mPacketLength - 1) {
+// 						mFlitType = FlitType::body;
+// 					} else {
+// 						mFlitType = FlitType::tail;
+// 					}
+// 				}
+// 				break;
+
+// 			case FlitType::tail:
+// 				{
+// 					// auto checksum = result.checksum();
+// 					auto checksum = 42; // FIXME: CRC calculation is currently broken
+// 					flit = make_tail_flit(checksum);
+
+// 					mFlitType = FlitType::header;
+
+// 					/* When we find the tail, let's log the sent packet */
+// 					log_stream << "[PACKET] Sent_" << mAddress << " - " << "ID: " << mPacketId
+// 								<< ", Dst: " << mDestination << ", Length: " << mPacketLength
+// 								// << ", CRC: 0x" << std::hex << checksum << std::dec << ", time: "
+// 								<< time << std::endl;
+
+// 					// TODO: Better logging than just printing on the screen??
+// 					log_line = log_stream.str();
+// 					std::cout << log_line;
+// 				}
+// 				break;
+
+// 			default:
+// 				std::cerr << "Unknown Flit type!" << std::endl;
+// 				return 0;
+// 		}
+// 	}
+
+// 	if (mCounter == mFrameLength - 1) { // End of the frame
+// 		mCounter = 0;
+// 		mPacketId++;
+
+// 	} else {
+// 		mCounter++;
+// 	}
+
+// 	if (!mWaiting && mFlitType == FlitType::header) { // We had a tail flit
+// 		returnValue = flit;
+// 		mWaiting = true;
+
+// 	} else if (mWaiting) {
+// 		returnValue = 0;
+
+// 	} else {
+// 		returnValue = flit;
+// 	}
+	
+// 	return returnValue;
+// }

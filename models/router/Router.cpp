@@ -375,7 +375,7 @@ void Router::generateRequest(uint32_t flit, Request& request) {
 }
 
 void Router::sendFlit(uint32_t flit, std::string reqString) {
-	std::cout << mName << " sends " << flit << " to " << reqString
+	std::cout << "\e[1mT=" << mCurrentSimTime << ": \e[0m" << mName << " sends " << flit << " to " << reqString
 			<< " output" << std::endl;
 
 	// Event Serialiazation
