@@ -1,7 +1,7 @@
 #ifndef __FLIT_UTILS_HPP__
 #define __FLIT_UTILS_HPP__
 
-#include <stdio.h>
+#include <iostream>
 #include <stdint.h>
 
 #define HEADER_FLIT 1
@@ -25,7 +25,7 @@
 //#define DEBUG
 
 #ifdef DEBUG
-# define DBG_PRINT(x) printf x
+# define DBG_PRINT(x) std::cout << x << std::endl;
 #else
 # define DBG_PRINT(x) do {} while (0)
 #endif

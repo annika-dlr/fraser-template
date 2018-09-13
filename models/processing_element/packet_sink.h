@@ -9,6 +9,7 @@
 #include <iostream>
 #include <vector>
 #include <cstdint>
+#include <boost/crc.hpp>
 
 enum class Faults {noFault, flitOrder, length, crc};
 enum class PacketStates {waitHeader, waitFirstBody, waitTail};
@@ -19,9 +20,7 @@ struct Packet {
     uint16_t dstAddr;
     uint16_t packetLength;
     uint16_t packetId;
-    uint16_t crc;
-
-    std::vector<uint32_t> packet;
+    boost::crc_ccitt_type crc;
 };
 
 class PacketSink {
@@ -34,15 +33,15 @@ public:
 
 private:
     void fsmError(uint64_t time);
-    void logPacket(bool faulty, uint64_t time);
-    uint16_t extractCrc();
-    uint16_t calculateCrc();
+    void logPacket(uint32_t tailFlit, uint64_t time);
     void printFlit(uint32_t flit, uint64_t time, uint8_t flitType);
 
-    uint16_t mAddress;
-    Packet mRecvdPacket;
     PacketStates mNextState = PacketStates::waitHeader;
+    Packet mRecvdPacket;
     bool mRecvError = false;
+    uint16_t mAddress;
+    uint16_t mCountedPacketLength;
+
 };
 
 #endif //__PACKET_SINK_H__

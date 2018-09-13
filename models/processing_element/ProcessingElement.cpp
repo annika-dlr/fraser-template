@@ -22,7 +22,9 @@ ProcessingElement::ProcessingElement(std::string name, std::string description) 
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
 				mCtx), mDealer(mCtx, mName), mCurrentSimTime(0), mPacketGenerator(), 
 				mPacketSink(), mPacketNumber("PacketNumber", 10), mMinPacketLength("minPacketLength", 3), 
-				mMaxPacketLength("maxPacketLength", 10), mPir("PIR", 0.05) {
+				mMaxPacketLength("maxPacketLength", 10), mRandomSeed("radnomSeed", 42), 
+				mGenerationEndTime("generationEndTime", 7000), mPir("PIR", 0.05) {
+					
 	mRun = this->prepare();
 	//init();
 }
@@ -33,7 +35,8 @@ ProcessingElement::~ProcessingElement() {
 void ProcessingElement::init() {
 	// Set or calculate other parameters ...
 	mPacketGenerator.init(mAddress, NOC_NODE_COUNT, GenerationModes::counter, mPir.getValue(), 
-							mMinPacketLength.getValue(), mMaxPacketLength.getValue());
+							mMinPacketLength.getValue(), mMaxPacketLength.getValue(),
+							mRandomSeed.getValue(), mGenerationEndTime.getValue());
 
 	mPacketSink.init(mAddress);
 
@@ -114,52 +117,33 @@ void ProcessingElement::handleEvent() {
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
 	if (eventName == "SimTimeChanged") {
-		auto flit = mPacketGenerator.getFlit(mCurrentSimTime);
 
-		if ((flit != 0) && (mCredit_Cnt_L > 0)) {
+		if (mCredit_Cnt_L > 0) {
 
-			// Event Serialization
-			flatbuffers::FlatBufferBuilder fbb;
-			flatbuffers::Offset<event::Event> eventOffset;
+			uint32_t flit = mPacketGenerator.getFlit(mCurrentSimTime);
 
-			// Sending (Publishing) a flit and using Flatbuffers to serialize the data (flit):
-			std::string eventName = "PacketGenerator";
-			eventOffset = event::CreateEvent(fbb, fbb.CreateString(eventName),
-					mCurrentSimTime, event::Priority_NORMAL_PRIORITY, 0, 0,
-					event::EventData_Flit,
-					event::CreateFlit(fbb, flit).Union());
-			fbb.Finish(eventOffset);
+			if (flit != 0) {
 
-			std::cout << "\e[1mT=" << mCurrentSimTime << ": \e[0m" << mName << " sends " << flit << std::endl;
+				// Event Serialization
+				flatbuffers::FlatBufferBuilder fbb;
+				flatbuffers::Offset<event::Event> eventOffset;
 
-			mPublisher.publishEvent(eventName, fbb.GetBufferPointer(),
-					fbb.GetSize());
+				// Sending (Publishing) a flit and using Flatbuffers to serialize the data (flit):
+				std::string eventName = "PacketGenerator";
+				eventOffset = event::CreateEvent(fbb, fbb.CreateString(eventName),
+						mCurrentSimTime, event::Priority_NORMAL_PRIORITY, 0, 0,
+						event::EventData_Flit,
+						event::CreateFlit(fbb, flit).Union());
+				fbb.Finish(eventOffset);
 
-			mCredit_Cnt_L--;
+				std::cout << "\e[1mT=" << mCurrentSimTime << ": \e[0m" << mName << " sends " << flit << std::endl;
+
+				mPublisher.publishEvent(eventName, fbb.GetBufferPointer(),
+						fbb.GetSize());
+
+				mCredit_Cnt_L--;
+			}
 		}
-		// if (!mPacket.empty() && (mCredit_Cnt_L > 0)) {
-		// 	auto flit = mPacket.front();
-
-		// 	// Event Serialization
-		// 	flatbuffers::FlatBufferBuilder fbb;
-		// 	flatbuffers::Offset<event::Event> eventOffset;
-
-		// 	// Sending (Publishing) a flit and using Flatbuffers to serialize the data (flit):
-		// 	std::string eventName = "PacketGenerator";
-		// 	eventOffset = event::CreateEvent(fbb, fbb.CreateString(eventName),
-		// 			mCurrentSimTime, event::Priority_NORMAL_PRIORITY, 0, 0,
-		// 			event::EventData_Flit,
-		// 			event::CreateFlit(fbb, flit).Union());
-		// 	fbb.Finish(eventOffset);
-
-		// 	std::cout << mName << " sends " << flit << std::endl;
-
-		// 	mPublisher.publishEvent(eventName, fbb.GetBufferPointer(),
-		// 			fbb.GetSize());
-
-		// 	mPacket.pop();
-		// 	mCredit_Cnt_L--;
-		// }
 	}
 
 	else if (eventName == "Credit_in_L++") {

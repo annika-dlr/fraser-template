@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <queue>
+#include <boost/crc.hpp>
 
 enum class GenerationModes {counter}; // TODO: Add other modes
 enum class FlitType {header, firstBody, body, tail};
@@ -20,7 +21,8 @@ public:
     }
     
     void init(uint16_t address, uint8_t nocSize, GenerationModes generationMode, 
-			    double pir, uint16_t minPacketLength, uint16_t maxPacketLength);
+			    double pir, uint16_t minPacketLength, uint16_t maxPacketLength,
+                uint64_t randomSeed, uint64_t generationEndTime);
 
     uint32_t getFlit(uint64_t time);
 
@@ -41,6 +43,7 @@ private:
     bool mWaiting;
     uint16_t mStartupDelay;
     uint16_t mDestination;
+    boost::crc_ccitt_type mCrc;
     GenerationStates mGenerationState;
 
     /* User-definable constants, which need to be easily configurable by user */
@@ -48,6 +51,8 @@ private:
     GenerationModes mGenerationMode;
     uint16_t mMinPacketLength;
 	uint16_t mMaxPacketLength;
+	uint64_t mRandomSeed;
+	uint64_t mGenerationEndTime;
 };
 
 
