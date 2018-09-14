@@ -10,7 +10,7 @@
 # - 2018, Annika Ofenloch (DLR RY-AVS)
 
 PROG = processing_element
-SRCS= main.cpp ProcessingElement.cpp packet_generator.cpp packet_sink.cpp flit_utils.cpp ../../fraser/src/communication/Subscriber.cpp ../../fraser/src/communication/Publisher.cpp \
+SRCS= main.cpp ProcessingElement.cpp ../../../cpp/packet_generator.cpp ../../../cpp/packet_sink.cpp ../../../cpp/flit_utils.cpp ../../fraser/src/communication/Subscriber.cpp ../../fraser/src/communication/Publisher.cpp \
 ../../fraser/src/communication/Dealer.cpp
 BINDIR = build/bin
 OBJDIR = build/obj
