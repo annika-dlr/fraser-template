@@ -21,7 +21,7 @@
 #include <bitset>
 #include <iostream>
 
-#include "models/processing_element/flit_utils.h"
+#include "flit_utils.h"
 
 #define NOC_SIZE 2
 
