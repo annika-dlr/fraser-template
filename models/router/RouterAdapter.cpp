@@ -15,7 +15,9 @@
 
 RouterAdapter::RouterAdapter(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
-				mCtx), mDealer(mCtx, mName) {
+				mCtx), mDealer(mCtx, mName), mNocSize("NocSize", 2), mAddress(
+				"RouterAddress", "0000"), mConnectivityBits("ConnectivityBits",
+				"0000"), mRoutingBits("RoutingBits", "00000000") {
 
 	mRun = this->prepare();
 	//this->init();
@@ -27,44 +29,14 @@ RouterAdapter::~RouterAdapter() {
 
 void RouterAdapter::init() {
 	// Set or calculate other parameters ...
+
+	mRouter.setNocSize(mNocSize.getValue());
 	mRouter.setAddress(
-			static_cast<uint16_t>(std::bitset<16>(
-					mDealer.getModelParameter(mName, "address")).to_ulong()));
+			static_cast<uint16_t>(std::bitset<16>(mAddress.getValue()).to_ulong()));
 
-	mRouter.setRoutingBits(
-			std::bitset<16>(mDealer.getModelParameter(mName, "routingBits")));
-}
-
-bool RouterAdapter::prepare() {
-	mSubscriber.setOwnershipName(mName);
-
-	if (!mPublisher.bindSocket(mDealer.getPortNumFrom(mName))) {
-		return false;
-	}
-
-	if (!mSubscriber.connectToPub(mDealer.getIPFrom("simulation_model"),
-			mDealer.getPortNumFrom("simulation_model"))) {
-		return false;
-	}
-
-	for (auto depModel : mDealer.getModelDependencies()) {
-		if (!mSubscriber.connectToPub(mDealer.getIPFrom(depModel),
-				mDealer.getPortNumFrom(depModel))) {
-			return false;
-		}
-	}
-
-	std::bitset<16> connectivityBits = std::bitset<16>(
-			mDealer.getModelParameter(mName, "connectivityBits"));
-
+	auto connectivityBits = std::bitset<16>(mConnectivityBits.getValue());
 	mRouter.setConnectivityBits(connectivityBits);
-
-	// Subscriptions to events
-	mSubscriber.subscribeTo("LoadState");
-	mSubscriber.subscribeTo("SaveState");
-	mSubscriber.subscribeTo("End");
-	mSubscriber.subscribeTo("PacketGenerator");
-	mSubscriber.subscribeTo("SimTimeChanged");
+	mRouter.setRoutingBits(std::bitset<16>(mRoutingBits.getValue()));
 
 	if (connectivityBits[0]) {
 		mSubscriber.subscribeTo("South");
@@ -84,6 +56,42 @@ bool RouterAdapter::prepare() {
 		mSubscriber.subscribeTo("North");
 		mSubscriber.subscribeTo("Credit_in_N++");
 	}
+}
+
+bool RouterAdapter::prepare() {
+	mSubscriber.setOwnershipName(mName);
+
+	// Router initialization for the default configuration file
+	// Otherwise, all parameters would be initialized with zero
+	// Parameters are defined in the hosts-configuration file (hosts-configs/)
+	// TODO: Just use one of the both options to save/store parameters
+	mAddress.setValue(mDealer.getModelParameter(mName, "address"));
+	mRoutingBits.setValue(mDealer.getModelParameter(mName, "routingBits"));
+	mConnectivityBits.setValue(
+			mDealer.getModelParameter(mName, "connectivityBits"));
+
+	if (!mPublisher.bindSocket(mDealer.getPortNumFrom(mName))) {
+		return false;
+	}
+
+	if (!mSubscriber.connectToPub(mDealer.getIPFrom("simulation_model"),
+			mDealer.getPortNumFrom("simulation_model"))) {
+		return false;
+	}
+
+	for (auto depModel : mDealer.getModelDependencies()) {
+		if (!mSubscriber.connectToPub(mDealer.getIPFrom(depModel),
+				mDealer.getPortNumFrom(depModel))) {
+			return false;
+		}
+	}
+
+	// Subscriptions to events
+	mSubscriber.subscribeTo("LoadState");
+	mSubscriber.subscribeTo("SaveState");
+	mSubscriber.subscribeTo("End");
+	mSubscriber.subscribeTo("PacketGenerator");
+	mSubscriber.subscribeTo("SimTimeChanged");
 
 	// Synchronization
 	if (!mSubscriber.prepareSubSynchronization(
@@ -247,8 +255,8 @@ void RouterAdapter::loadState(std::string filePath) {
 		std::cout << ex.what() << std::endl;
 	}
 
-	mRun = mSubscriber.synchronizeSub();
-
 	// Optional calculate parameters from the loaded initial state
 	init();
+
+	mRun = mSubscriber.synchronizeSub();
 }

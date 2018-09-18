@@ -70,16 +70,26 @@ private:
 	Publisher mPublisher;
 	Dealer mDealer;
 
-	bool mRun;
+	bool mRun = false;
 	uint32_t mCurrentSimTime = 0;
 
 	Router mRouter;
 	void sendFlit(uint32_t, std::string reqString);
 	void updateCreditCounter(std::string signal);
 
+	// Fields
+	Field<uint16_t> mNocSize;
+	Field<std::string> mAddress;
+	Field<std::string> mConnectivityBits;
+	Field<std::string> mRoutingBits;
+
 	friend class boost::serialization::access;
 	template<typename Archive>
 	void serialize(Archive& archive, const unsigned int) {
+		archive & boost::serialization::make_nvp("IntField", mNocSize);
+		archive & boost::serialization::make_nvp("BitSetField", mAddress);
+		archive & boost::serialization::make_nvp("BitSetField", mConnectivityBits);
+		archive & boost::serialization::make_nvp("BitSetField", mRoutingBits);
 	}
 };
 

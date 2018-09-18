@@ -133,6 +133,9 @@ void SimulationModel::loadState(std::string filePath) {
 	mPublisher.publishEvent("LoadState", mFbb.GetBufferPointer(),
 			mFbb.GetSize());
 
+	this->init();
+	this->continueSim();
+
 	// Synchronization is necessary, because the simulation
 	// has to wait until the other models finished their Restore-method
 	// (mNumOfPersistModels - 1), because the simulation model itself should not be included
@@ -141,9 +144,6 @@ void SimulationModel::loadState(std::string filePath) {
 			<< std::endl;
 	mRun = mPublisher.synchronizePub(mNumOfPersistModels - 1,
 			mCurrentSimTime.getValue());
-
-	this->init();
-	this->continueSim();
 }
 
 void SimulationModel::saveState(std::string filePath) {
