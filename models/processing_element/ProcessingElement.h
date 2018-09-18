@@ -31,8 +31,8 @@
 #include "data-types/Field.h"
 
 #include "resources/idl/event_generated.h"
-#include "packet_generator.h"
-#include "packet_sink.h"
+#include "traffic_generator/packet_generator.h"
+#include "traffic_generator/packet_sink.h"
 
 class ProcessingElement: public virtual IModel, public virtual IPersist {
 public:
