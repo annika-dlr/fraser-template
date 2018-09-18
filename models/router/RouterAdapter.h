@@ -32,7 +32,7 @@
 #include "interfaces/IModel.h"
 #include "interfaces/IPersist.h"
 #include "data-types/Field.h"
-#include "models/router/Router.h"
+#include "router.h"
 
 class RouterAdapter: public virtual IModel, public virtual IPersist {
 public:
