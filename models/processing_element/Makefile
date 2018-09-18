@@ -10,8 +10,11 @@
 # - 2018, Annika Ofenloch (DLR RY-AVS)
 
 PROG = processing_element
-SRCS= main.cpp ProcessingElement.cpp ../../../cpp/packet_generator.cpp ../../../cpp/packet_sink.cpp ../../../cpp/flit_utils.cpp ../../fraser/src/communication/Subscriber.cpp ../../fraser/src/communication/Publisher.cpp \
-../../fraser/src/communication/Dealer.cpp
+SRCS := $(wildcard *.cpp) \
+        $(wildcard ../../../cpp/traffic_generator/*.cpp) \
+        $(wildcard ../../fraser/src/communication/*.cpp) \
+        $(wildcard ../../../cpp/utils/*.cpp)
+        
 BINDIR = build/bin
 OBJDIR = build/obj
 

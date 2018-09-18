@@ -10,7 +10,8 @@
 # - 2017, Annika Ofenloch (DLR RY-AVS)
 
 PROG = configuration_server
-SRCS= main.cpp ConfigurationServer.cpp
+SRCS := $(wildcard *.cpp)
+
 BINDIR = build/bin
 OBJDIR = build/obj
 

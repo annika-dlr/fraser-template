@@ -10,8 +10,9 @@
 # - 2017, Annika Ofenloch (DLR RY-AVS)
 
 PROG = simulation_model
-SRCS= main.cpp SimulationModel.cpp ../../fraser/src/communication/Subscriber.cpp ../../fraser/src/communication/Publisher.cpp \
-../../fraser/src/communication/Dealer.cpp
+SRCS := $(wildcard *.cpp) \
+        $(wildcard ../../fraser/src/communication/*.cpp)
+
 BINDIR = build/bin
 OBJDIR = build/obj
 

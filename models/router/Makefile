@@ -10,8 +10,11 @@
 # - 2018, Annika Ofenloch (DLR RY-AVS)
 
 PROG = router
-SRCS= main.cpp RouterAdapter.cpp ../../../cpp/router.cpp ../../../cpp/flit_utils.cpp ../../fraser/src/communication/Subscriber.cpp ../../fraser/src/communication/Publisher.cpp \
-../../fraser/src/communication/Dealer.cpp
+SRCS := $(wildcard *.cpp) \
+        $(wildcard ../../fraser/src/communication/*.cpp) \
+	    $(wildcard ../../../cpp/utils/*.cpp) \
+	    $(wildcard ../../../cpp/router/*.cpp)
+
 BINDIR = build/bin
 OBJDIR = build/obj
 
