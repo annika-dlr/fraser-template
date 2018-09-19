@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 				configServerModel.run();
 
 			} catch (zmq::error_t& e) {
-				std::cout << "ConfigurationServer: Interrupt received: Exit"
+				std::cout << "configuration_server: Interrupt received: Exit"
 						<< std::endl;
 			}
 		} else {

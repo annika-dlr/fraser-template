@@ -19,6 +19,8 @@ RouterAdapter::RouterAdapter(std::string name, std::string description) :
 				"RouterAddress", "0000"), mConnectivityBits("ConnectivityBits",
 				"0000"), mRoutingBits("RoutingBits", "00000000") {
 
+	registerInterruptSignal();
+
 	mRun = this->prepare();
 	//this->init();
 }

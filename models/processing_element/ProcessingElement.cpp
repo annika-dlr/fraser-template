@@ -24,7 +24,9 @@ ProcessingElement::ProcessingElement(std::string name, std::string description) 
 				mPacketSink(), mPacketNumber("PacketNumber", 10), mMinPacketLength("minPacketLength", 3), 
 				mMaxPacketLength("maxPacketLength", 10), mRandomSeed("radnomSeed", 42), 
 				mGenerationEndTime("generationEndTime", 7000), mPir("PIR", 0.05) {
-					
+
+	registerInterruptSignal();
+
 	mRun = this->prepare();
 	//init();
 }

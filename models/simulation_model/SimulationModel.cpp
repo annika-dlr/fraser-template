@@ -24,7 +24,6 @@ SimulationModel::SimulationModel(std::string name, std::string description) :
 	registerInterruptSignal();
 
 	mRun = prepare();
-	//init();
 }
 
 SimulationModel::~SimulationModel() {
@@ -98,6 +97,7 @@ void SimulationModel::run() {
 			}
 		}
 	}
+
 	this->stopSim();
 }
 
@@ -106,6 +106,7 @@ void SimulationModel::stopSim() {
 	mEventOffset = event::CreateEvent(mFbb, mFbb.CreateString("End"),
 			mCurrentSimTime.getValue());
 	mFbb.Finish(mEventOffset);
+
 	mPublisher.publishEvent("End", mFbb.GetBufferPointer(), mFbb.GetSize());
 
 	mDealer.stopDNSserver();
@@ -134,7 +135,6 @@ void SimulationModel::loadState(std::string filePath) {
 			mFbb.GetSize());
 
 	this->init();
-	this->continueSim();
 
 	// Synchronization is necessary, because the simulation
 	// has to wait until the other models finished their Restore-method
@@ -144,6 +144,8 @@ void SimulationModel::loadState(std::string filePath) {
 			<< std::endl;
 	mRun = mPublisher.synchronizePub(mNumOfPersistModels - 1,
 			mCurrentSimTime.getValue());
+
+	this->continueSim();
 }
 
 void SimulationModel::saveState(std::string filePath) {
