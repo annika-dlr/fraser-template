@@ -79,6 +79,7 @@ private:
 
 	// Fields
 	Field<uint16_t> mNocSize;
+	Field<uint8_t> mFifoSize;
 	Field<std::string> mAddress;
 	Field<std::string> mConnectivityBits;
 	Field<std::string> mRoutingBits;
@@ -87,6 +88,7 @@ private:
 	template<typename Archive>
 	void serialize(Archive& archive, const unsigned int) {
 		archive & boost::serialization::make_nvp("IntField", mNocSize);
+		archive & boost::serialization::make_nvp("IntField", mFifoSize);
 		archive & boost::serialization::make_nvp("BitSetField", mAddress);
 		archive & boost::serialization::make_nvp("BitSetField", mConnectivityBits);
 		archive & boost::serialization::make_nvp("BitSetField", mRoutingBits);

@@ -15,7 +15,7 @@
 
 RouterAdapter::RouterAdapter(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
-				mCtx), mDealer(mCtx, mName), mNocSize("NocSize", 2), mAddress(
+				mCtx), mDealer(mCtx, mName), mNocSize("NocSize", 2), mFifoSize("FifoSize", 4), mAddress(
 				"RouterAddress", "0000"), mConnectivityBits("ConnectivityBits",
 				"0000"), mRoutingBits("RoutingBits", "00000000") {
 
@@ -39,6 +39,7 @@ void RouterAdapter::init() {
 	auto connectivityBits = std::bitset<16>(mConnectivityBits.getValue());
 	mRouter.setConnectivityBits(connectivityBits);
 	mRouter.setRoutingBits(std::bitset<16>(mRoutingBits.getValue()));
+	mRouter.setFifoSize(mFifoSize.getValue());
 
 	if (connectivityBits[0]) {
 		mSubscriber.subscribeTo("South");
