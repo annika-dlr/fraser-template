@@ -13,8 +13,8 @@
 
 #include <vector>
 #include <cstdint>
-#include "ProcessingElement.h"
 #include <bitset>
+#include "ProcessingElement.h"
 
 #define NOC_NODE_COUNT 4
 
@@ -22,8 +22,8 @@ ProcessingElement::ProcessingElement(std::string name, std::string description) 
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
 				mCtx), mDealer(mCtx, mName), mCurrentSimTime(0), mPacketGenerator(), 
 				mPacketSink(), mPacketNumber("PacketNumber", 10), mMinPacketLength("minPacketLength", 3), 
-				mMaxPacketLength("maxPacketLength", 10), mRandomSeed("radnomSeed", 42), 
-				mGenerationEndTime("generationEndTime", 7000), mPir("PIR", 0.05) {
+				mMaxPacketLength("maxPacketLength", 10), mRandomSeed("randomSeed", 42), 
+				mPacketsToGenerate("packetsToGenerate", 3), mPir("PIR", 0.05) {
 
 	registerInterruptSignal();
 
@@ -38,7 +38,7 @@ void ProcessingElement::init() {
 	// Set or calculate other parameters ...
 	mPacketGenerator.init(mAddress, NOC_NODE_COUNT, GenerationModes::counter, mPir.getValue(), 
 							mMinPacketLength.getValue(), mMaxPacketLength.getValue(),
-							mRandomSeed.getValue(), mGenerationEndTime.getValue());
+							mRandomSeed.getValue(), mPacketsToGenerate.getValue());
 
 	mPacketSink.init(mAddress);
 
@@ -122,7 +122,7 @@ void ProcessingElement::handleEvent() {
 
 		if (mCredit_Cnt_L > 0) {
 
-			uint32_t flit = mPacketGenerator.getFlit(mCurrentSimTime);
+			uint32_t flit = mPacketGenerator.getFlit();
 
 			if (flit != 0) {
 
@@ -158,7 +158,7 @@ void ProcessingElement::handleEvent() {
 		auto flitData = receivedEvent->data_as_Flit()->uint32();
 
 		if (eventName == "Local") {
-			mPacketSink.putFlit(flitData, mCurrentSimTime);
+			mPacketSink.putFlit(flitData);
 		}
 	}
 

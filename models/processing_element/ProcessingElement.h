@@ -81,7 +81,7 @@ private:
 	Field<uint16_t> mMinPacketLength;
 	Field<uint16_t> mMaxPacketLength;
 	Field<uint64_t> mRandomSeed;
-	Field<uint64_t> mGenerationEndTime;
+	Field<uint64_t> mPacketsToGenerate;
 	Field<double> mPir;
 
 	friend class boost::serialization::access;
@@ -91,7 +91,7 @@ private:
 		archive & boost::serialization::make_nvp("IntField", mMinPacketLength);
 		archive & boost::serialization::make_nvp("IntField", mMaxPacketLength);
 		archive & boost::serialization::make_nvp("IntField", mRandomSeed);
-		archive & boost::serialization::make_nvp("IntField", mGenerationEndTime);
+		archive & boost::serialization::make_nvp("IntField", mPacketsToGenerate);
 		archive & boost::serialization::make_nvp("DoubleField", mPir);
 	}
 };
