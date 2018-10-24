@@ -36,7 +36,7 @@ ProcessingElement::~ProcessingElement() {
 
 void ProcessingElement::init() {
 	// Set or calculate other parameters ...
-	mPacketGenerator.init(mAddress, NOC_NODE_COUNT, GenerationModes::counter, mPir.getValue(), 
+	mPacketGenerator.init(mAddress, NOC_NODE_COUNT, GenerationModes::random, mPir.getValue(), 
 							mMinPacketLength.getValue(), mMaxPacketLength.getValue(),
 							mRandomSeed.getValue(), mPacketsToGenerate.getValue());
 
