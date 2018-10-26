@@ -42,8 +42,8 @@ int main(int argc, char* argv[]) {
 	} else if (argc > 1) {
 		if (static_cast<std::string>(argv[1]) == "--help") {
 			std::cout << "<< Help >>" << std::endl;
-			std::cout << "--config-file CONFIG-PATH >> "
-					<< "Set path of models-configuration file" << std::endl;
+			std::cout << "-n NAME >> "
+					<< "Set instance name of Router" << std::endl;
 		} else {
 			std::cout << " Invalid argument/s: --help" << std::endl;
 		}

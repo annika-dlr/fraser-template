@@ -12,6 +12,7 @@
  */
 
 #include "ConfigurationServer.h"
+
 int main(int argc, char* argv[]) {
 	if (argc > 2) {
 		if (static_cast<std::string>(argv[1]) == "--config-file") {

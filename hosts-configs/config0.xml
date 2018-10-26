@@ -37,7 +37,7 @@
 			<Dependencies>
 				<ModelReference modelID="router_1" />
 				<ModelReference modelID="router_2" />
-				<ModelReference modelID="processing_element_0" />
+				<ModelReference modelID="systemc_adapter_0" />
 			</Dependencies>
 			<!-- Add commandline arguments, e.g., to set or initialize model parameters -->
 			<Parameters>
@@ -89,12 +89,12 @@
 			</Parameters>
 		</Model>
 
-		<Model persist="true" id="processing_element_0" path="../models/processing_element">
+<!-- 		<Model persist="true" id="processing_element_0" path="../models/processing_element">
 			<HostReference hostID="host_0" />
 			<Dependencies>
 				<ModelReference modelID="router_0" />
 			</Dependencies>
-		</Model>
+		</Model> -->
 
 		<Model persist="true" id="processing_element_1" path="../models/processing_element">
 			<HostReference hostID="host_0" />
@@ -114,6 +114,13 @@
 			<HostReference hostID="host_0" />
 			<Dependencies>
 				<ModelReference modelID="router_3" />
+			</Dependencies>
+		</Model>
+
+		<Model id="systemc_adapter_0" path="../models/systemc_adapter">
+			<HostReference hostID="host_0" />
+			<Dependencies>
+				<ModelReference modelID="router_0" />
 			</Dependencies>
 		</Model>
 	</Models>

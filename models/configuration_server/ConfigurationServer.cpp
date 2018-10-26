@@ -17,8 +17,8 @@
 #define FRONTEND_PORT std::string("5570")
 
 ConfigurationServer::ConfigurationServer(std::string modelsConfigFilePath) :
-		mModelsConfigFilePath(modelsConfigFilePath), mCtx(1), mFrontend(mCtx,
-				ZMQ_ROUTER) {
+		mCtx(1), mFrontend(mCtx,
+		ZMQ_ROUTER), mModelsConfigFilePath(modelsConfigFilePath) {
 
 	registerInterruptSignal();
 	mRun = this->prepare();
@@ -120,8 +120,7 @@ void ConfigurationServer::setModelParameters() {
 	for (auto name : mModelNames) {
 
 		// Search for the first matching entry with the given hint attribute
-		std::string specificModelSearch = ".//Models/Model[@id='" + name
-				+ "']";
+		std::string specificModelSearch = ".//Models/Model[@id='" + name + "']";
 
 		pugi::xpath_node xpathModel = mRootNode.select_node(
 				specificModelSearch.c_str());
@@ -136,8 +135,8 @@ void ConfigurationServer::setModelParameters() {
 				for (auto &parameter : xpathAllParameter) {
 
 					parameterValue = parameter.node().text().get();
-					mModelInformation[name
-							+ "_" + parameter.node().attribute("name").value()] =
+					mModelInformation[name + "_"
+							+ parameter.node().attribute("name").value()] =
 							parameterValue;
 				}
 			}
@@ -166,7 +165,7 @@ int ConfigurationServer::getNumberOfPersistModels() {
 }
 
 std::vector<std::string> ConfigurationServer::getModelNames() {
-	std::vector < std::string > modelNames;
+	std::vector<std::string> modelNames;
 
 	std::string allModelsSearch = ".//Models/Model";
 
@@ -183,7 +182,7 @@ std::vector<std::string> ConfigurationServer::getModelNames() {
 
 std::vector<std::string> ConfigurationServer::getModelDependencies(
 		std::string modelName) {
-	std::vector < std::string > modelDependencies;
+	std::vector<std::string> modelDependencies;
 
 	// Search for the first matching entry with the given hint attribute
 	std::string specificModelSearch = ".//Models/Model[@id='" + modelName

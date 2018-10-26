@@ -46,8 +46,6 @@ void ProcessingElement::init() {
 	if (destinationAddress == mAddress) {
 		destinationAddress = 2;
 	}
-
-	// mPacketGenerator.getFlit(mCurrentSimTime);
 }
 
 bool ProcessingElement::prepare() {
@@ -99,11 +97,6 @@ bool ProcessingElement::prepare() {
 
 void ProcessingElement::run() {
 	while (mRun) {
-		/*if (mPacket.empty()) {
-		 mPacketGenerator.generatePacket(mPacket, mPacketNumber.getValue(),
-		 1, GenerationModes::counter, mCurrentSimTime);
-		 } else*/
-
 		if (mSubscriber.receiveEvent()) {
 			this->handleEvent();
 		}
@@ -112,10 +105,10 @@ void ProcessingElement::run() {
 
 void ProcessingElement::handleEvent() {
 	auto eventBuffer = mSubscriber.getEventBuffer();
+
 	auto receivedEvent = event::GetEvent(eventBuffer);
 	std::string eventName = receivedEvent->name()->str();
 	mCurrentSimTime = receivedEvent->timestamp();
-
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
 	if (eventName == "SimTimeChanged") {
@@ -211,7 +204,7 @@ void ProcessingElement::loadState(std::string filePath) {
 	}
 
 	// Optional calculate parameters from the loaded initial state
-	this->init();
+	init();
 
 	mRun = mSubscriber.synchronizeSub();
 }

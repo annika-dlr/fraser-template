@@ -18,3 +18,5 @@ models/simulation_model/resources/idl/example_data_4.fbs
 models/router/build
 models/processing_element/resources
 models/processing_element/build
+models/systemc_adapter/resources
+models/systemc_adapter/build
