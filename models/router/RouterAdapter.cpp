@@ -15,9 +15,10 @@
 
 RouterAdapter::RouterAdapter(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
-				mCtx), mDealer(mCtx, mName), mNocSize("NocSize", 2), mFifoSize("FifoSize", 4), mAddress(
-				"RouterAddress", "0000"), mConnectivityBits("ConnectivityBits",
-				"0000"), mRoutingBits("RoutingBits", "00000000") {
+				mCtx), mDealer(mCtx, mName), mNocSize("NocSize", 2), mFifoSize(
+				"FifoSize", 4), mAddress("RouterAddress", "0000"), mConnectivityBits(
+				"ConnectivityBits", "0000"), mRoutingBits("RoutingBits",
+				"00000000") {
 
 	registerInterruptSignal();
 
@@ -127,45 +128,50 @@ void RouterAdapter::handleEvent() {
 	mCurrentSimTime = receivedEvent->timestamp();
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
-	if (receivedEvent->data_type() == event::EventData_Flit) {
-		auto flitData = receivedEvent->data_as_Flit()->uint32();
+	if (receivedEvent->event_data() != nullptr) {
+		auto dataRef = receivedEvent->event_data_flexbuffer_root();
 
-		if (eventName == "PacketGenerator") {
-			mRouter.pushToLocalFIFO(flitData);
-		}
-		// Flit comes from the South output of the previous router
-		else if (eventName == "South") {
-			mRouter.pushToNorthFIFO(flitData);
-		}
-		// Flit comes from the West output of the previous router
-		else if (eventName == "West") {
-			mRouter.pushToEastFIFO(flitData);
+		if (dataRef.IsUInt()) {
+			uint32_t flitData =
+					receivedEvent->event_data_flexbuffer_root().AsUInt32();
 
-		}
-		// Flit comes from the North output of the previous router
-		else if (eventName == "North") {
-			mRouter.pushToSouthFIFO(flitData);
+			if (eventName == "PacketGenerator") {
+				mRouter.pushToLocalFIFO(flitData);
+			}
+			// Flit comes from the South output of the previous router
+			else if (eventName == "South") {
+				mRouter.pushToNorthFIFO(flitData);
+			}
+			// Flit comes from the West output of the previous router
+			else if (eventName == "West") {
+				mRouter.pushToEastFIFO(flitData);
 
-		}
-		// Flit comes from the East output of the previous router
-		else if (eventName == "East") {
-			mRouter.pushToWestFIFO(flitData);
+			}
+			// Flit comes from the North output of the previous router
+			else if (eventName == "North") {
+				mRouter.pushToSouthFIFO(flitData);
 
-		}
+			}
+			// Flit comes from the East output of the previous router
+			else if (eventName == "East") {
+				mRouter.pushToWestFIFO(flitData);
 
-	} else if (receivedEvent->data_type() == event::EventData_String) {
-		std::string configPath = receivedEvent->data_as_String()->str();
+			}
+		} else if (dataRef.IsString()) {
+			std::string configPath =
+					receivedEvent->event_data_flexbuffer_root().AsString().str();
 
-		if (eventName == "SaveState") {
-			this->saveState(
-					std::string(configPath.begin(), configPath.end()) + mName
-							+ ".config");
-		}
+			if (eventName == "SaveState") {
+				this->saveState(
+						std::string(configPath.begin(), configPath.end())
+								+ mName + ".config");
+			}
 
-		else if (eventName == "LoadState") {
-			this->loadState(
-					std::string(configPath.begin(), configPath.end()) + mName
-							+ ".config");
+			else if (eventName == "LoadState") {
+				this->loadState(
+						std::string(configPath.begin(), configPath.end())
+								+ mName + ".config");
+			}
 		}
 	}
 
@@ -209,9 +215,14 @@ void RouterAdapter::sendFlit(uint32_t flit, std::string reqString) {
 	flatbuffers::FlatBufferBuilder fbb;
 	flatbuffers::Offset<event::Event> eventOffset;
 
+	// Event Data Serialization
+	flexbuffers::Builder flexbuild;
+	flexbuild.Add(flit);
+	flexbuild.Finish();
+	auto data = fbb.CreateVector(flexbuild.GetBuffer());
+
 	eventOffset = event::CreateEvent(fbb, fbb.CreateString(reqString),
-			mCurrentSimTime, event::Priority_NORMAL_PRIORITY, 0, 0,
-			event::EventData_Flit, event::CreateFlit(fbb, flit).Union());
+			mCurrentSimTime, event::Priority_NORMAL_PRIORITY, 0, 0, data);
 
 	fbb.Finish(eventOffset);
 

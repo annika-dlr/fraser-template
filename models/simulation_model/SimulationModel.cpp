@@ -113,6 +113,7 @@ void SimulationModel::stopSim() {
 }
 
 void SimulationModel::loadState(std::string filePath) {
+	std::cout << mName << " ... Load State" << std::endl;
 	this->pauseSim();
 
 	// Restore states
@@ -127,10 +128,17 @@ void SimulationModel::loadState(std::string filePath) {
 		std::cout << ex.what() << std::endl;
 	}
 
+	// Event Data Serialization
+	flexbuffers::Builder flexbuild;
+	flexbuild.Add(filePath);
+	flexbuild.Finish();
+	auto data = mFbb.CreateVector(flexbuild.GetBuffer());
+
 	mEventOffset = event::CreateEvent(mFbb, mFbb.CreateString("LoadState"),
 			mCurrentSimTime.getValue(), event::Priority_NORMAL_PRIORITY, 0, 0,
-			event::EventData_String, mFbb.CreateString(filePath).Union());
+			data);
 	mFbb.Finish(mEventOffset);
+
 	mPublisher.publishEvent("LoadState", mFbb.GetBufferPointer(),
 			mFbb.GetSize());
 
@@ -149,11 +157,18 @@ void SimulationModel::loadState(std::string filePath) {
 }
 
 void SimulationModel::saveState(std::string filePath) {
+	std::cout << mName << " ... Save State" << std::endl;
 	this->pauseSim();
+
+	// Event Data Serialization
+	flexbuffers::Builder flexbuild;
+	flexbuild.Add(filePath);
+	flexbuild.Finish();
+	auto data = mFbb.CreateVector(flexbuild.GetBuffer());
 
 	mEventOffset = event::CreateEvent(mFbb, mFbb.CreateString("SaveState"),
 			mCurrentSimTime.getValue(), event::Priority_NORMAL_PRIORITY, 0, 0,
-			event::EventData_String, mFbb.CreateString(filePath).Union());
+			data);
 	mFbb.Finish(mEventOffset);
 	mPublisher.publishEvent("SaveState", mFbb.GetBufferPointer(),
 			mFbb.GetSize());

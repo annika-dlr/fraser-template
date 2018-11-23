@@ -20,10 +20,10 @@
 
 ProcessingElement::ProcessingElement(std::string name, std::string description) :
 		mName(name), mDescription(description), mCtx(1), mSubscriber(mCtx), mPublisher(
-				mCtx), mDealer(mCtx, mName), mCurrentSimTime(0), mPacketGenerator(), 
-				mPacketSink(), mPacketNumber("PacketNumber", 10), mMinPacketLength("minPacketLength", 3), 
-				mMaxPacketLength("maxPacketLength", 10), mRandomSeed("randomSeed", 42), 
-				mPacketsToGenerate("packetsToGenerate", 3), mPir("PIR", 0.05) {
+				mCtx), mDealer(mCtx, mName), mCurrentSimTime(0), mPacketGenerator(), mPacketSink(), mPacketNumber(
+				"PacketNumber", 10), mMinPacketLength("minPacketLength", 3), mMaxPacketLength(
+				"maxPacketLength", 10), mRandomSeed("randomSeed", 42), mPacketsToGenerate(
+				"packetsToGenerate", 3), mPir("PIR", 0.05) {
 
 	registerInterruptSignal();
 
@@ -36,9 +36,10 @@ ProcessingElement::~ProcessingElement() {
 
 void ProcessingElement::init() {
 	// Set or calculate other parameters ...
-	mPacketGenerator.init(mAddress, NOC_NODE_COUNT, GenerationModes::random, mPir.getValue(), 
-							mMinPacketLength.getValue(), mMaxPacketLength.getValue(),
-							mRandomSeed.getValue(), mPacketsToGenerate.getValue());
+	mPacketGenerator.init(mAddress, NOC_NODE_COUNT, GenerationModes::random,
+			mPir.getValue(), mMinPacketLength.getValue(),
+			mMaxPacketLength.getValue(), mRandomSeed.getValue(),
+			mPacketsToGenerate.getValue());
 
 	mPacketSink.init(mAddress);
 
@@ -111,7 +112,38 @@ void ProcessingElement::handleEvent() {
 	mCurrentSimTime = receivedEvent->timestamp();
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 
-	if (eventName == "SimTimeChanged") {
+	if (receivedEvent->event_data() != nullptr) {
+		auto dataRef = receivedEvent->event_data_flexbuffer_root();
+
+		if (dataRef.IsUInt()) {
+			auto flitData =
+					receivedEvent->event_data_flexbuffer_root().AsUInt32();
+
+			if (eventName == "Local") {
+				mPacketSink.putFlit(flitData);
+			}
+		}
+
+		else if (dataRef.IsString()) {
+			std::string configPath =
+					receivedEvent->event_data_flexbuffer_root().AsString().str();
+
+			if (eventName == "SaveState") {
+				saveState(
+						std::string(configPath.begin(), configPath.end())
+								+ mName + ".config");
+			}
+
+			else if (eventName == "LoadState") {
+				loadState(
+						std::string(configPath.begin(), configPath.end())
+								+ mName + ".config");
+			}
+		}
+
+	}
+
+	else if (eventName == "SimTimeChanged") {
 
 		if (mCredit_Cnt_L > 0) {
 
@@ -123,15 +155,21 @@ void ProcessingElement::handleEvent() {
 				flatbuffers::FlatBufferBuilder fbb;
 				flatbuffers::Offset<event::Event> eventOffset;
 
+				// Event Data Serialization
+				flexbuffers::Builder flexbuild;
+				flexbuild.Add(flit);
+				flexbuild.Finish();
+				auto data = fbb.CreateVector(flexbuild.GetBuffer());
+
 				// Sending (Publishing) a flit and using Flatbuffers to serialize the data (flit):
 				std::string eventName = "PacketGenerator";
-				eventOffset = event::CreateEvent(fbb, fbb.CreateString(eventName),
-						mCurrentSimTime, event::Priority_NORMAL_PRIORITY, 0, 0,
-						event::EventData_Flit,
-						event::CreateFlit(fbb, flit).Union());
+				eventOffset = event::CreateEvent(fbb,
+						fbb.CreateString(eventName), mCurrentSimTime,
+						event::Priority_NORMAL_PRIORITY, 0, 0, data);
 				fbb.Finish(eventOffset);
 
-				std::cout << "\e[1mT=" << mCurrentSimTime << ": \e[0m" << mName << " sends " << flit << std::endl;
+				std::cout << "\e[1mT=" << mCurrentSimTime << ": \e[0m" << mName
+						<< " sends " << flit << std::endl;
 
 				mPublisher.publishEvent(eventName, fbb.GetBufferPointer(),
 						fbb.GetSize());
@@ -144,30 +182,6 @@ void ProcessingElement::handleEvent() {
 	else if (eventName == "Credit_in_L++") {
 		if (mCredit_Cnt_L < 3) {
 			mCredit_Cnt_L++;
-		}
-	}
-
-	else if (receivedEvent->data_type() == event::EventData_Flit) {
-		auto flitData = receivedEvent->data_as_Flit()->uint32();
-
-		if (eventName == "Local") {
-			mPacketSink.putFlit(flitData);
-		}
-	}
-
-	else if (receivedEvent->data_type() == event::EventData_String) {
-		std::string configPath = receivedEvent->data_as_String()->str();
-
-		if (eventName == "SaveState") {
-			saveState(
-					std::string(configPath.begin(), configPath.end()) + mName
-							+ ".config");
-		}
-
-		else if (eventName == "LoadState") {
-			loadState(
-					std::string(configPath.begin(), configPath.end()) + mName
-							+ ".config");
 		}
 	} else if (eventName == "End") {
 		mRun = false;

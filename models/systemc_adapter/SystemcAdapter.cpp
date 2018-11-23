@@ -96,10 +96,15 @@ void SystemcAdapter::b_transport(tlm::tlm_generic_payload& trans,
 	flatbuffers::FlatBufferBuilder fbb;
 	flatbuffers::Offset<event::Event> eventOffset;
 
+	// Event Data Serialization
+	flexbuffers::Builder flexbuild;
+	flexbuild.Add(in_flit);
+	flexbuild.Finish();
+	auto data = fbb.CreateVector(flexbuild.GetBuffer());
+
 	std::string reqString = "PacketGenerator";
 	eventOffset = event::CreateEvent(fbb, fbb.CreateString(reqString),
-			mCurrentSimTime, event::Priority_NORMAL_PRIORITY, 0, 0,
-			event::EventData_Flit, event::CreateFlit(fbb, in_flit).Union());
+			mCurrentSimTime, event::Priority_NORMAL_PRIORITY, 0, 0, data);
 
 	fbb.Finish(eventOffset);
 
@@ -127,26 +132,45 @@ void SystemcAdapter::handleEvent() {
 	mRun = !foundCriticalSimCycle(mCurrentSimTime);
 	sc_time delay = sc_time(100, SC_MS);
 
-	if (receivedEvent->data_type() == event::EventData_Flit) {
-		auto flit = receivedEvent->data_as_Flit()->uint32();
+	if (receivedEvent->event_data() != nullptr) {
+		auto dataRef = receivedEvent->event_data_flexbuffer_root();
 
 		// TLM-2 generic payload transaction, reused across calls to b_transport
-		tlm::tlm_generic_payload* flitTrans = new tlm::tlm_generic_payload;
+		tlm::tlm_generic_payload* trans = new tlm::tlm_generic_payload;
 
-		cout << "Flit from pkt-gen: " << flit << endl;
+		if (dataRef.IsUInt()) {
+			auto uintData = dataRef.AsUInt64();
+			trans->set_data_ptr(reinterpret_cast<unsigned char*>(&uintData));
+
+		} else if (dataRef.IsInt()) {
+			auto intData = dataRef.AsInt64();
+			trans->set_data_ptr(reinterpret_cast<unsigned char*>(&intData));
+
+		} else if (dataRef.IsFloat()) {
+			auto floatData = dataRef.AsFloat();
+			trans->set_data_ptr(reinterpret_cast<unsigned char*>(&floatData));
+
+		} else if (dataRef.IsString()) {
+			auto stringData = dataRef.AsString();
+			trans->set_data_ptr(reinterpret_cast<unsigned char*>(&stringData));
+
+		} else if (dataRef.IsVector()) {
+			auto vectorData = dataRef.AsVector();
+			trans->set_data_ptr(reinterpret_cast<unsigned char*>(&vectorData));
+		}
+
+		cout << "Flit from pkt-gen: " << "" << endl;
 
 		// set the transaction
-		flitTrans->set_data_ptr(reinterpret_cast<unsigned char*>(&flit));
-		flitTrans->set_data_length(4);
-		flitTrans->set_streaming_width(4);
-		flitTrans->set_byte_enable_ptr(0);
-		flitTrans->set_dmi_allowed(false);
-		flitTrans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+		trans->set_data_length(4);
+		trans->set_streaming_width(4);
+		trans->set_byte_enable_ptr(0);
+		trans->set_dmi_allowed(false);
+		trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
-		mInitMemorySocket->b_transport(*flitTrans, delay); //blocking call
-	}
+		mInitMemorySocket->b_transport(*trans, delay); //blocking call
 
-	else if (eventName == "Credit_in_L++") {
+	} else if (eventName == "Credit_in_L++") {
 		// TLM-2 generic payload transaction, reused across calls to b_transport
 		tlm::tlm_generic_payload* creditCntTrans = new tlm::tlm_generic_payload;
 		// set the transaction
