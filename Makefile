@@ -1,10 +1,10 @@
-config-file?=config0.xml
+hosts_config_file?=config0.xml
 ANSIBLE_DIR := ansible
 
 all:
-	# make configure-local
+	make configure-local
 	make update
-	# make configure
+	make configure
 	make init
 	make build-all
 	make default-configs
@@ -29,7 +29,7 @@ configure-local:
 	ansible-playbook $(ANSIBLE_DIR)/configure-local.yml --ask-become-pass --connection=local -e ansible_python_interpreter=/usr/bin/python -i ./ansible/inventory/hosts
 
 update:
-	ansible-playbook $(ANSIBLE_DIR)/update-inv.yml --connection=local
+	ansible-playbook $(ANSIBLE_DIR)/update-inv.yml --connection=local -e hosts_config_file=$(hosts_config_file)
 
 configure:
 	ansible-playbook $(ANSIBLE_DIR)/configure.yml --ask-become-pass -i ./ansible/inventory/hosts
@@ -41,7 +41,7 @@ build-all:
 	ansible-playbook $(ANSIBLE_DIR)/build.yml --connection=local -i ./ansible/inventory/hosts
 
 build:
-	ansible-playbook $(ANSIBLE_DIR)/build.yml --connection=local -i ./ansible/inventory/hosts --extra-vars 'models=[{"name":"$(model)"}]'
+	ansible-playbook $(ANSIBLE_DIR)/build.yml --connection=local -i ./ansible/inventory/hosts -e 'models=[{"name":"$(model)"}]'
 
 default-configs:
 	ansible-playbook $(ANSIBLE_DIR)/default-configs.yml --connection=local -i ./ansible/inventory/hosts
