@@ -12,26 +12,29 @@
 	</Hosts>
 
 	<!-- [configPath]: Define the configuration path for the models -->
-	<!-- The folder contains files with the initialized state of each persistent model -->
-	<Models configPath= "../configurations/config_0">
-	
+	<!-- The folder contains files with the initialized state of each persistent 
+		model -->
+	<Models configPath="../configurations/config_0">
+
 		<!-- Do not remove this model! -->
 		<!-- Model is part of the environment -->
-		<Model id="configuration_server" path="../models/configuration_server"> 
-  			<HostReference hostID="host_0" /> 
-  		</Model>
+		<Model id="configuration_server"
+			path="../models/configuration_server">
+			<HostReference hostID="host_0" />
+		</Model>
 
-  		<!-- Do not remove this model! -->
+		<!-- Do not remove this model! -->
 		<!-- Model is part of the environment -->
-  		<Model persist="true" id="simulation_model" path="../models/simulation_model"> 
-  			<HostReference hostID="host_0" />
-  		</Model>
+		<Model persist="true" id="simulation_model"
+			path="../models/simulation_model">
+			<HostReference hostID="host_0" />
+		</Model>
 
 		<!-- Add your Custom Models -->
 		<!-- [type]: name of the folder within the models-folder -->
 		<!-- [id]: unique model identifier/name -->
-		<!-- [HostReference]: define on which host the model is executed  -->
-		<!-- [Dependencies]: define the dependencies to other models  -->
+		<!-- [HostReference]: define on which host the model is executed -->
+		<!-- [Dependencies]: define the dependencies to other models -->
 		<Model persist="true" id="router_0" path="../models/router">
 			<HostReference hostID="host_0" />
 			<Dependencies>
@@ -89,28 +92,28 @@
 			</Parameters>
 		</Model>
 
-<!-- 		<Model persist="true" id="processing_element_0" path="../models/processing_element">
-			<HostReference hostID="host_0" />
-			<Dependencies>
-				<ModelReference modelID="router_0" />
-			</Dependencies>
-		</Model> -->
+		<!-- <Model persist="true" id="processing_element_0" path="../models/processing_element"> 
+			<HostReference hostID="host_0" /> <Dependencies> <ModelReference modelID="router_0" 
+			/> </Dependencies> </Model> -->
 
-		<Model persist="true" id="processing_element_1" path="../models/processing_element">
+		<Model persist="true" id="processing_element_1"
+			path="../models/processing_element">
 			<HostReference hostID="host_0" />
 			<Dependencies>
 				<ModelReference modelID="router_1" />
 			</Dependencies>
 		</Model>
 
-		<Model persist="true" id="processing_element_2" path="../models/processing_element">
+		<Model persist="true" id="processing_element_2"
+			path="../models/processing_element">
 			<HostReference hostID="host_0" />
 			<Dependencies>
 				<ModelReference modelID="router_2" />
 			</Dependencies>
 		</Model>
 
-		<Model persist="true" id="processing_element_3" path="../models/processing_element">
+		<Model persist="true" id="processing_element_3"
+			path="../models/processing_element">
 			<HostReference hostID="host_0" />
 			<Dependencies>
 				<ModelReference modelID="router_3" />
